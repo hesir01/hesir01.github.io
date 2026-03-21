@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>家务随机抽取</title>
+  <!-- 引入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入 Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <!-- 配置 Tailwind 自定义颜色 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#6366f1',
+            secondary: '#ec4899',
+            accent: '#14b8a6',
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'spin-slow': 'spin 3s linear infinite',
+            'bounce-slow': 'bounce 2s infinite',
+          }
+        },
+      }
+    }
+  </script>
+  <!-- 自定义工具类 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .text-shadow-lg {
+        text-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+      .bg-gradient-animated {
+        background-size: 400% 400%;
+        animation: gradient 15s ease infinite;
+      }
+      @keyframes gradient {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+      .button-press {
+        transform: scale(0.95);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white overflow-hidden">
+  <!-- 赛博朋克背景 -->
+  <div class="fixed inset-0 z-0 bg-gradient-animated bg-gradient-to-br from-cyan-900 via-purple-900 to-pink-900"></div>
+  
+  <!-- 赛博朋克背景装饰 -->
+  <div class="fixed inset-0 z-0 opacity-30">
+    <!-- 网格背景 -->
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#ff00ff22_1px,transparent_1px),linear-gradient(to_bottom,#00ffff22_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+    <!-- 动态光效 -->
+    <div class="absolute top-1/4 left-1/4 w-60 h-60 rounded-full bg-cyan-500 blur-3xl animate-pulse-slow"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-pink-500 blur-3xl animate-pulse-slow" style="animation-delay: 1.5s;"></div>
+    <div class="absolute top-1/2 left-1/2 w-70 h-70 rounded-full bg-purple-500 blur-3xl animate-pulse-slow" style="animation-delay: 0.7s;"></div>
+  </div>
+
+  <!-- 主内容 -->
+  <div class="relative z-10 w-full max-w-md px-6 py-10">
+    <!-- 赛博朋克风格卡片 -->
+    <div class="bg-gray-900 bg-opacity-80 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-cyan-500/30 relative overflow-hidden">
+      <!-- 霓虹边框效果 -->
+      <span class="absolute inset-0 rounded-2xl border-2 border-transparent bg-gradient-to-r from-cyan-500 to-pink-500 opacity-50 animate-pulse-slow"></span>
+      <!-- 标题 -->
+      <h1 class="text-3xl font-bold text-center mb-8 text-shadow-lg text-cyan-400">
+        <i class="fa fa-tasks mr-2 text-cyan-400"></i>家务随机抽取
+      </h1>
+      
+      <!-- 赛博朋克风格结果显示区域 -->
+      <div id="result" class="bg-gray-800 bg-opacity-60 rounded-xl p-6 mb-8 min-h-32 flex items-center justify-center border border-pink-500/30 relative overflow-hidden">
+        <span class="absolute inset-0 rounded-xl border border-transparent bg-gradient-to-r from-cyan-500/20 to-pink-500/20"></span>
+        <p class="text-xl text-center text-gray-300 relative z-10">点击下方按钮开始抽取</p>
+      </div>
+      
+      <!-- 赛博朋克风格按钮 -->
+      <button id="drawButton" class="w-full py-4 px-6 bg-gradient-to-r from-cyan-500 to-pink-500 text-white font-bold rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/50 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-opacity-50 active:button-press relative overflow-hidden group">
+        <!-- 霓虹边框效果 -->
+        <span class="absolute inset-0 rounded-lg border-2 border-transparent bg-gradient-to-r from-cyan-500 to-pink-500 opacity-70 group-hover:opacity-100 animate-pulse-slow"></span>
+        <div class="flex items-center justify-center relative z-10">
+          <i class="fa fa-random mr-2"></i>
+          <span>开始抽取</span>
+        </div>
+        <!-- 扫描线效果 -->
+        <span class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500 to-transparent transform -translate-y-full group-hover:translate-y-full transition-transform duration-1000 ease-in-out"></span>
+      </button>
+      
+      <!-- 赛博朋克风格家务列表 -->
+      <div class="mt-8">
+        <h2 class="text-lg font-semibold mb-3 text-pink-400">家务列表</h2>
+        <div id="choreList" class="grid grid-cols-2 gap-2">
+          <!-- 家务项将通过JS动态生成 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 家务列表（带表情图标）
+    const chores = [
+      { name: '洗碗', emoji: '🧼' },
+      { name: '拖地', emoji: '🧹' },
+      { name: '擦桌子', emoji: '🧽' },
+      { name: '倒垃圾', emoji: '🗑️' },
+      { name: '洗衣服', emoji: '👕' },
+      { name: '整理房间', emoji: '🛏️' },
+      { name: '做饭', emoji: '🍳' },
+      { name: '擦窗户', emoji: '🪟' },
+      { name: '浇花', emoji: '🌱' },
+      { name: '打扫卫生间', emoji: '🚽' },
+      { name: '收拾厨房', emoji: '🍽️' },
+      { name: '吸尘', emoji: '🌀' }
+    ];
+
+    // DOM 元素
+    const drawButton = document.getElementById('drawButton');
+    const resultElement = document.getElementById('result');
+    const choreListElement = document.getElementById('choreList');
+
+    // 初始化家务列表
+    function initChoreList() {
+      choreListElement.innerHTML = '';
+      chores.forEach(chore => {
+        const choreItem = document.createElement('div');
+        choreItem.className = 'bg-gray-800 bg-opacity-60 rounded-lg p-3 text-sm flex items-center border border-cyan-500/30 hover:border-pink-500/50 transition-all duration-300 relative overflow-hidden';
+        choreItem.innerHTML = `
+          <span class="mr-2 text-lg">${chore.emoji}</span>
+          <span class="relative z-10">${chore.name}</span>
+          <span class="absolute inset-0 rounded-lg border border-transparent bg-gradient-to-r from-cyan-500/10 to-pink-500/10"></span>
+        `;
+        choreListElement.appendChild(choreItem);
+      });
+    }
+
+    // 随机抽取家务
+    function drawChore() {
+      // 按钮动画
+      drawButton.classList.add('scale-95');
+      setTimeout(() => {
+        drawButton.classList.remove('scale-95');
+      }, 200);
+
+      // 结果区域动画
+      resultElement.classList.add('animate-pulse');
+      resultElement.innerHTML = '<p class="text-xl text-center text-gray-300">抽取中...</p>';
+
+      // 模拟抽取过程
+      setTimeout(() => {
+        const randomIndex = Math.floor(Math.random() * chores.length);
+        const selectedChore = chores[randomIndex];
+        
+        // 显示结果
+        resultElement.classList.remove('animate-pulse');
+        resultElement.innerHTML = `
+          <div class="text-center">
+            <div class="inline-block p-4 rounded-full bg-primary bg-opacity-20 mb-3">
+              <span class="text-4xl animate-bounce-slow">${selectedChore.emoji}</span>
+            </div>
+            <p class="text-2xl font-bold text-white">${selectedChore.name}</p>
+            <p class="text-sm text-gray-400 mt-2">恭喜你抽到了这项家务！</p>
+          </div>
+        `;
+      }, 1500);
+    }
+
+    // 事件监听
+    drawButton.addEventListener('click', drawChore);
+
+    // 初始化
+    initChoreList();
+  </script>
+</body>
+</html>
