@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔮 未来职业预测器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 50%, #a29bfe 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 40px;
+            box-shadow: 0 15px 50px rgba(253, 121, 168, 0.3), 0 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 50px 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            border: 4px solid #fd79a8;
+        }
+
+        .title {
+            font-size: 48px;
+            margin-bottom: 40px;
+            background: linear-gradient(90deg, #fd79a8, #e84393, #fdcb6e, #00cec9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .name-input {
+            width: 100%;
+            padding: 18px 25px;
+            font-size: 18px;
+            border: 3px solid #fd79a8;
+            border-radius: 25px;
+            outline: none;
+            transition: all 0.3s ease;
+            text-align: center;
+            background: #fff5f8;
+            color: #e84393;
+        }
+
+        .name-input:focus {
+            border-color: #e84393;
+            box-shadow: 0 0 20px rgba(232, 67, 147, 0.3);
+        }
+
+        .name-input::placeholder {
+            color: #fd79a8;
+        }
+
+        .btn {
+            padding: 18px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn-predict {
+            background: linear-gradient(135deg, #fd79a8, #e84393);
+            color: white;
+            box-shadow: 0 5px 15px rgba(253, 121, 168, 0.4);
+        }
+
+        .btn-predict:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(253, 121, 168, 0.5);
+        }
+
+        .btn-predict:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 3px dashed #fab1a0;
+        }
+
+        .result-section.show {
+            display: block;
+            animation: fadeInScale 0.6s ease-out;
+        }
+
+        @keyframes fadeInScale {
+            0% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            50% {
+                opacity: 0.7;
+                transform: scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .career-emoji {
+            font-size: 100px;
+            margin-bottom: 20px;
+            display: inline-block;
+            animation: bounce 1s ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .career-name {
+            font-size: 32px;
+            font-weight: bold;
+            color: #e84393;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0px #ffeaa7;
+        }
+
+        .career-description {
+            font-size: 16px;
+            color: #6c5ce7;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #fff5f8, #fff0f5);
+            border-radius: 25px;
+            border: 2px solid #fd79a8;
+        }
+
+        .btn-retry {
+            background: linear-gradient(135deg, #fdcb6e, #f39c12);
+            color: white;
+            box-shadow: 0 5px 15px rgba(253, 203, 110, 0.4);
+        }
+
+        .btn-retry:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(253, 203, 110, 0.5);
+        }
+
+        .btn-retry:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .greeting {
+            font-size: 18px;
+            color: #e17055;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🔮 未来职业预测器</h1>
+        
+        <div class="input-section">
+            <input type="text" class="name-input" id="nameInput" placeholder="请输入你的名字...">
+            <button class="btn btn-predict" id="predictBtn">✨ 开始预测</button>
+        </div>
+
+        <div class="result-section" id="resultSection">
+            <div class="greeting" id="greeting"></div>
+            <div class="career-emoji" id="careerEmoji"></div>
+            <div class="career-name" id="careerName"></div>
+            <div class="career-description" id="careerDescription"></div>
+            <button class="btn btn-retry" id="retryBtn">🔄 再测一次</button>
+        </div>
+    </div>
+
+    <script>
+        const careers = [
+            {
+                emoji: "👨‍🚀",
+                name: "太空探险家",
+                description: "你将在火星上建立第一个人类殖民地，每天和外星人喝茶聊天。记得带上足够的泡面，火星外卖不太方便哦！"
+            },
+            {
+                emoji: "🤖",
+                name: "AI 训练师",
+                description: "你会教机器人学会讲笑话，让它们成为办公室里的开心果。小心别让它们学会了你的偷懒技巧！"
+            },
+            {
+                emoji: "🦄",
+                name: "独角兽饲养员",
+                description: "在彩虹山谷里照顾一群会飞的独角兽，每天的工作就是给它们梳毛和喂彩虹糖。这是世界上最梦幻的工作！"
+            },
+            {
+                emoji: "🎮",
+                name: "职业游戏测试员",
+                description: "每天的工作就是打游戏，还能提前体验最新游戏。不过要小心，可能会因为太沉迷而忘记下班！"
+            },
+            {
+                emoji: "🍕",
+                name: "披萨品尝大师",
+                description: "你的味蕾将拯救世界，每天品尝各种口味的披萨。记得多运动，不然可能会变成一个圆圆的披萨！"
+            },
+            {
+                emoji: "🎨",
+                name: "梦境设计师",
+                description: "专门为人们设计美梦，让他们每晚都能做最甜的梦。偶尔也会设计一些噩梦，用来提醒人们早起！"
+            },
+            {
+                emoji: "🌊",
+                name: "海底建筑师",
+                description: "在深海建造水晶宫殿，和鱼儿们一起生活。记得带上防水手机，不然海底信号不太好！"
+            },
+            {
+                emoji: "🎭",
+                name: "表情包创作专家",
+                description: "你的表情包将风靡全球，成为人们日常交流的必备工具。小心别把自己做成表情包哦！"
+            },
+            {
+                emoji: "🌟",
+                name: "星星收集者",
+                description: "每天晚上收集掉落的星星，把它们做成许愿灯送给需要的人。这是世界上最浪漫的工作！"
+            },
+            {
+                emoji: "🎪",
+                name: "时间旅行导游",
+                description: "带领游客穿越时空，见证历史大事。记得别让游客乱买东西，可能会改变历史哦！"
+            },
+            {
+                emoji: "🎸",
+                name: "宇宙音乐家",
+                description: "你的音乐能让外星人感动流泪，成为银河系最红的明星。记得给地球人留几张演唱会门票！"
+            },
+            {
+                emoji: "🌈",
+                name: "彩虹画家",
+                description: "专门在雨天画彩虹，给人们带来希望和快乐。你的作品会在雨后短暂出现，然后消失在云端。"
+            }
+        ];
+
+        const nameInput = document.getElementById('nameInput');
+        const predictBtn = document.getElementById('predictBtn');
+        const resultSection = document.getElementById('resultSection');
+        const careerEmoji = document.getElementById('careerEmoji');
+        const careerName = document.getElementById('careerName');
+        const careerDescription = document.getElementById('careerDescription');
+        const retryBtn = document.getElementById('retryBtn');
+        const greeting = document.getElementById('greeting');
+
+        function getRandomCareer() {
+            const randomIndex = Math.floor(Math.random() * careers.length);
+            return careers[randomIndex];
+        }
+
+        function showResult() {
+            const name = nameInput.value.trim();
+            if (!name) {
+                alert('请先输入你的名字哦！');
+                return;
+            }
+
+            const career = getRandomCareer();
+            
+            greeting.textContent = `${name}，你的未来职业是：`;
+            careerEmoji.textContent = career.emoji;
+            careerName.textContent = career.name;
+            careerDescription.textContent = career.description;
+
+            resultSection.classList.remove('show');
+            setTimeout(() => {
+                resultSection.classList.add('show');
+            }, 10);
+        }
+
+        function reset() {
+            resultSection.classList.remove('show');
+            nameInput.value = '';
+            setTimeout(() => {
+                nameInput.focus();
+            }, 300);
+        }
+
+        predictBtn.addEventListener('click', showResult);
+        retryBtn.addEventListener('click', reset);
+
+        nameInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                showResult();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Context Window - AI 上下文可视化</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: '#09090b',
+            surface: '#18181b',
+            border: '#27272a',
+            text: '#e4e4e7',
+            muted: '#71717a',
+            system: '#a855f7',
+            global: '#22d3ee',
+            project: '#38bdf8',
+            rule: '#22c55e',
+            memory: '#c084fc',
+            user: '#fb923c',
+            ai: '#3b82f6',
+            mcp: '#ec4899',
+            skills: '#f59e0b',
+          },
+          fontFamily: {
+            mono: ['SF Mono', 'Monaco', 'Consolas', 'Monaco', 'monospace'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style>
+    * { font-family: 'SF Mono', 'Monaco', 'Consolas', monospace; }
+    
+    :root {
+      --system: #a855f7;
+      --global: #22d3ee;
+      --project: #38bdf8;
+      --rule: #22c55e;
+      --memory: #c084fc;
+      --user: #fb923c;
+      --ai: #3b82f6;
+      --mcp: #ec4899;
+      --skills: #f59e0b;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: #e4e4e7;
+      perspective: 1000px;
+    }
+    
+    .card {
+      background: linear-gradient(145deg, #1e1e2f, #252540);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      box-shadow: 
+        8px 8px 16px rgba(0,0,0,0.4),
+        -4px -4px 12px rgba(255,255,255,0.05),
+        inset 0 1px 0 rgba(255,255,255,0.1);
+      transform-style: preserve-3d;
+    }
+    
+    .source-item {
+      transition: all 0.3s ease;
+      border-left: 2px solid transparent;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.02);
+    }
+    .source-item:hover {
+      background: rgba(255,255,255,0.08);
+      border-left-color: #fff;
+      transform: translateX(4px);
+    }
+    .source-item.active {
+      background: rgba(255,255,255,0.1);
+      border-left-color: var(--source-color);
+      box-shadow: 0 0 20px var(--source-color);
+    }
+    
+    .context-block {
+      transition: all 0.3s ease;
+      border-radius: 12px;
+      background: linear-gradient(145deg, rgba(30,30,47,0.8), rgba(37,37,64,0.8));
+      box-shadow: 
+        4px 4px 8px rgba(0,0,0,0.3),
+        -2px -2px 6px rgba(255,255,255,0.03);
+    }
+    .context-block:hover {
+      transform: translateX(8px) scale(1.02);
+      box-shadow: 
+        6px 6px 12px rgba(0,0,0,0.4),
+        0 0 15px var(--block-color, rgba(255,255,255,0.1));
+    }
+    
+    .chat-message {
+      max-width: 85%;
+      padding: 14px 18px;
+      border-radius: 16px;
+      font-size: 13px;
+      line-height: 1.6;
+      box-shadow: 3px 3px 8px rgba(0,0,0,0.2);
+    }
+    .chat-message.user {
+      background: linear-gradient(145deg, #fb923c, #ea580c);
+      border-bottom-right-radius: 4px;
+      color: white;
+    }
+    .chat-message.ai {
+      background: linear-gradient(145deg, #3b82f6, #2563eb);
+      border-bottom-left-radius: 4px;
+      color: white;
+    }
+    
+    .progress-fill {
+      transition: width 0.5s ease, background 0.3s ease;
+    }
+    .progress-fill.normal { 
+      background: linear-gradient(90deg, #22c55e, #4ade80, #22d3ee); 
+      box-shadow: 0 0 10px rgba(34,197,94,0.5);
+    }
+    .progress-fill.warning { 
+      background: linear-gradient(90deg, #f59e0b, #fb923c, #f97316); 
+      box-shadow: 0 0 10px rgba(245,158,11,0.5);
+      animation: pulse 1s ease-in-out infinite;
+    }
+    .progress-fill.danger { 
+      background: linear-gradient(90deg, #ef4444, #f87171, #fb923c);
+      box-shadow: 0 0 15px rgba(239,68,68,0.6);
+      animation: pulse 0.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scaleY(1); }
+      50% { opacity: 0.8; transform: scaleY(1.1); }
+    }
+    
+    .step-enter {
+      animation: slideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-20px) rotateX(-10deg); }
+      to { opacity: 1; transform: translateY(0) rotateX(0); }
+    }
+    
+    .click-hint {
+      animation: breathe 2s ease-in-out infinite;
+    }
+    @keyframes breathe {
+      0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+      50% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+    }
+    
+    .scroll-thin::-webkit-scrollbar { width: 6px; }
+    .scroll-thin::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 3px; }
+    .scroll-thin::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #4a5568, #2d3748); border-radius: 3px; }
+    .scroll-thin::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #718096, #4a5568); }
+    
+    .glow-text {
+      text-shadow: 0 0 10px currentColor;
+    }
+  </style>
+</head>
+
+<body class="h-screen overflow-hidden cursor-pointer select-none">
+  
+  <!-- 点击提示 -->
+  <div id="clickHint" class="fixed inset-0 flex items-center justify-center pointer-events-none z-50" style="background: rgba(26,26,46,0.9);">
+    <div class="card px-8 py-6 text-center click-hint" style="transform: translateZ(20px);">
+      <div class="text-4xl mb-3">👆</div>
+      <div class="text-sm text-gray-300 mb-1">点击屏幕开始演示 / Click to Start</div>
+      <div class="text-xs text-gray-500">每点击一次执行一个步骤 / Click for next step</div>
+    </div>
+  </div>
+
+  <div class="flex h-full">
+    <!-- 左侧：信息来源 -->
+    <aside class="w-64 flex-shrink-0 card m-2 mr-0 flex flex-col">
+      <div class="p-4 border-b border-zinc-800">
+        <h2 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Sources / 信息来源</h2>
+      </div>
+      
+      <div class="flex-1 overflow-y-auto scroll-thin p-2" id="sourcesList"></div>
+
+      <div class="p-3 border-t border-zinc-800">
+        <div class="text-xs text-gray-500">步骤 / Step: <span id="stepCounter" class="text-gray-300">0</span> / 20</div>
+      </div>
+    </aside>
+
+    <!-- 中间：上下文窗口 -->
+    <main class="flex-1 flex flex-col m-2">
+      <div class="card flex-1 flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-zinc-800">
+          <h2 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Context Window / 上下文窗口</h2>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto scroll-thin p-4 space-y-2" id="contextBlocks"></div>
+
+        <!-- 底部进度条 -->
+        <div class="p-4 border-t border-zinc-800">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs text-gray-500">Context / 上下文使用</span>
+            <span class="text-xs font-mono" id="tokenDisplay">0 / 60K</span>
+          </div>
+          <div class="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+            <div class="h-full progress-fill normal" id="progressBar" style="width: 0%"></div>
+          </div>
+          <p class="text-xs text-gray-500 mt-2" id="progressHint">
+            <span class="text-gray-400">Click to start / 点击开始</span>
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <!-- 右侧：对话 -->
+    <aside class="w-80 flex-shrink-0 card m-2 ml-0 flex flex-col">
+      <div class="p-4 border-b border-zinc-800">
+        <h2 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Chat / 对话</h2>
+      </div>
+      
+      <div class="flex-1 overflow-y-auto scroll-thin p-4 space-y-3" id="chatMessages">
+        <div class="text-center text-gray-600 py-8" id="chatPlaceholder">
+          <div class="text-2xl mb-2 opacity-30">💬</div>
+          <p class="text-xs text-gray-600">Chat history / 对话历史</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const sources = [
+      { id: 'system', name: 'System Prompt / 系统指令', color: '#a855f7', tokens: 4000 },
+      { id: 'global', name: 'Global / 全局配置', color: '#22d3ee', tokens: 3500 },
+      { id: 'project', name: 'Project / 项目文档', color: '#38bdf8', tokens: 12300 },
+      { id: 'rule', name: 'Rules / 规则集', color: '#22c55e', tokens: 8700 },
+      { id: 'memory', name: 'Memory / 记忆', color: '#c084fc', tokens: 6200 },
+      { id: 'mcp', name: 'MCP Tools / MCP工具', color: '#ec4899', tokens: 1500 },
+      { id: 'skills', name: 'Skills / 技能', color: '#f59e0b', tokens: 800 },
+    ];
+
+    const steps = [
+      // Round 1
+      { id: 1, title: '用户提问 / Query', type: 'user', color: '#fb923c', tokens: 28, content: '这个项目怎么运行？', sourceId: 'user', chat: { role: 'user', content: '这个项目怎么运行？' }, hint: 'User sends message / 用户发送消息' },
+      { id: 2, title: 'System Prompt', type: 'system', color: '#a855f7', tokens: 4000, content: 'Anthropic 系统指令 / System instructions', sourceId: 'system', chat: null, hint: 'Load System Prompt / 加载系统指令' },
+      { id: 3, title: 'Global Config', type: 'global', color: '#22d3ee', tokens: 3500, content: '全局配置 / Claude.md config', sourceId: 'global', chat: null, hint: 'Load Global Config / 加载全局配置' },
+      { id: 4, title: 'Project Docs', type: 'project', color: '#38bdf8', tokens: 12300, content: 'React + TypeScript + Vite', sourceId: 'project', chat: null, hint: 'Load Project Docs / 加载项目文档' },
+      { id: 5, title: 'AI 回复 / Response', type: 'ai', color: '#3b82f6', tokens: 120, content: 'npm install && npm run dev', sourceId: 'ai', chat: { role: 'ai', content: '运行命令 / Run: npm install → npm run dev\n技术栈 / Stack: React + TS + Vite' }, hint: 'AI Response / AI 回复' },
+      
+      // Round 2
+      { id: 6, title: '用户提问 / Query', type: 'user', color: '#fb923c', tokens: 45, content: '帮我加一个登录模块', sourceId: 'user', chat: { role: 'user', content: '帮我加一个用户登录模块' }, hint: 'User Query / 用户提问' },
+      { id: 7, title: 'Rules 规则集', type: 'rule', color: '#22c55e', tokens: 8700, content: 'ESLint + 函数式 + TypeScript', sourceId: 'rule', chat: null, hint: 'Load Rules / 加载规则集' },
+      { id: 8, title: 'MCP Tools', type: 'mcp', color: '#ec4899', tokens: 1500, content: '读取代码结构 / Read code structure', sourceId: 'mcp', chat: null, hint: 'Call MCP Tools / 调用MCP工具' },
+      { id: 9, title: 'Skills 技能', type: 'skills', color: '#f59e0b', tokens: 800, content: '代码生成 / Code generation', sourceId: 'skills', chat: null, hint: 'Execute Skills / 执行技能' },
+      { id: 10, title: 'AI 回复 / Response', type: 'ai', color: '#3b82f6', tokens: 280, content: 'Login.tsx + useAuth.ts', sourceId: 'ai', chat: { role: 'ai', content: '已生成 / Generated: Login.tsx, useAuth.ts, auth.ts' }, hint: 'AI Response / AI 回复' },
+      
+      // Round 3
+      { id: 11, title: '用户提问 / Query', type: 'user', color: '#fb923c', tokens: 52, content: '再加一个注册功能', sourceId: 'user', chat: { role: 'user', content: '再加一个用户注册功能' }, hint: 'User Query / 用户提问' },
+      { id: 12, title: 'Memory 记忆', type: 'memory', color: '#c084fc', tokens: 6200, content: '用户偏好 / User preferences', sourceId: 'memory', chat: null, hint: 'Load Memory / 加载记忆' },
+      { id: 13, title: 'AI 回复 / Response', type: 'ai', color: '#3b82f6', tokens: 320, content: 'Register.tsx', sourceId: 'ai', chat: { role: 'ai', content: '已生成 / Generated: Register.tsx, useRegister.ts' }, hint: 'AI Response / AI 回复' },
+      
+      // Round 4
+      { id: 14, title: '用户提问 / Query', type: 'user', color: '#fb923c', tokens: 38, content: '加个验证码功能', sourceId: 'user', chat: { role: 'user', content: '加一个短信验证码功能' }, hint: 'User Query / 用户提问' },
+      { id: 15, title: 'AI 回复 / Response', type: 'ai', color: '#3b82f6', tokens: 260, content: 'VerifyCode.tsx', sourceId: 'ai', chat: { role: 'ai', content: '已生成 / Generated: VerifyCode.tsx, smsService.ts' }, hint: 'AI Response / AI 回复' },
+
+      // Round 5 - Overflow
+      { id: 16, title: '用户提问 / Query', type: 'user', color: '#fb923c', tokens: 42, content: '加个权限管理', sourceId: 'user', chat: { role: 'user', content: '帮我加一个用户权限管理功能' }, hint: 'User Query / 用户提问' },
+      { id: 17, title: '⚠️ 窗口溢出 / Overflow', type: 'overflow', color: '#ef4444', tokens: 0, content: 'Context window full (99%) / 上下文窗口已满', sourceId: 'system', chat: null, hint: '⚠️ Window Full! / 窗口已满！' },
+      { id: 18, title: '🗑️ 清理 / Cleanup', type: 'cleanup', color: '#f97316', tokens: -12520, content: '移除第1轮 / Remove Round 1 (12,520 tokens)', sourceId: 'memory', chat: null, hint: '🗑️ Clear Old / 清理旧内容' },
+      { id: 19, title: '重新加载 / Reload', type: 'mcp', color: '#ec4899', tokens: 1500, content: '重新加载代码 / Reload current code', sourceId: 'mcp', chat: null, hint: '🔄 Reload / 重新加载' },
+      { id: 20, title: 'AI 回复 / Response', type: 'ai', color: '#3b82f6', tokens: 340, content: 'RoleManager.tsx', sourceId: 'ai', chat: { role: 'ai', content: '已生成 / Generated: RoleManager.tsx, Permission.ts\n\n⚠️ Round 1 removed. / 已移除第1轮对话。' }, hint: 'AI Response / AI 回复' }
+    ];
+
+    let currentStep = 0;
+    const maxTokens = 60000;
+    let accumulatedTokens = 0;
+
+    function init() {
+      renderSources();
+      renderEmptyContext();
+    }
+
+    function renderSources() {
+      const container = document.getElementById('sourcesList');
+      container.innerHTML = sources.map(s => `
+        <div class="source-item px-3 py-2 rounded mb-1 cursor-pointer" data-source="${s.id}" id="source-${s.id}" style="--source-color: ${s.color}">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full" style="background: ${s.color}"></span>
+            <span class="text-xs text-gray-400">${s.name}</span>
+            <span class="ml-auto text-xs text-gray-600">${(s.tokens/1000).toFixed(1)}k</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderEmptyContext() {
+      document.getElementById('contextBlocks').innerHTML = `
+        <div class="text-center text-gray-600 py-8">
+          <div class="text-2xl mb-2 opacity-30">🧠</div>
+          <p class="text-xs">Waiting for demo... / 等待演示...</p>
+        </div>
+      `;
+    }
+
+    function updateProgress(tokens, step) {
+      accumulatedTokens += tokens;
+      const percentage = Math.min((accumulatedTokens / maxTokens) * 100, 100);
+      
+      const progressBar = document.getElementById('progressBar');
+      const tokenDisplay = document.getElementById('tokenDisplay');
+      const progressHint = document.getElementById('progressHint');
+      
+      progressBar.style.width = `${percentage}%`;
+      tokenDisplay.textContent = `${(accumulatedTokens/1000).toFixed(1)}k / 60k`;
+      
+      progressBar.className = 'h-full progress-fill';
+      if (percentage >= 90) {
+        progressBar.classList.add('danger');
+        progressHint.innerHTML = `<span class="text-red-400">${step.hint}</span>`;
+      } else if (percentage >= 70) {
+        progressBar.classList.add('warning');
+        progressHint.innerHTML = `<span class="text-yellow-400">${step.hint}</span>`;
+      } else {
+        progressBar.classList.add('normal');
+        progressHint.innerHTML = `<span class="text-gray-400">${step.hint}</span>`;
+      }
+    }
+
+    function addContextBlock(step) {
+      const container = document.getElementById('contextBlocks');
+      
+      if (container.querySelector('.text-center')) {
+        container.innerHTML = '';
+      }
+
+      const block = document.createElement('div');
+      block.className = 'context-block step-enter card p-3';
+      block.style.borderLeft = `3px solid ${step.color}`;
+      
+      const tokenChange = step.tokens > 0 ? `+${step.tokens.toLocaleString()}` : step.tokens.toLocaleString();
+      
+      block.innerHTML = `
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-medium" style="color: ${step.color}">${step.title}</span>
+          <span class="text-xs text-gray-500 font-mono">${tokenChange}</span>
+        </div>
+        <p class="text-xs text-gray-400">${step.content}</p>
+      `;
+      
+      container.appendChild(block);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function addChatMessage(chat) {
+      const container = document.getElementById('chatMessages');
+      const placeholder = document.getElementById('chatPlaceholder');
+      if (placeholder) placeholder.remove();
+
+      const isUser = chat.role === 'user';
+      const msg = document.createElement('div');
+      msg.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+      msg.innerHTML = `
+        <div class="chat-message ${isUser ? 'user' : 'ai'}">
+          <div class="text-[10px] uppercase mb-1" style="color: ${isUser ? '#fb923c' : '#3b82f6'}">${isUser ? 'You' : 'Claude'}</div>
+          <div class="text-gray-300">${chat.content.replace(/\n/g, '<br>')}</div>
+        </div>
+      `;
+      
+      container.appendChild(msg);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function highlightSource(sourceId) {
+      document.querySelectorAll('.source-item').forEach(item => {
+        item.classList.remove('active');
+        item.style.opacity = '0.5';
+      });
+      
+      const sourceEl = document.getElementById(`source-${sourceId}`);
+      if (sourceEl) {
+        sourceEl.classList.add('active');
+        sourceEl.style.opacity = '1';
+      }
+    }
+
+    function executeStep() {
+      if (currentStep >= steps.length) {
+        currentStep = 0;
+        accumulatedTokens = 0;
+        document.getElementById('progressBar').style.width = '0%';
+        document.getElementById('progressBar').className = 'h-full progress-fill normal';
+        document.getElementById('tokenDisplay').textContent = '0 / 60k';
+        document.getElementById('contextBlocks').innerHTML = '';
+        document.getElementById('chatMessages').innerHTML = `
+          <div class="text-center text-gray-600 py-8" id="chatPlaceholder">
+            <div class="text-2xl mb-2 opacity-30">💬</div>
+            <p class="text-xs text-gray-600">Chat history</p>
+          </div>
+        `;
+        renderSources();
+        document.getElementById('clickHint').style.display = 'flex';
+        document.getElementById('stepCounter').textContent = '0';
+        return;
+      }
+
+      const step = steps[currentStep];
+      
+      document.getElementById('stepCounter').textContent = currentStep + 1;
+      document.getElementById('clickHint').style.display = 'none';
+      
+      addContextBlock(step);
+      
+      if (step.sourceId && step.sourceId !== 'user' && step.sourceId !== 'ai') {
+        highlightSource(step.sourceId);
+      }
+      
+      updateProgress(step.tokens, step);
+      
+      if (step.chat) {
+        setTimeout(() => addChatMessage(step.chat), 300);
+      }
+
+      currentStep++;
+
+      if (currentStep >= steps.length) {
+        setTimeout(() => {
+          document.getElementById('progressHint').innerHTML = '<span class="text-gray-400">Click to restart / 点击重新开始 →</span>';
+        }, 500);
+      }
+    }
+
+    document.body.addEventListener('click', executeStep);
+    init();
+  </script>
+</body>
+</html>
