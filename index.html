@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>菠萝 - 少儿编程老师</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --accent-green: #00ff88;
+            --accent-blue: #00d4ff;
+            --accent-purple: #a855f7;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-content {
+            text-align: center;
+        }
+
+        .loader-pineapple {
+            font-size: 4rem;
+            animation: loaderPineapple 1s ease-in-out infinite;
+        }
+
+        @keyframes loaderPineapple {
+            0%, 100% {
+                transform: scale(1) rotate(0deg);
+            }
+            50% {
+                transform: scale(1.2) rotate(10deg);
+            }
+        }
+
+        .loader-text {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: var(--accent-green);
+            animation: loaderText 1.5s ease-in-out infinite;
+        }
+
+        @keyframes loaderText {
+            0%, 100% {
+                opacity: 0.5;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: particleFloat 15s infinite linear;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.3;
+            }
+            90% {
+                opacity: 0.3;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--bg-tertiary);
+            transition: all 0.3s ease;
+        }
+
+        header.scrolled {
+            padding: 15px 0;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-green);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent-green);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-green);
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            gap: 5px;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -6px);
+        }
+
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 70px;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-bottom: 1px solid var(--bg-tertiary);
+            z-index: 999;
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-menu a {
+            display: block;
+            color: var(--text-primary);
+            text-decoration: none;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--bg-tertiary);
+            transition: color 0.3s ease;
+        }
+
+        .mobile-menu a:hover {
+            color: var(--accent-green);
+        }
+
+        section {
+            padding: 100px 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero {
+            text-align: center;
+            padding-top: 150px;
+            background: radial-gradient(ellipse at center, rgba(0, 255, 136, 0.05) 0%, transparent 70%);
+        }
+
+        .hero .floating {
+            font-size: 5rem;
+            margin-bottom: 30px;
+            display: inline-block;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero .typing-text {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            min-height: 1.8em;
+        }
+
+        .hero .typing-text .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.2em;
+            background: var(--accent-green);
+            margin-left: 5px;
+            animation: blink 1s infinite;
+            vertical-align: text-bottom;
+        }
+
+        @keyframes blink {
+            0%, 50% {
+                opacity: 1;
+            }
+            51%, 100% {
+                opacity: 0;
+            }
+        }
+
+        .hero .subtitle {
+            font-size: 1.2rem;
+            color: var(--accent-purple);
+            margin-bottom: 30px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--accent-green);
+            border: 2px solid var(--accent-green);
+        }
+
+        .btn-secondary:hover {
+            background: var(--accent-green);
+            color: var(--bg-primary);
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+            margin: 20px auto 0;
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .about-photo {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .about-photo img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .about-photo::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 212, 255, 0.1));
+            z-index: 1;
+        }
+
+        .about-text p {
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+        }
+
+        .about-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid var(--bg-tertiary);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.1);
+        }
+
+        .stat-card .number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent-green);
+            margin-bottom: 10px;
+        }
+
+        .stat-card .label {
+            color: var(--text-secondary);
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .skill-card {
+            background: var(--bg-secondary);
+            padding: 40px 30px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid var(--bg-tertiary);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skill-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .skill-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .skill-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .skill-card .icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .skill-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .skill-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .portfolio-card {
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid var(--bg-tertiary);
+            transition: all 0.3s ease;
+        }
+
+        .portfolio-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .portfolio-image {
+            height: 200px;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        .portfolio-content {
+            padding: 30px;
+        }
+
+        .portfolio-content h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .portfolio-content p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .portfolio-tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .portfolio-tag {
+            background: var(--bg-tertiary);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--accent-green);
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .schedule-card {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid var(--bg-tertiary);
+            transition: all 0.3s ease;
+        }
+
+        .schedule-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .schedule-card .day {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent-green);
+            margin-bottom: 20px;
+        }
+
+        .schedule-card .time {
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .schedule-card .time span {
+            color: var(--accent-blue);
+        }
+
+        .philosophy-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .philosophy-item {
+            background: var(--bg-secondary);
+            padding: 40px;
+            border-radius: 15px;
+            border: 1px solid var(--bg-tertiary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .philosophy-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+        }
+
+        .philosophy-item .number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            opacity: 0.3;
+            margin-bottom: 20px;
+        }
+
+        .philosophy-item h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .philosophy-item p {
+            color: var(--text-secondary);
+        }
+
+        .faq-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            border: 1px solid var(--bg-tertiary);
+        }
+
+        .faq-question {
+            padding: 20px 30px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+
+        .faq-question:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .faq-question h3 {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .faq-question .icon {
+            font-size: 1.5rem;
+            color: var(--accent-green);
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item.active .faq-question .icon {
+            transform: rotate(45deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 500px;
+            padding: 0 30px 20px;
+        }
+
+        .faq-answer p {
+            color: var(--text-secondary);
+        }
+
+        .contact-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+        }
+
+        .contact-info {
+            background: var(--bg-secondary);
+            padding: 40px;
+            border-radius: 15px;
+            border: 1px solid var(--bg-tertiary);
+        }
+
+        .contact-info h3 {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            color: var(--accent-green);
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .contact-item .icon {
+            font-size: 2rem;
+            width: 50px;
+            height: 50px;
+            background: var(--bg-tertiary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .contact-item .text {
+            color: var(--text-primary);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .social-link {
+            width: 50px;
+            height: 50px;
+            background: var(--bg-tertiary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover {
+            background: var(--accent-green);
+            color: var(--bg-primary);
+            transform: translateY(-3px);
+        }
+
+        .contact-form {
+            background: var(--bg-secondary);
+            padding: 40px;
+            border-radius: 15px;
+            border: 1px solid var(--bg-tertiary);
+        }
+
+        .contact-form h3 {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            color: var(--accent-green);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--bg-tertiary);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-green);
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            border: none;
+            border-radius: 8px;
+            color: var(--bg-primary);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 999;
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.5);
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border-top: 1px solid var(--bg-tertiary);
+            position: relative;
+            z-index: 2;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero .typing-text {
+                font-size: 1.2rem;
+            }
+
+            .about-content {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-content {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            section {
+                padding: 60px 0;
+            }
+        }
+
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .pineapple-trail {
+            position: fixed;
+            pointer-events: none;
+            font-size: 24px;
+            z-index: 9999;
+            animation: pineappleFade 1.5s ease-out forwards;
+            user-select: none;
+        }
+
+        @keyframes pineappleFade {
+            0% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.2) translateY(-20px);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.8) translateY(-40px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loader">
+        <div class="loader-content">
+            <div class="loader-pineapple">🍍</div>
+            <div class="loader-text">加载中...</div>
+        </div>
+    </div>
+
+    <div class="particles" id="particles"></div>
+
+    <header>
+        <div class="container">
+            <nav>
+                <a href="#" class="logo">🍍 菠萝</a>
+                <ul class="nav-links">
+                    <li><a href="#home">首页</a></li>
+                    <li><a href="#about">关于我</a></li>
+                    <li><a href="#skills">教学技能</a></li>
+                    <li><a href="#portfolio">教学案例</a></li>
+                    <li><a href="#schedule">课程安排</a></li>
+                    <li><a href="#faq">常见问题</a></li>
+                    <li><a href="#contact">联系方式</a></li>
+                </ul>
+                <div class="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="mobile-menu">
+        <a href="#home">首页</a>
+        <a href="#about">关于我</a>
+        <a href="#skills">教学技能</a>
+        <a href="#portfolio">教学案例</a>
+        <a href="#schedule">课程安排</a>
+        <a href="#faq">常见问题</a>
+        <a href="#contact">联系方式</a>
+    </div>
+
+    <section id="home" class="hero">
+        <div class="container">
+            <div class="floating">🍍</div>
+            <h1>你好，我是菠萝</h1>
+            <div class="typing-text">
+                <span class="text"></span><span class="cursor"></span>
+            </div>
+            <div class="subtitle">用代码点亮孩子的创意世界</div>
+            <div class="hero-buttons">
+                <a href="#contact" class="btn btn-primary">联系我</a>
+                <a href="#portfolio" class="btn btn-secondary">查看作品</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="about">
+        <div class="container">
+            <h2 class="section-title reveal">关于我</h2>
+            <div class="about-content">
+                <div class="about-photo reveal">
+                    <div style="width: 100%; height: 400px; background: linear-gradient(135deg, var(--accent-green), var(--accent-blue)); display: flex; align-items: center; justify-content: center; font-size: 8rem;">👨‍🏫</div>
+                </div>
+                <div class="about-text reveal">
+                    <p>我是菠萝，一名充满热情的少儿编程老师。我相信每个孩子都有无限的创造潜能，而编程是释放这种潜能的最佳工具。</p>
+                    <p>我专注于为孩子们提供有趣、易懂的编程教育，从图形化编程到代码编程，循序渐进地培养孩子的逻辑思维能力和创造力。</p>
+                    <p>我的教学风格轻松活泼，善于用生动的例子和有趣的项目激发孩子的学习兴趣，让他们在快乐中掌握编程技能。</p>
+                    <div class="about-stats">
+                        <div class="stat-card">
+                            <div class="number">4+</div>
+                            <div class="label">编程语言</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="number">∞</div>
+                            <div class="label">创意可能</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="number">100%</div>
+                            <div class="label">用心教学</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="number">🎯</div>
+                            <div class="label">因材施教</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="skills">
+        <div class="container">
+            <h2 class="section-title reveal">教学技能</h2>
+            <div class="skills-grid">
+                <div class="skill-card reveal">
+                    <div class="icon">🤖</div>
+                    <h3>Spike 机器人编程</h3>
+                    <p>通过乐高Spike机器人，让孩子在搭建和编程中学习机械原理和编程逻辑，培养动手能力和创新思维。</p>
+                </div>
+                <div class="skill-card reveal">
+                    <div class="icon">🐱</div>
+                    <h3>Kitten 图形化编程</h3>
+                    <p>使用Kitten图形化编程工具，通过拖拽积木块的方式，让孩子轻松理解编程概念，创作有趣的作品。</p>
+                </div>
+                <div class="skill-card reveal">
+                    <div class="icon">🐍</div>
+                    <h3>Python 编程</h3>
+                    <p>从零开始教授Python编程语言，涵盖基础语法、数据结构、算法等，为孩子打下扎实的编程基础。</p>
+                </div>
+                <div class="skill-card reveal">
+                    <div class="icon">⚡</div>
+                    <h3>C++ 编程</h3>
+                    <p>深入讲解C++语言特性，包括面向对象编程、STL等，培养孩子的高级编程能力和算法思维。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="portfolio">
+        <div class="container">
+            <h2 class="section-title reveal">教学案例</h2>
+            <div class="portfolio-grid">
+                <div class="portfolio-card reveal">
+                    <div class="portfolio-image">🎮</div>
+                    <div class="portfolio-content">
+                        <h3>学生游戏作品</h3>
+                        <p>学生使用Python开发的经典小游戏，包括贪吃蛇、俄罗斯方块等，展现了扎实的编程基础。</p>
+                        <div class="portfolio-tags">
+                            <span class="portfolio-tag">Python</span>
+                            <span class="portfolio-tag">游戏开发</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="portfolio-card reveal">
+                    <div class="portfolio-image">🤖</div>
+                    <div class="portfolio-content">
+                        <h3>机器人竞赛作品</h3>
+                        <p>学生使用Spike机器人编程完成的自动化项目，在市级机器人竞赛中获得优异成绩。</p>
+                        <div class="portfolio-tags">
+                            <span class="portfolio-tag">Spike</span>
+                            <span class="portfolio-tag">机器人</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="portfolio-card reveal">
+                    <div class="portfolio-image">🎨</div>
+                    <div class="portfolio-content">
+                        <h3>创意动画项目</h3>
+                        <p>学生使用Kitten图形化编程创作的互动动画故事，展现了丰富的想象力和创造力。</p>
+                        <div class="portfolio-tags">
+                            <span class="portfolio-tag">Kitten</span>
+                            <span class="portfolio-tag">动画</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="portfolio-card reveal">
+                    <div class="portfolio-image">📊</div>
+                    <div class="portfolio-content">
+                        <h3>数据分析项目</h3>
+                        <p>学生使用Python进行数据可视化，将复杂的数据转化为直观的图表，培养数据分析思维。</p>
+                        <div class="portfolio-tags">
+                            <span class="portfolio-tag">Python</span>
+                            <span class="portfolio-tag">数据分析</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="portfolio-card reveal">
+                    <div class="portfolio-image">🌐</div>
+                    <div class="portfolio-content">
+                        <h3>网页开发作品</h3>
+                        <p>学生使用Python Flask框架开发的个人网站，包含响应式设计和交互功能。</p>
+                        <div class="portfolio-tags">
+                            <span class="portfolio-tag">Python</span>
+                            <span class="portfolio-tag">Web开发</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="portfolio-card reveal">
+                    <div class="portfolio-image">🔬</div>
+                    <div class="portfolio-content">
+                        <h3>算法竞赛作品</h3>
+                        <p>学生在C++算法竞赛中解决复杂问题的代码，展现了优秀的逻辑思维和算法能力。</p>
+                        <div class="portfolio-tags">
+                            <span class="portfolio-tag">C++</span>
+                            <span class="portfolio-tag">算法</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="schedule">
+        <div class="container">
+            <h2 class="section-title reveal">课程安排</h2>
+            <div class="schedule-grid">
+                <div class="schedule-card reveal">
+                    <div class="day">周一</div>
+                    <div class="time"><span>🕐</span> 14:00 - 16:00 Spike机器人编程</div>
+                    <div class="time"><span>🕓</span> 16:30 - 18:30 Python基础班</div>
+                </div>
+                <div class="schedule-card reveal">
+                    <div class="day">周二</div>
+                    <div class="time"><span>🕐</span> 14:00 - 16:00 Kitten图形化编程</div>
+                    <div class="time"><span>🕓</span> 16:30 - 18:30 C++进阶班</div>
+                </div>
+                <div class="schedule-card reveal">
+                    <div class="day">周三</div>
+                    <div class="time"><span>🕐</span> 14:00 - 16:00 Python进阶班</div>
+                    <div class="time"><span>🕓</span> 16:30 - 18:30 Spike机器人编程</div>
+                </div>
+                <div class="schedule-card reveal">
+                    <div class="day">周四</div>
+                    <div class="time"><span>🕐</span> 14:00 - 16:00 Kitten图形化编程</div>
+                    <div class="time"><span>🕓</span> 16:30 - 18:30 Python算法班</div>
+                </div>
+                <div class="schedule-card reveal">
+                    <div class="day">周五</div>
+                    <div class="time"><span>🕐</span> 14:00 - 16:00 C++基础班</div>
+                    <div class="time"><span>🕓</span> 16:30 - 18:30 Python项目实战</div>
+                </div>
+                <div class="schedule-card reveal">
+                    <div class="day">周末</div>
+                    <div class="time"><span>🕐</span> 09:00 - 12:00 综合编程课程</div>
+                    <div class="time"><span>🕓</span> 14:00 - 17:00 机器人竞赛集训</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="philosophy">
+        <div class="container">
+            <h2 class="section-title reveal">教学理念</h2>
+            <div class="philosophy-content">
+                <div class="philosophy-item reveal">
+                    <div class="number">01</div>
+                    <h3>兴趣为先</h3>
+                    <p>保护孩子的好奇心，用有趣的项目和游戏激发学习兴趣，让孩子主动探索编程世界。</p>
+                </div>
+                <div class="philosophy-item reveal">
+                    <div class="number">02</div>
+                    <h3>循序渐进</h3>
+                    <p>从图形化到代码编程，由浅入深，让孩子在适合的难度下稳步提升，建立学习信心。</p>
+                </div>
+                <div class="philosophy-item reveal">
+                    <div class="number">03</div>
+                    <h3>实践为王</h3>
+                    <p>通过大量动手实践，让孩子在做中学，将理论知识转化为实际技能，培养解决问题的能力。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="faq">
+        <div class="container">
+            <h2 class="section-title reveal">常见问题</h2>
+            <div class="faq-container">
+                <div class="faq-item reveal">
+                    <div class="faq-question">
+                        <h3>孩子多大可以开始学习编程？</h3>
+                        <div class="icon">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        <p>一般来说，6-7岁的孩子可以从图形化编程开始学习，如Kitten。8-10岁可以学习Spike机器人编程，10岁以上可以开始学习Python等代码编程语言。我们会根据孩子的年龄和基础来推荐合适的课程。</p>
+                    </div>
+                </div>
+                <div class="faq-item reveal">
+                    <div class="faq-question">
+                        <h3>零基础的孩子能学会吗？</h3>
+                        <div class="icon">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        <p>完全可以！我们的课程专门为零基础的孩子设计，从最基础的概念开始讲解，通过生动有趣的案例和项目，让孩子在轻松愉快的氛围中逐步掌握编程技能。</p>
+                    </div>
+                </div>
+                <div class="faq-item reveal">
+                    <div class="faq-question">
+                        <h3>学习编程对孩子有什么帮助？</h3>
+                        <div class="icon">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        <p>编程学习能培养孩子的逻辑思维能力、问题解决能力和创造力。同时，编程也是未来的重要技能，能为孩子的学业和职业发展打下良好基础。很多学习编程的孩子在数学和科学方面也有明显提升。</p>
+                    </div>
+                </div>
+                <div class="faq-item reveal">
+                    <div class="faq-question">
+                        <h3>课程费用是多少？</h3>
+                        <div class="icon">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        <p>课程费用根据课程类型和课时有所不同。我们提供多种课程套餐，可以根据孩子的需求选择。具体费用请通过电话或微信咨询，我们会根据您的情况提供最合适的方案。</p>
+                    </div>
+                </div>
+                <div class="faq-item reveal">
+                    <div class="faq-question">
+                        <h3>可以试听课程吗？</h3>
+                        <div class="icon">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        <p>当然可以！我们提供免费的试听课程，让孩子和家长都能亲身体验我们的教学方式和课程内容。欢迎随时联系我们预约试听。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact">
+        <div class="container">
+            <h2 class="section-title reveal">联系方式</h2>
+            <div class="contact-content">
+                <div class="contact-info reveal">
+                    <h3>📞 联系我</h3>
+                    <div class="contact-item">
+                        <div class="icon">📱</div>
+                        <div class="text">13108110173</div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="icon">📍</div>
+                        <div class="text">成都市（具体地址请电话咨询）</div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="icon">⏰</div>
+                        <div class="text">周一至周日 9:00-21:00</div>
+                    </div>
+                    <div class="social-links">
+                        <a href="#" class="social-link">💬</a>
+                        <a href="#" class="social-link">📧</a>
+                        <a href="#" class="social-link">🎥</a>
+                    </div>
+                </div>
+                <div class="contact-form reveal">
+                    <h3>📝 留言咨询</h3>
+                    <form>
+                        <div class="form-group">
+                            <label>您的姓名</label>
+                            <input type="text" placeholder="请输入您的姓名">
+                        </div>
+                        <div class="form-group">
+                            <label>联系电话</label>
+                            <input type="tel" placeholder="请输入您的电话">
+                        </div>
+                        <div class="form-group">
+                            <label>孩子年龄</label>
+                            <input type="text" placeholder="请输入孩子年龄">
+                        </div>
+                        <div class="form-group">
+                            <label>咨询内容</label>
+                            <textarea placeholder="请输入您的咨询内容"></textarea>
+                        </div>
+                        <button type="submit" class="submit-btn">提交咨询</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="back-to-top">↑</div>
+
+    <footer>
+        <div class="container">
+            <p>© 2024 菠萝 - 少儿编程老师 | 用代码点亮未来</p>
+        </div>
+    </footer>
+
+    <script>
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.querySelector('.loader').classList.add('hidden');
+            }, 1500);
+        });
+
+        var particlesContainer = document.getElementById('particles');
+        for (var i = 0; i < 50; i++) {
+            var particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 15 + 's';
+            particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        var typingText = document.querySelector('.typing-text .text');
+        var texts = ['少儿编程老师', '代码启蒙者', '创意引导师', '用代码点亮未来'];
+        var textIndex = 0;
+        var charIndex = 0;
+        var isDeleting = false;
+        var typingSpeed = 100;
+
+        function type() {
+            var currentText = texts[textIndex];
+            
+            if (isDeleting) {
+                typingText.textContent = currentText.substring(0, charIndex - 1);
+                charIndex--;
+                typingSpeed = 50;
+            } else {
+                typingText.textContent = currentText.substring(0, charIndex + 1);
+                charIndex++;
+                typingSpeed = 100;
+            }
+
+            if (!isDeleting && charIndex === currentText.length) {
+                isDeleting = true;
+                typingSpeed = 2000;
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                textIndex = (textIndex + 1) % texts.length;
+                typingSpeed = 500;
+            }
+
+            setTimeout(type, typingSpeed);
+        }
+
+        type();
+
+        var hamburger = document.querySelector('.hamburger');
+        var mobileMenu = document.querySelector('.mobile-menu');
+
+        hamburger.addEventListener('click', function() {
+            hamburger.classList.toggle('active');
+            mobileMenu.classList.toggle('active');
+        });
+
+        document.querySelectorAll('.mobile-menu a').forEach(function(link) {
+            link.addEventListener('click', function() {
+                hamburger.classList.remove('active');
+                mobileMenu.classList.remove('active');
+            });
+        });
+
+        window.addEventListener('scroll', function() {
+            var header = document.querySelector('header');
+            if (window.scrollY > 100) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        var backToTop = document.querySelector('.back-to-top');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 500) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+
+        backToTop.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        document.querySelectorAll('.faq-question').forEach(function(question) {
+            question.addEventListener('click', function() {
+                var faqItem = this.parentElement;
+                var isActive = faqItem.classList.contains('active');
+                
+                document.querySelectorAll('.faq-item').forEach(function(item) {
+                    item.classList.remove('active');
+                });
+
+                if (!isActive) {
+                    faqItem.classList.add('active');
+                }
+            });
+        });
+
+        function reveal() {
+            var reveals = document.querySelectorAll('.reveal');
+            for (var i = 0; i < reveals.length; i++) {
+                var windowHeight = window.innerHeight;
+                var elementTop = reveals[i].getBoundingClientRect().top;
+                var elementVisible = 150;
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add('active');
+                }
+            }
+        }
+
+        window.addEventListener('scroll', reveal);
+        reveal();
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                var target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        var pineappleTrail = {
+            lastX: 0,
+            lastY: 0,
+            throttleTimer: null,
+            throttleDelay: 80
+        };
+
+        document.addEventListener('mousemove', function(e) {
+            if (pineappleTrail.throttleTimer) return;
+            
+            pineappleTrail.throttleTimer = setTimeout(function() {
+                createPineapple(e.clientX, e.clientY);
+                pineappleTrail.throttleTimer = null;
+            }, pineappleTrail.throttleDelay);
+        });
+
+        function createPineapple(x, y) {
+            var pineapple = document.createElement('div');
+            pineapple.className = 'pineapple-trail';
+            pineapple.textContent = '🍍';
+            pineapple.style.left = x + 'px';
+            pineapple.style.top = y + 'px';
+            document.body.appendChild(pineapple);
+
+            setTimeout(function() {
+                pineapple.remove();
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
