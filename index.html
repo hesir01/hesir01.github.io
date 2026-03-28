@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>菠萝老师 - 少儿编程导师</title>
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'ZCOOL KuaiLe', cursive;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: #fff;
+        }
+
+        /* 粒子背景 */
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            font-size: 20px;
+            color: rgba(0, 255, 136, 0.3);
+            animation: float 10s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        /* 开场动画 */
+        #intro {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s;
+        }
+
+        #intro-text {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 24px;
+            color: #00ff88;
+            text-shadow: 0 0 20px #00ff88;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        #press-start {
+            margin-top: 30px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            color: #ffd700;
+            animation: pulse 1.5s infinite;
+            cursor: pointer;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 标题区域 */
+        .header {
+            text-align: center;
+            padding: 60px 0 50px;
+        }
+
+        .main-title {
+            font-size: 72px;
+            background: linear-gradient(90deg, #00ff88, #00d4ff, #ff00ff, #ffd700, #00ff88);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: rainbow 3s linear infinite;
+            filter: drop-shadow(0 0 20px rgba(0, 255, 136, 0.5));
+            margin-bottom: 20px;
+        }
+
+        @keyframes rainbow {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .subtitle {
+            font-size: 28px;
+            color: #00d4ff;
+            text-shadow: 0 0 10px #00d4ff;
+        }
+
+        /* 区块标题 */
+        .section-title {
+            font-size: 36px;
+            color: #ffd700;
+            text-align: center;
+            margin: 60px 0 40px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .section-title::before,
+        .section-title::after {
+            content: '✦';
+            color: #00ff88;
+            font-size: 24px;
+        }
+
+        /* 卡片网格 - 宽松布局 */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin: 40px 0;
+        }
+
+        /* 卡片基础样式 */
+        .card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            border-radius: 25px;
+            padding: 35px;
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                        inset 0 0 20px rgba(0, 255, 136, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: rotateY(-90deg);
+            animation: cardFlipIn 0.8s ease forwards;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #00ff88, #00d4ff, #ff00ff, #ffd700);
+            border-radius: 25px;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s;
+            filter: blur(10px);
+        }
+
+        .card:hover::before {
+            opacity: 0.5;
+        }
+
+        .card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(0, 255, 136, 0.4),
+                        inset 0 0 30px rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+
+        @keyframes cardFlipIn {
+            0% { opacity: 0; transform: rotateY(-90deg); }
+            100% { opacity: 1; transform: rotateY(0); }
+        }
+
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.2s; }
+        .card:nth-child(3) { animation-delay: 0.3s; }
+        .card:nth-child(4) { animation-delay: 0.4s; }
+        .card:nth-child(5) { animation-delay: 0.5s; }
+        .card:nth-child(6) { animation-delay: 0.6s; }
+
+        .card-title {
+            font-size: 28px;
+            color: #ffd700;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .card-icon {
+            font-size: 32px;
+        }
+
+        /* 全宽卡片 */
+        .card-full {
+            grid-column: 1 / -1;
+        }
+
+        /* 头像卡 */
+        .avatar-card {
+            text-align: center;
+        }
+
+        .avatar {
+            width: 180px;
+            height: 180px;
+            background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+            border-radius: 50%;
+            margin: 0 auto 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 90px;
+            border: 5px solid #00ff88;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+            cursor: pointer;
+            transition: transform 0.3s;
+            position: relative;
+        }
+
+        .avatar:hover {
+            transform: scale(1.1) rotate(10deg);
+        }
+
+        .avatar::after {
+            content: '🍍';
+            position: absolute;
+            font-size: 30px;
+            top: -10px;
+            right: -10px;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .nickname {
+            font-size: 22px;
+            color: #ff00ff;
+            text-shadow: 0 0 10px #ff00ff;
+            margin-top: 15px;
+        }
+
+        .funny-quote {
+            font-size: 16px;
+            color: #00d4ff;
+            margin-top: 15px;
+            font-style: italic;
+            opacity: 0;
+            transition: opacity 0.3s;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        .avatar-card:hover .funny-quote {
+            opacity: 1;
+        }
+
+        /* 属性卡 */
+        .stat-item {
+            margin: 20px 0;
+        }
+
+        .stat-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        .stat-bar {
+            height: 25px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .stat-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00d4ff);
+            border-radius: 15px;
+            width: 0;
+            transition: width 2s ease;
+            position: relative;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .stat-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* 技能卡 */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .skill-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 25px 15px;
+            text-align: center;
+            border: 2px solid rgba(0, 255, 136, 0.2);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .skill-item:hover {
+            border-color: #00ff88;
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 255, 136, 0.4);
+        }
+
+        .skill-item:hover .skill-icon {
+            animation: shake 0.5s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        .skill-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .skill-name {
+            font-size: 20px;
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+
+        .skill-level {
+            font-size: 14px;
+            color: #00ff88;
+        }
+
+        .skill-desc {
+            font-size: 13px;
+            color: #aaa;
+            margin-top: 8px;
+        }
+
+        /* 装备卡 */
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .inventory-item {
+            aspect-ratio: 1;
+            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(0,0,0,0.2));
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .inventory-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .inventory-item:hover::before {
+            left: 100%;
+        }
+
+        .inventory-item:hover {
+            transform: translateY(-5px) scale(1.1);
+            border-color: #ffd700;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .inv-icon {
+            font-size: 36px;
+        }
+
+        .inv-name {
+            font-size: 13px;
+            margin-top: 8px;
+            color: #fff;
+            text-align: center;
+            padding: 0 5px;
+        }
+
+        .inv-buff {
+            font-size: 11px;
+            color: #00ff88;
+        }
+
+        /* 时间线 */
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #00ff88, #00d4ff, #ff00ff);
+            transform: translateX(-50%);
+        }
+
+        .timeline-item {
+            display: flex;
+            justify-content: flex-end;
+            padding-right: 50%;
+            position: relative;
+            margin-bottom: 40px;
+        }
+
+        .timeline-item:nth-child(even) {
+            justify-content: flex-start;
+            padding-right: 0;
+            padding-left: 50%;
+        }
+
+        .timeline-content {
+            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(0,0,0,0.2));
+            padding: 25px;
+            border-radius: 20px;
+            max-width: 400px;
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            position: relative;
+            margin: 0 30px;
+        }
+
+        .timeline-content::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #00ff88;
+            border-radius: 50%;
+            top: 30px;
+            box-shadow: 0 0 20px #00ff88;
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content::before {
+            right: -40px;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content::before {
+            left: -40px;
+        }
+
+        .timeline-year {
+            font-size: 24px;
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+
+        .timeline-title {
+            font-size: 20px;
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+
+        .timeline-desc {
+            font-size: 16px;
+            color: #aaa;
+            line-height: 1.6;
+        }
+
+        /* 金句墙 */
+        .quotes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .quote-item {
+            background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(0,0,0,0.2));
+            padding: 25px;
+            border-radius: 20px;
+            border-left: 4px solid #ff00ff;
+            transition: all 0.3s;
+        }
+
+        .quote-item:hover {
+            transform: translateX(10px);
+            border-left-color: #00ff88;
+        }
+
+        .quote-text {
+            font-size: 18px;
+            color: #fff;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .quote-text::before {
+            content: '"';
+            font-size: 40px;
+            color: #ff00ff;
+            line-height: 1;
+        }
+
+        .quote-context {
+            font-size: 14px;
+            color: #888;
+        }
+
+        /* 学生评价 */
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .review-item {
+            background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(0,0,0,0.2));
+            padding: 25px;
+            border-radius: 20px;
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            transition: all 0.3s;
+        }
+
+        .review-item:hover {
+            border-color: #00d4ff;
+            transform: translateY(-5px);
+        }
+
+        .review-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .review-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .review-info {
+            flex: 1;
+        }
+
+        .review-name {
+            font-size: 18px;
+            color: #ffd700;
+        }
+
+        .review-stars {
+            color: #ffd700;
+            font-size: 14px;
+        }
+
+        .review-text {
+            font-size: 16px;
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        /* 成就卡 */
+        .achievement-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .achievement-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            opacity: 0;
+            transform: translateX(-50px) rotate(-10deg);
+            transition: all 0.5s;
+        }
+
+        .achievement-item.unlocked {
+            opacity: 1;
+            transform: translateX(0) rotate(0);
+            animation: achievementGlow 1s ease;
+        }
+
+        @keyframes achievementGlow {
+            0% { box-shadow: 0 0 0 rgba(255, 215, 0, 0); }
+            50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.8); }
+            100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+        }
+
+        .achievement-icon {
+            font-size: 40px;
+            filter: grayscale(100%);
+            transition: all 0.5s;
+        }
+
+        .achievement-item.unlocked .achievement-icon {
+            filter: grayscale(0%);
+            animation: iconSpin 0.5s ease;
+        }
+
+        @keyframes iconSpin {
+            0% { transform: scale(0) rotate(-180deg); }
+            100% { transform: scale(1) rotate(0); }
+        }
+
+        .achievement-text {
+            flex: 1;
+        }
+
+        .achievement-name {
+            font-size: 20px;
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+
+        .achievement-desc {
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        /* 课程介绍 */
+        .course-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+
+        .course-item {
+            background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(0,0,0,0.2));
+            padding: 30px 25px;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid rgba(0, 255, 136, 0.2);
+            transition: all 0.3s;
+        }
+
+        .course-item:hover {
+            transform: translateY(-8px);
+            border-color: #00ff88;
+            box-shadow: 0 15px 40px rgba(0, 255, 136, 0.3);
+        }
+
+        .course-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
+        .course-name {
+            font-size: 22px;
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+
+        .course-desc {
+            font-size: 15px;
+            color: #aaa;
+            line-height: 1.6;
+        }
+
+        /* 游戏卡 */
+        .game-container {
+            background: linear-gradient(145deg, #2a0a3b, #1a0525);
+            border-radius: 20px;
+            padding: 30px;
+            border: 3px solid #ff00ff;
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.3),
+                        inset 0 0 30px rgba(255, 0, 255, 0.1);
+            animation: gamePulse 2s infinite;
+        }
+
+        @keyframes gamePulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(255, 0, 255, 0.3), inset 0 0 30px rgba(255, 0, 255, 0.1); }
+            50% { box-shadow: 0 0 50px rgba(255, 0, 255, 0.6), inset 0 0 40px rgba(255, 0, 255, 0.2); }
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .game-title {
+            font-size: 24px;
+            color: #ff00ff;
+            text-shadow: 0 0 10px #ff00ff;
+        }
+
+        .game-score {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 20px;
+            color: #00ff88;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(180deg, #0a0a1a 0%, #1a0a2e 100%);
+            border-radius: 15px;
+            border: 2px solid #00ff88;
+            cursor: crosshair;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-instructions {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 16px;
+            color: #00d4ff;
+        }
+
+        .start-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+            background: linear-gradient(90deg, #ff00ff, #00d4ff);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 22px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        .start-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.6);
+        }
+
+        /* 联系方式 */
+        .contact-section {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(0,0,0,0.2));
+            border-radius: 25px;
+            border: 2px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .contact-title {
+            font-size: 28px;
+            color: #ffd700;
+            margin-bottom: 25px;
+        }
+
+        .contact-text {
+            font-size: 20px;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .contact-highlight {
+            color: #00ff88;
+            font-size: 24px;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .contact-mascot {
+            font-size: 60px;
+            margin-top: 20px;
+            animation: mascotWave 2s infinite ease-in-out;
+        }
+
+        @keyframes mascotWave {
+            0%, 100% { transform: rotate(-10deg); }
+            50% { transform: rotate(10deg); }
+        }
+
+        /* 页脚 */
+        .footer {
+            text-align: center;
+            padding: 60px 0 40px;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .footer span {
+            color: #ff6b6b;
+            animation: heartbeat 1s infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 48px;
+            }
+            .section-title {
+                font-size: 28px;
+            }
+            .card-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            .timeline::before {
+                left: 20px;
+            }
+            .timeline-item,
+            .timeline-item:nth-child(even) {
+                padding-left: 50px;
+                padding-right: 0;
+                justify-content: flex-start;
+            }
+            .timeline-content::before,
+            .timeline-item:nth-child(odd) .timeline-content::before,
+            .timeline-item:nth-child(even) .timeline-content::before {
+                left: -35px;
+                right: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子背景 -->
+    <div id="particles"></div>
+
+    <!-- 开场动画 -->
+    <div id="intro">
+        <div id="intro-text">LOADING...</div>
+        <div id="press-start">PRESS START</div>
+    </div>
+
+    <!-- 主内容 -->
+    <div class="container">
+        <!-- 标题区 -->
+        <div class="header">
+            <h1 class="main-title">🍍 菠萝老师</h1>
+            <p class="subtitle" id="subtitle"></p>
+        </div>
+
+        <!-- 第一行：角色信息 + 荣誉称号 -->
+        <div class="card-grid">
+            <div class="card avatar-card">
+                <div class="card-title">
+                    <span class="card-icon">👤</span>
+                    角色信息
+                </div>
+                <div class="avatar" onclick="showEasterEgg()">👨‍🏫</div>
+                <div class="nickname">Lv.99 BUG终结者</div>
+                <div class="nickname">代码魔法师 | 少儿编程导师</div>
+                <div class="funny-quote">"你的代码在我眼里都是透明的"</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="card-icon">🏆</span>
+                    荣誉称号
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 15px;">
+                    <span style="background: linear-gradient(90deg, #ff6b6b, #ffd93d); padding: 10px 18px; border-radius: 25px; font-size: 15px;">🎯 00后小朋友的噩梦（不是）</span>
+                    <span style="background: linear-gradient(90deg, #00ff88, #00d4ff); padding: 10px 18px; border-radius: 25px; font-size: 15px;">🐛 Bug终结者</span>
+                    <span style="background: linear-gradient(90deg, #ff00ff, #a855f7); padding: 10px 18px; border-radius: 25px; font-size: 15px;">✨ Scratch王者</span>
+                    <span style="background: linear-gradient(90deg, #ffd700, #ff6b6b); padding: 10px 18px; border-radius: 25px; font-size: 15px;">🎮 代码魔法师</span>
+                </div>
+                <p style="margin-top: 25px; color: #aaa; font-size: 16px; line-height: 1.8;">
+                    一个集帅气、幽默、debug能力于一身的神奇老师。能把枯燥的代码变成有趣的游戏，让学生笑着学会编程！<br><br>
+                    <span style="color: #00d4ff;">🎵 教学理念：</span>让每个孩子都能享受编程的乐趣
+                </p>
+            </div>
+        </div>
+
+        <!-- 第二行：属性 + 技能 -->
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-title">
+                    <span class="card-icon">📊</span>
+                    角色属性
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">
+                        <span>💪 教学经验</span>
+                        <span>5年</span>
+                    </div>
+                    <div class="stat-bar">
+                        <div class="stat-fill" data-width="95%"></div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">
+                        <span>👥 教导学生</span>
+                        <span>1000+</span>
+                    </div>
+                    <div class="stat-bar">
+                        <div class="stat-fill" data-width="100%"></div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">
+                        <span>😎 耐心值</span>
+                        <span>MAX</span>
+                    </div>
+                    <div class="stat-bar">
+                        <div class="stat-fill" data-width="99%"></div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">
+                        <span>🐛 Debug能力</span>
+                        <span>∞</span>
+                    </div>
+                    <div class="stat-bar">
+                        <div class="stat-fill" data-width="100%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="card-icon">⚔️</span>
+                    技能装备
+                </div>
+                <div class="skills-grid">
+                    <div class="skill-item" onclick="shakeSkill(this)">
+                        <div class="skill-icon">🐱</div>
+                        <div class="skill-name">Kitten</div>
+                        <div class="skill-level">Lv.MAX ★★★★★</div>
+                        <div class="skill-desc">图形化编程入门神器</div>
+                    </div>
+                    <div class="skill-item" onclick="shakeSkill(this)">
+                        <div class="skill-icon">⚡</div>
+                        <div class="skill-name">C++</div>
+                        <div class="skill-level">Lv.99 ★★★★☆</div>
+                        <div class="skill-desc">信息学奥赛必备</div>
+                    </div>
+                    <div class="skill-item" onclick="shakeSkill(this)">
+                        <div class="skill-icon">🐍</div>
+                        <div class="skill-name">Python</div>
+                        <div class="skill-level">Lv.95 ★★★★★</div>
+                        <div class="skill-desc">人工智能时代首选</div>
+                    </div>
+                    <div class="skill-item" onclick="shakeSkill(this)">
+                        <div class="skill-icon">🤖</div>
+                        <div class="skill-name">AI编程</div>
+                        <div class="skill-level">Lv.90 ★★★★☆</div>
+                        <div class="skill-desc">ChatGPT/文心一言应用</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 成长时间线 -->
+        <h2 class="section-title">成长历程</h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <div class="timeline-year">2019年</div>
+                    <div class="timeline-title">🌱 踏入编程教育</div>
+                    <div class="timeline-desc">怀揣着对教育的热爱，开始了少儿编程教学之旅。第一个学生是一个对游戏充满好奇的小男孩。</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <div class="timeline-year">2020年</div>
+                    <div class="timeline-title">📈 突破100名学生</div>
+                    <div class="timeline-desc">疫情期间的线上教学让我接触了全国各地的学生，也让更多人认识到了编程的魅力。</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <div class="timeline-year">2022年</div>
+                    <div class="timeline-title">🏆 学生获奖无数</div>
+                    <div class="timeline-desc">带领学生参加各类编程比赛，斩获省级、国家级奖项。看着孩子们的成长，是我最自豪的事。</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <div class="timeline-year">2024年</div>
+                    <div class="timeline-title">🚀 累计1000+学生</div>
+                    <div class="timeline-desc">五年时间，见证了无数孩子从零基础到能独立开发项目。每一位学生的笑容都是我继续前行的动力！</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 课程介绍 -->
+        <h2 class="section-title">课程体系</h2>
+        <div class="card">
+            <div class="course-list">
+                <div class="course-item">
+                    <div class="course-icon">🐱</div>
+                    <div class="course-name">Kitten 启蒙</div>
+                    <div class="course-desc">适合6-8岁，用图形化编程培养逻辑思维，制作动画和游戏</div>
+                </div>
+                <div class="course-item">
+                    <div class="course-icon">⚡</div>
+                    <div class="course-name">C++ 进阶</div>
+                    <div class="course-desc">适合9-12岁，信息学奥赛基础，算法思维训练</div>
+                </div>
+                <div class="course-item">
+                    <div class="course-icon">🐍</div>
+                    <div class="course-name">Python 应用</div>
+                    <div class="course-desc">适合10-15岁，数据分析、爬虫、游戏开发样样精通</div>
+                </div>
+                <div class="course-item">
+                    <div class="course-icon">🤖</div>
+                    <div class="course-name">AI 编程</div>
+                    <div class="course-desc">适合12岁以上，ChatGPT应用、AI绘画、智能项目开发</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第三行：装备 + 成就 -->
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-title">
+                    <span class="card-icon">🎒</span>
+                    背包物品
+                </div>
+                <div class="inventory-grid">
+                    <div class="inventory-item">
+                        <div class="inv-icon">🎵</div>
+                        <div class="inv-name">周杰伦CD</div>
+                        <div class="inv-buff">音乐细胞+999</div>
+                    </div>
+                    <div class="inventory-item">
+                        <div class="inv-icon">🎬</div>
+                        <div class="inv-name">科幻电影票</div>
+                        <div class="inv-buff">想象力+500</div>
+                    </div>
+                    <div class="inventory-item">
+                        <div class="inv-icon">🎮</div>
+                        <div class="inv-name">游戏手柄</div>
+                        <div class="inv-buff">快乐值+1000</div>
+                    </div>
+                    <div class="inventory-item">
+                        <div class="inv-icon">☕</div>
+                        <div class="inv-name">咖啡</div>
+                        <div class="inv-buff">精力+200</div>
+                    </div>
+                    <div class="inventory-item">
+                        <div class="inv-icon">💻</div>
+                        <div class="inv-name">MacBook</div>
+                        <div class="inv-buff">开发效率+300%</div>
+                    </div>
+                    <div class="inventory-item">
+                        <div class="inv-icon">🍍</div>
+                        <div class="inv-name">神秘菠萝</div>
+                        <div class="inv-buff">全属性+50</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="card-icon">🎖️</span>
+                    成就徽章
+                </div>
+                <div class="achievement-list">
+                    <div class="achievement-item" data-achievement>
+                        <div class="achievement-icon">🎯</div>
+                        <div class="achievement-text">
+                            <div class="achievement-name">千人大佬</div>
+                            <div class="achievement-desc">教导超过1000名学生</div>
+                        </div>
+                    </div>
+                    <div class="achievement-item" data-achievement>
+                        <div class="achievement-icon">⏰</div>
+                        <div class="achievement-text">
+                            <div class="achievement-name">五年老兵</div>
+                            <div class="achievement-desc">坚守岗位5年</div>
+                        </div>
+                    </div>
+                    <div class="achievement-item" data-achievement>
+                        <div class="achievement-icon">💎</div>
+                        <div class="achievement-text">
+                            <div class="achievement-name">bug清零者</div>
+                            <div class="achievement-desc">解决学生问题成功率99.9%</div>
+                        </div>
+                    </div>
+                    <div class="achievement-item" data-achievement>
+                        <div class="achievement-icon">❤️</div>
+                        <div class="achievement-text">
+                            <div class="achievement-name">耐心导师</div>
+                            <div class="achievement-desc">学生有问题必解决</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 课堂金句 -->
+        <h2 class="section-title">课堂金句墙</h2>
+        <div class="card card-full">
+            <div class="quotes-grid">
+                <div class="quote-item">
+                    <div class="quote-text">代码写错了没关系，人生也是debug出来的。</div>
+                    <div class="quote-context">—— 当学生犯错时的安慰</div>
+                </div>
+                <div class="quote-item">
+                    <div class="quote-text">这个bug...它居然自己好了？！</div>
+                    <div class="quote-context">—— 遇到灵异bug时的感慨</div>
+                </div>
+                <div class="quote-item">
+                    <div class="quote-text">同学们，这道题很简单对吧？（沉默）...对吧？</div>
+                    <div class="quote-context">—— 试图活跃课堂气氛</div>
+                </div>
+                <div class="quote-item">
+                    <div class="quote-text">你的代码在我眼里都是透明的，别想偷懒！</div>
+                    <div class="quote-context">—— 发现学生抄代码时</div>
+                </div>
+                <div class="quote-item">
+                    <div class="quote-text">不是bug，是feature！（强行解释）</div>
+                    <div class="quote-context">—— 学生代码出错时的救场</div>
+                </div>
+                <div class="quote-item">
+                    <div class="quote-text">老师，这个报错是什么意思？<br>额...让我百度一下。</div>
+                    <div class="quote-context">—— 诚实面对未知问题</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 学生评价 -->
+        <h2 class="section-title">学生怎么说</h2>
+        <div class="card card-full">
+            <div class="reviews-grid">
+                <div class="review-item">
+                    <div class="review-header">
+                        <div class="review-avatar">👦</div>
+                        <div class="review-info">
+                            <div class="review-name">小明同学</div>
+                            <div class="review-stars">★★★★★</div>
+                        </div>
+                    </div>
+                    <div class="review-text">"菠萝老师讲课超有趣！以前觉得编程很无聊，现在每天都想写代码！"</div>
+                </div>
+                <div class="review-item">
+                    <div class="review-header">
+                        <div class="review-avatar">👧</div>
+                        <div class="review-info">
+                            <div class="review-name">小红同学</div>
+                            <div class="review-stars">★★★★★</div>
+                        </div>
+                    </div>
+                    <div class="review-text">"老师很有耐心，我有问题问十遍都不会不耐烦，现在已经会自己做游戏了！"</div>
+                </div>
+                <div class="review-item">
+                    <div class="review-header">
+                        <div class="review-avatar">👦</div>
+                        <div class="review-info">
+                            <div class="review-name">小华同学</div>
+                            <div class="review-stars">★★★★★</div>
+                        </div>
+                    </div>
+                    <div class="review-text">"上菠萝老师的课就像打游戏升级一样，每节课都有新技能解锁！"</div>
+                </div>
+                <div class="review-item">
+                    <div class="review-header">
+                        <div class="review-avatar">👩</div>
+                        <div class="review-info">
+                            <div class="review-name">小丽的妈妈</div>
+                            <div class="review-stars">★★★★★</div>
+                        </div>
+                    </div>
+                    <div class="review-text">"孩子以前坐不住，现在能安静写代码一小时，菠萝老师有魔力！"</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 互动游戏 -->
+        <h2 class="section-title">课间小游戏</h2>
+        <div class="card card-full">
+            <div class="game-container">
+                <div class="game-header">
+                    <span class="game-title">🐛 CATCH THE BUG!</span>
+                    <span class="game-score">SCORE: <span id="score">0</span></span>
+                </div>
+                <div id="gameCanvas">
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #666;">
+                        <div style="font-size: 50px;">🐛</div>
+                        <div style="font-size: 18px; margin-top: 15px;">点击 START 开始游戏</div>
+                    </div>
+                </div>
+                <div class="game-instructions">
+                    💡 点击屏幕上出现的 Bug 来得分！捕获 🍍 菠萝老师获得额外 bonus 分数！
+                </div>
+                <button class="start-btn" onclick="startGame()">🚀 START GAME</button>
+            </div>
+        </div>
+
+        <!-- 联系方式 -->
+        <h2 class="section-title">找到我</h2>
+        <div class="contact-section">
+            <div class="contact-title">📬 有问题？随时找我！</div>
+            <div class="contact-text">
+                无论是编程问题，还是只想聊聊天<br>
+                <span class="contact-highlight">学生有问题，我一定负责到底！</span>
+            </div>
+            <div style="margin-top: 25px; font-size: 18px; color: #00d4ff;">
+                💬 微信 / QQ：私信获取<br>
+                📧 邮箱：boluolaoshi@example.com
+            </div>
+            <div class="contact-mascot">🍍</div>
+        </div>
+
+        <!-- 页脚 -->
+        <div class="footer">
+            <p>Made with <span>❤️</span> by 菠萝老师 | 让编程变得有趣</p>
+            <p style="margin-top: 15px; font-size: 14px;">© 2024 菠萝老师的编程课堂 | 有问题尽管问，我都在！</p>
+        </div>
+    </div>
+
+    <script>
+        // 开场动画
+        const introTexts = ['LOADING...', '初始化幽默细胞...', '加载教学技能...', '准备完毕!'];
+        let introIndex = 0;
+        const introTextEl = document.getElementById('intro-text');
+
+        const introInterval = setInterval(() => {
+            introIndex++;
+            if (introIndex < introTexts.length) {
+                introTextEl.textContent = introTexts[introIndex];
+            }
+        }, 600);
+
+        document.getElementById('press-start').addEventListener('click', () => {
+            clearInterval(introInterval);
+            document.getElementById('intro').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('intro').style.display = 'none';
+                initPage();
+            }, 500);
+        });
+
+        // 初始化页面
+        function initPage() {
+            // 打字机效果
+            const subtitle = '欢迎来到我的编程世界！';
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                document.getElementById('subtitle').textContent += subtitle[i];
+                i++;
+                if (i >= subtitle.length) clearInterval(typeInterval);
+            }, 100);
+
+            // 属性条动画
+            setTimeout(() => {
+                document.querySelectorAll('.stat-fill').forEach(bar => {
+                    bar.style.width = bar.dataset.width;
+                });
+            }, 500);
+
+            // 成就解锁动画
+            const achievements = document.querySelectorAll('[data-achievement]');
+            achievements.forEach((item, index) => {
+                setTimeout(() => {
+                    item.classList.add('unlocked');
+                }, 800 + index * 200);
+            });
+
+            // 创建粒子
+            createParticles();
+        }
+
+        // 粒子效果
+        function createParticles() {
+            const particles = document.getElementById('particles');
+            const symbols = ['</>', '{}', '[]', '();', '#', '*', '+', '-'];
+
+            setInterval(() => {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                particle.style.fontSize = (Math.random() * 20 + 15) + 'px';
+                particles.appendChild(particle);
+
+                setTimeout(() => particle.remove(), 10000);
+            }, 800);
+        }
+
+        // 技能抖动
+        function shakeSkill(element) {
+            element.style.animation = 'shake 0.5s ease';
+            setTimeout(() => {
+                element.style.animation = '';
+            }, 500);
+        }
+
+        // 彩蛋
+        function showEasterEgg() {
+            const quotes = [
+                '你的代码在我眼里都是透明的！',
+                'Bug？不存在的！',
+                '这节课，我们只讲一个知识点...',
+                '同学们，这道题很简单对吧？',
+                '我的耐心是∞，但电脑的不是！',
+                '让我百度一下...'
+            ];
+            alert('🍍 菠萝老师 says: ' + quotes[Math.floor(Math.random() * quotes.length)]);
+        }
+
+        // 游戏相关
+        let gameActive = false;
+        let score = 0;
+        let bugInterval;
+
+        function startGame() {
+            if (gameActive) return;
+            gameActive = true;
+            score = 0;
+            document.getElementById('score').textContent = score;
+
+            const canvas = document.getElementById('gameCanvas');
+            canvas.innerHTML = '';
+            canvas.addEventListener('click', handleGameClick);
+
+            bugInterval = setInterval(spawnBug, 800);
+            setTimeout(endGame, 30000);
+        }
+
+        function spawnBug() {
+            if (!gameActive) return;
+
+            const canvas = document.getElementById('gameCanvas');
+            const bug = document.createElement('div');
+            const isTeacher = Math.random() < 0.1;
+
+            bug.textContent = isTeacher ? '🍍' : '🐛';
+            bug.style.position = 'absolute';
+            bug.style.fontSize = isTeacher ? '40px' : '32px';
+            bug.style.left = Math.random() * (canvas.offsetWidth - 50) + 'px';
+            bug.style.top = Math.random() * (canvas.offsetHeight - 50) + 'px';
+            bug.style.cursor = 'pointer';
+            bug.style.transition = 'transform 0.2s';
+            bug.style.userSelect = 'none';
+            bug.dataset.points = isTeacher ? '50' : '10';
+            bug.dataset.isTeacher = isTeacher;
+
+            bug.addEventListener('mousedown', function() {
+                this.style.transform = 'scale(0.8)';
+            });
+
+            canvas.appendChild(bug);
+
+            setTimeout(() => {
+                if (bug.parentNode) {
+                    bug.style.opacity = '0';
+                    setTimeout(() => bug.remove(), 200);
+                }
+            }, 3000);
+        }
+
+        function handleGameClick(e) {
+            if (!gameActive) return;
+
+            const target = e.target;
+            if (target.textContent === '🐛' || target.textContent === '🍍') {
+                const points = parseInt(target.dataset.points);
+                score += points;
+                document.getElementById('score').textContent = score;
+
+                const popup = document.createElement('div');
+                popup.textContent = '+' + points;
+                popup.style.position = 'absolute';
+                popup.style.left = target.style.left;
+                popup.style.top = target.style.top;
+                popup.style.color = target.dataset.isTeacher === 'true' ? '#ffd700' : '#00ff88';
+                popup.style.fontWeight = 'bold';
+                popup.style.fontSize = '24px';
+                popup.style.pointerEvents = 'none';
+                popup.style.animation = 'popupFloat 0.5s ease forwards';
+                document.getElementById('gameCanvas').appendChild(popup);
+
+                setTimeout(() => popup.remove(), 500);
+                target.remove();
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(bugInterval);
+
+            const canvas = document.getElementById('gameCanvas');
+            canvas.innerHTML = `
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                    <div style="font-size: 36px; color: #00ff88; margin-bottom: 15px;">GAME OVER!</div>
+                    <div style="font-size: 28px; color: #ffd700; margin-bottom: 15px;">最终得分: ${score}</div>
+                    <div style="font-size: 18px; color: #aaa;">${getScoreComment(score)}</div>
+                </div>
+            `;
+        }
+
+        function getScoreComment(score) {
+            if (score >= 500) return '🏆 Bug终结大师！可以去面试程序员了！';
+            if (score >= 300) return '⭐ 抓Bug高手！天赋异禀！';
+            if (score >= 150) return '👍 不错的开始！继续努力！';
+            return '💪 再接再厉！多练习就会变强！';
+        }
+
+        // 添加弹出动画的CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes popupFloat {
+                0% { transform: translateY(0); opacity: 1; }
+                100% { transform: translateY(-30px); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
