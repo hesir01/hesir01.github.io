@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>肖啸 - 个人主页</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 50%, #45b7d1 100%);
+            min-height: 100vh;
+            color: #333;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* 背景装饰 */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.2)"/><circle cx="40" cy="80" r="2.5" fill="rgba(255,255,255,0.25)"/><circle cx="70" cy="70" r="1" fill="rgba(255,255,255,0.3)"/><circle cx="30" cy="50" r="1.5" fill="rgba(255,255,255,0.2)"/></svg>');
+            animation: floatBg 20s linear infinite;
+            z-index: -1;
+        }
+        
+        @keyframes floatBg {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+            }
+        }
+        
+        /* 漂浮装饰 */
+        .floating-deco {
+            position: absolute;
+            font-size: 24px;
+            animation: float 6s ease-in-out infinite;
+            z-index: -1;
+        }
+        
+        .floating-deco:nth-child(1) {
+            top: 10%;
+            left: 5%;
+            animation-delay: 0s;
+        }
+        
+        .floating-deco:nth-child(2) {
+            top: 20%;
+            right: 10%;
+            animation-delay: 2s;
+        }
+        
+        .floating-deco:nth-child(3) {
+            bottom: 15%;
+            left: 15%;
+            animation-delay: 4s;
+        }
+        
+        .floating-deco:nth-child(4) {
+            bottom: 25%;
+            right: 5%;
+            animation-delay: 1s;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* 头部区域 */
+        .header {
+            text-align: center;
+            padding: 60px 40px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* header背景动画 */
+        .header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255, 107, 107, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(78, 205, 196, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(69, 183, 209, 0.2) 0%, transparent 50%),
+                linear-gradient(45deg, transparent 40%, rgba(102, 126, 234, 0.1) 50%, transparent 60%);
+            animation: rotate 20s linear infinite;
+            z-index: 0;
+        }
+        
+        /* header顶部渐变条 */
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 50%, #4facfe 100%);
+            z-index: 2;
+        }
+        
+        /* header背景装饰 */
+        .header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255, 107, 107, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(78, 205, 196, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(69, 183, 209, 0.2) 0%, transparent 50%),
+                linear-gradient(45deg, transparent 40%, rgba(102, 126, 234, 0.1) 50%, transparent 60%),
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.5)"/><circle cx="90" cy="10" r="0.5" fill="rgba(255,255,255,0.3)"/><circle cx="50" cy="50" r="1.5" fill="rgba(255,255,255,0.4)"/><circle cx="10" cy="90" r="0.8" fill="rgba(255,255,255,0.3)"/><circle cx="90" cy="90" r="1" fill="rgba(255,255,255,0.5)"/></svg>');
+            animation: rotate 20s linear infinite;
+            z-index: 0;
+        }
+        
+        .avatar {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 56px;
+            color: white;
+            margin: 0 auto 25px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .name {
+            font-size: 42px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .tagline {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .date-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .avatar {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* 内容卡片 */
+        /* 通用卡片样式 */
+        .card {
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), 0 0 20px rgba(255, 107, 107, 0.2);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: cardLoad 0.8s ease-out;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        /* 个性化卡片背景 */
+        .card:nth-child(1) {
+            background: linear-gradient(135deg, rgba(255, 221, 225, 0.95) 0%, rgba(255, 182, 193, 0.85) 100%);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), 0 0 20px rgba(255, 182, 193, 0.3);
+            border: 2px dashed #ff8fab;
+        }
+        
+        .card:nth-child(1)::before {
+            content: '✨';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            opacity: 0.7;
+        }
+        
+        .card:nth-child(2) {
+            background: linear-gradient(135deg, rgba(221, 255, 221, 0.95) 0%, rgba(182, 255, 182, 0.85) 100%);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), 0 0 20px rgba(182, 255, 182, 0.3);
+            border: 2px dotted #8aff8a;
+        }
+        
+        .card:nth-child(2)::before {
+            content: '🎓';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            opacity: 0.7;
+        }
+        
+        .card:nth-child(3) {
+            background: linear-gradient(135deg, rgba(221, 221, 255, 0.95) 0%, rgba(182, 182, 255, 0.85) 100%);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), 0 0 20px rgba(182, 182, 255, 0.3);
+            border: 2px solid #8a8aff;
+        }
+        
+        .card:nth-child(3)::before {
+            content: '💡';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            opacity: 0.7;
+        }
+        
+        .card:nth-child(4) {
+            background: linear-gradient(135deg, rgba(255, 255, 221, 0.95) 0%, rgba(255, 255, 182, 0.85) 100%);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), 0 0 20px rgba(255, 255, 182, 0.3);
+            border: 2px double #ffff8a;
+        }
+        
+        .card:nth-child(4)::before {
+            content: '🌟';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            opacity: 0.7;
+        }
+        
+        .card:nth-child(5) {
+            background: linear-gradient(135deg, rgba(221, 255, 255, 0.95) 0%, rgba(182, 255, 255, 0.85) 100%);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), 0 0 20px rgba(182, 255, 255, 0.3);
+            border: 2px groove #8affff;
+        }
+        
+        .card:nth-child(5)::before {
+            content: '📮';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            opacity: 0.7;
+        }
+        
+        @keyframes cardLoad {
+            0% {
+                opacity: 0;
+                transform: translateY(30px) rotateY(-15deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) rotateY(0);
+            }
+        }
+        
+        .card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+            background: rgba(255, 255, 255, 0.98);
+        }
+        
+        .card:hover .card-title {
+            transform: scale(1.05);
+        }
+        
+        .card-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card-title .emoji {
+            font-size: 28px;
+        }
+        
+        .card-content {
+            color: #555;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+        
+        /* 时间线 */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 5px;
+            bottom: 5px;
+            width: 3px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            border-radius: 3px;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -26px;
+            top: 5px;
+            width: 14px;
+            height: 14px;
+            background: #667eea;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        }
+        
+        .timeline-date {
+            font-size: 14px;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .timeline-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .timeline-desc {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        /* 技能网格 */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+        
+        .skill-tag {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+            padding: 15px 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 500;
+            color: #555;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 2px solid transparent;
+            animation: tagLoad 0.6s ease-out;
+        }
+        
+        @keyframes tagLoad {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) rotate(-5deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotate(0);
+            }
+        }
+        
+        .skill-tag:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: scale(1.1) rotate(2deg);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+
+        
+        .contact-info {
+            line-height: 2.5;
+            font-size: 16px;
+            color: #555;
+        }
+        
+        .contact-info p {
+            transition: all 0.3s ease;
+        }
+        
+        .contact-info p:hover {
+            color: #667eea;
+            transform: translateX(10px);
+        }
+        
+        /* 个人标签 */
+        .tags-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+        
+        .tag-item {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #555;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            animation: tagSlide 0.5s ease-out;
+        }
+        
+        @keyframes tagSlide {
+            0% {
+                opacity: 0;
+                transform: translateY(20px) scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .tag-item:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* 页脚 */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            animation: fadeIn 1s ease-out;
+        }
+        
+        /* 点击效果 */
+        .click-effect {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(0);
+            animation: clickEffect 0.6s ease-out;
+            pointer-events: none;
+        }
+        
+        @keyframes clickEffect {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .header {
+                padding: 40px 25px;
+            }
+            
+            .name {
+                font-size: 32px;
+            }
+            
+            .avatar {
+                width: 120px;
+                height: 120px;
+                font-size: 48px;
+            }
+            
+            .card {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-deco">🎈</div>
+    <div class="floating-deco">⭐</div>
+    <div class="floating-deco">🎉</div>
+    <div class="floating-deco">✨</div>
+    <div class="container">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="avatar">肖</div>
+            <h1 class="name">肖啸</h1>
+            <p class="tagline">🎒 好好学习 · 🌟 天天向上 · 🚀 快乐成长</p>
+            <span class="date-badge">📅 出生日期：2015年6月25日</span>
+        </header>
+        
+        <!-- 个人标签 -->
+        <div class="tags-section">
+            <div class="tag-item">🎯 超级英雄迷</div>
+            <div class="tag-item">📚 小书虫</div>
+            <div class="tag-item">⚽ 足球健将</div>
+            <div class="tag-item">🎨 小画家</div>
+            <div class="tag-item">🚀 梦想家</div>
+            <div class="tag-item">😄 开心果</div>
+        </div>
+        
+        <!-- 关于我 -->
+        <div class="card">
+            <h2 class="card-title"><span class="emoji">👋</span> 关于我</h2>
+            <div class="card-content">
+                <p>👋 大家好！我是肖啸，今年10岁，是一名超级活泼开朗的小学生！🎒 我最喜欢上课（偶尔会偷偷开小差😜），结交新朋友，探索世界的各种奇妙奥秘！🌟 我的梦想是成为一名超级英雄，拯救地球！🌍 希望通过这个主页和大家分享我的快乐学习生活和超酷的兴趣爱好！🤩</p>
+            </div>
+        </div>
+        
+        <!-- 教育经历 -->
+        <div class="card">
+            <h2 class="card-title"><span class="emoji">🎓</span> 教育经历</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-date">2015年6月25日</div>
+                    <div class="timeline-title">🎉 肖啸诞生</div>
+                    <div class="timeline-desc">👶 我呱呱坠地啦！世界上从此多了一个超级可爱的小宝贝！🌟 开始了我充满惊喜的人生冒险！</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2021年9月</div>
+                    <div class="timeline-title">🎒 成为小学生</div>
+                    <div class="timeline-desc">📚 我背着小书包，蹦蹦跳跳地走进了小学校园！开始了我的知识探索之旅！🧠 每天都有新发现！</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2026年</div>
+                    <div class="timeline-title">⚡ 现在的我</div>
+                    <div class="timeline-desc">💪 我已经是一名超级厉害的小学生啦！会读书、会写字、会算题！🎯 正在朝着我的超级英雄梦想努力前进！</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 技能专长 -->
+        <div class="card">
+            <h2 class="card-title"><span class="emoji">💡</span> 技能专长</h2>
+            <div class="skills-grid">
+                <div class="skill-tag">📝 语文小能手</div>
+                <div class="skill-tag">🔢 数学小天才</div>
+                <div class="skill-tag">🌍 英语小达人</div>
+                <div class="skill-tag">🎨 绘画小画家</div>
+                <div class="skill-tag">🎵 音乐小歌手</div>
+                <div class="skill-tag">⚽ 体育小健将</div>
+            </div>
+        </div>
+        
+        <!-- 兴趣爱好 -->
+        <div class="card">
+            <h2 class="card-title"><span class="emoji">🌟</span> 兴趣爱好</h2>
+            <div class="skills-grid">
+                <div class="skill-tag">📚 读故事书（超级入迷！）</div>
+                <div class="skill-tag">🎮 玩游戏（偶尔玩，不沉迷哦！）</div>
+                <div class="skill-tag">🎨 画画（画出我的超级英雄！）</div>
+                <div class="skill-tag">⚽ 踢足球（我是球队的得分王！）</div>
+                <div class="skill-tag">🚴 骑自行车（风一样的男子！）</div>
+                <div class="skill-tag">🧩 拼图（挑战高难度！）</div>
+            </div>
+        </div>
+        
+        <!-- 联系方式 -->
+        <div class="card">
+            <h2 class="card-title"><span class="emoji">📮</span> 联系我</h2>
+            <div class="contact-info">
+                <p>🏫 我的快乐小学</p>
+                <p> 家长热线（非诚勿扰）</p>
+            </div>
+        </div>
+        
+        <!-- 页脚 -->
+        <footer class="footer">
+            <p>© 2026 肖啸的超级快乐小天地 🎉 | 快乐学习 · 健康成长 · 梦想成真 ✨</p>
+        </footer>
+    </div>
+    
+    <script>
+        // 点击效果
+        document.addEventListener('click', function(e) {
+            const clickEffect = document.createElement('div');
+            clickEffect.className = 'click-effect';
+            clickEffect.style.left = e.clientX + 'px';
+            clickEffect.style.top = e.clientY + 'px';
+            document.body.appendChild(clickEffect);
+            
+            setTimeout(() => {
+                clickEffect.remove();
+            }, 600);
+        });
+        
+        // 卡片动画延迟
+        const cards = document.querySelectorAll('.card');
+        cards.forEach((card, index) => {
+            card.style.animationDelay = (index * 0.1) + 's';
+        });
+        
+        // 技能标签动画延迟
+        const skillTags = document.querySelectorAll('.skill-tag');
+        skillTags.forEach((tag, index) => {
+            tag.style.animationDelay = (index * 0.05) + 's';
+        });
+        
+        // 个人标签动画延迟
+        const tagItems = document.querySelectorAll('.tag-item');
+        tagItems.forEach((tag, index) => {
+            tag.style.animationDelay = (index * 0.08) + 's';
+        });
+    </script>
+</body>
+</html>
