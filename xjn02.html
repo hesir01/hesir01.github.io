@@ -1,0 +1,2040 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>夏江南的冒险世界 🎮</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary-pink: #FF9EB5;
+            --primary-blue: #7EB6FF;
+            --secondary-pink: #FFD4E0;
+            --secondary-blue: #C4E0FF;
+            --accent-sky: #87CEEB;
+            --cream-bg: #F0F8FF;
+            --dark-text: #4A5568;
+            --light-text: #718096;
+            --gold: #FFD700;
+            --hp-red: #FF6B9D;
+            --mp-blue: #5B9BD5;
+            --exp-green: #7EC8A3;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: url('a8cd668a27ecadf8d7096c389d1e1e5f.jpg') no-repeat top center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            color: var(--dark-text);
+            overflow-x: hidden;
+        }
+        
+        html { scroll-behavior: smooth; }
+        
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('a8cd668a27ecadf8d7096c389d1e1e5f.jpg') no-repeat top center fixed;
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .loading-animation {
+            width: 350px;
+            height: 120px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .loading-type {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .loading-type.active { display: block; }
+        
+        .scooter-scene .scooter {
+            position: absolute;
+            font-size: 35px;
+            animation: scooterRide 2.5s linear infinite;
+            white-space: nowrap;
+        }
+        
+        .scooter-scene .scooter:first-child { top: 5px; }
+        .scooter-scene .scooter:last-child { top: 60px; animation-delay: 1.2s; }
+        
+        @keyframes scooterRide {
+            0% { left: -120px; }
+            100% { left: 380px; }
+        }
+        
+        .dancing-scene {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        .dancing-scene .dancer {
+            font-size: 50px;
+            animation: dance 0.6s ease-in-out infinite alternate;
+        }
+        
+        .dancing-scene .dancer:nth-child(2) { animation-delay: 0.3s; }
+        .dancing-scene .dancer:nth-child(3) { animation-delay: 0.15s; }
+        
+        @keyframes dance {
+            0% { transform: translateY(0) rotate(-10deg); }
+            100% { transform: translateY(-20px) rotate(10deg); }
+        }
+        
+        .running-scene .runner {
+            position: absolute;
+            font-size: 40px;
+            animation: runAcross 3s linear infinite;
+        }
+        
+        .running-scene .runner:first-child { top: 10px; }
+        .running-scene .runner:last-child { top: 65px; animation-delay: 1.5s; }
+        
+        @keyframes runAcross {
+            0% { left: -60px; }
+            100% { left: 380px; }
+        }
+        
+        .floating-scene {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .floating-scene .floater {
+            font-size: 45px;
+            animation: floatBounce 1s ease-in-out infinite;
+        }
+        
+        .floating-scene .floater:nth-child(2) { animation-delay: 0.2s; }
+        .floating-scene .floater:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes floatBounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-25px) scale(1.1); }
+        }
+        
+        .loading-text {
+            margin-top: 30px;
+            font-size: 18px;
+            color: var(--dark-text);
+            animation: pulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .game-header {
+            background: rgba(255, 158, 181, 0.85);
+            border-radius: 25px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 40px rgba(126, 182, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            animation: shimmer 4s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+            0%, 100% { transform: translate(-30%, -30%) rotate(0deg); }
+            50% { transform: translate(30%, 30%) rotate(180deg); }
+        }
+        
+        .player-card {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .avatar-container {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--primary-pink) 100%);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 55px;
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+            animation: float 3s ease-in-out infinite;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .avatar-container:hover {
+            transform: scale(1.1) rotate(10deg);
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .player-info { flex: 1; }
+        
+        .player-name {
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .player-title {
+            font-size: 14px;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 15px;
+        }
+        
+        .status-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .bar-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .bar-label {
+            font-size: 12px;
+            width: 30px;
+            color: white;
+            font-weight: 700;
+        }
+        
+        .bar-wrapper {
+            flex: 1;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease;
+            position: relative;
+        }
+        
+        .bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.4), transparent);
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .hp-bar { background: linear-gradient(90deg, var(--hp-red), #FFB6C1); width: 85%; }
+        .mp-bar { background: linear-gradient(90deg, var(--mp-blue), #A8D8FF); width: 70%; }
+        .exp-bar { background: linear-gradient(90deg, var(--exp-green), #B8F0C0); width: 60%; }
+        
+        .bar-value {
+            font-size: 11px;
+            color: white;
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .level-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--gold) 0%, #FFA500 100%);
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+            animation: badgePulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .coins-display {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 18px;
+            color: white;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.85);
+            border: none;
+            padding: 14px 22px;
+            border-radius: 20px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
+            color: var(--dark-text);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .nav-btn:hover::before { left: 100%; }
+        
+        .nav-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .nav-btn.active {
+            background: rgba(255, 158, 181, 0.85);
+            color: white;
+        }
+        
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .content-section.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(240,248,255,0.98) 0%, rgba(255,212,224,0.98) 50%, rgba(196,224,255,0.98) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        
+        .section-loading.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .section-loading .loading-type { display: none; }
+        
+        .section-loading .loading-type.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 350px;
+            height: 120px;
+        }
+        
+        .chat-container {
+            width: 350px;
+            height: 150px;
+            position: relative;
+        }
+        
+        .chat-bubble {
+            position: absolute;
+            background: white;
+            padding: 12px 18px;
+            border-radius: 18px;
+            font-size: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            animation: chatPop 0.5s ease;
+            max-width: 180px;
+        }
+        
+        .chat-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid white;
+        }
+        
+        .chat-bubble.left { left: 0; top: 0; }
+        .chat-bubble.left::after { left: 20px; }
+        
+        .chat-bubble.right {
+            right: 0;
+            top: 70px;
+            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--primary-blue) 100%);
+            color: white;
+        }
+        
+        .chat-bubble.right::after {
+            right: 20px;
+            border-top-color: var(--primary-pink);
+        }
+        
+        @keyframes chatPop {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .chat-emoji {
+            position: absolute;
+            font-size: 45px;
+            bottom: 0;
+            animation: emojiWiggle 0.5s ease-in-out infinite;
+        }
+        
+        @keyframes emojiWiggle {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+        
+        .chat-emoji.left { left: 30px; }
+        .chat-emoji.right { right: 30px; animation-delay: 0.25s; }
+        
+        .game-card {
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(126, 182, 255, 0.15);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-card::before {
+            content: '👆 点击展开';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 12px;
+            color: var(--light-text);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .game-card:hover::before { opacity: 1; }
+        
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(126, 182, 255, 0.25);
+        }
+        
+        .game-card.expanded {
+            background: linear-gradient(135deg, white 0%, var(--secondary-pink) 100%);
+        }
+        
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--dark-text);
+        }
+        
+        .card-expand-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease, padding 0.3s ease;
+        }
+        
+        .game-card.expanded .card-expand-content {
+            max-height: 1000px;
+            padding-top: 20px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .info-item {
+            background: rgba(196, 224, 255, 0.85);
+            padding: 15px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.3s ease;
+        }
+        
+        .info-item:hover { transform: scale(1.03); }
+        
+        .info-item .emoji {
+            font-size: 24px;
+            animation: emojiBounce 1s ease-in-out infinite;
+        }
+        
+        @keyframes emojiBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .info-item .label { font-size: 12px; color: white; }
+        .info-item .value { font-size: 14px; font-weight: 700; color: white; }
+        
+        .favorites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+        
+        .favorite-card {
+            background: rgba(255, 212, 224, 0.85);
+            padding: 20px;
+            border-radius: 18px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .favorite-card:hover { transform: scale(1.05) rotate(2deg); }
+        
+        .favorite-card .emoji {
+            font-size: 40px;
+            margin-bottom: 10px;
+            display: inline-block;
+            animation: emojiWiggle 2s ease-in-out infinite;
+        }
+        
+        .favorite-card .category { font-size: 12px; color: white; margin-bottom: 5px; }
+        .favorite-card .name { font-size: 14px; font-weight: 700; color: white; }
+        
+        .radar-container {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .radar-chart {
+            position: relative;
+            width: 300px;
+            height: 300px;
+        }
+        
+        .radar-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .radar-polygon {
+            fill: rgba(126, 182, 255, 0.3);
+            stroke: var(--primary-blue);
+            stroke-width: 2;
+            transition: all 0.5s ease;
+        }
+        
+        .radar-label {
+            position: absolute;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--dark-text);
+            white-space: nowrap;
+        }
+        
+        .subject-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .subject-card {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .subject-card:hover { transform: scale(1.05); }
+        
+        .subject-card.excellent {
+            border-color: var(--gold);
+            background: linear-gradient(135deg, #FFF9E6 0%, white 100%);
+        }
+        
+        .subject-card.good {
+            border-color: var(--primary-blue);
+            background: linear-gradient(135deg, #E8F4FF 0%, white 100%);
+        }
+        
+        .subject-card.average {
+            border-color: var(--secondary-pink);
+            background: linear-gradient(135deg, #FFF0F5 0%, white 100%);
+        }
+        
+        .subject-card .subject-name { font-size: 14px; font-weight: 700; margin-bottom: 5px; }
+        .subject-card .subject-level { font-size: 12px; color: var(--light-text); }
+        .subject-card .stars { margin-top: 5px; }
+        
+        .achievement-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .achievement-card {
+            background: rgba(255, 158, 181, 0.85);
+            padding: 20px;
+            border-radius: 18px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .achievement-card:hover { transform: scale(1.03); }
+        
+        .achievement-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+        }
+        
+        .achievement-card .period { font-size: 12px; opacity: 0.9; margin-bottom: 10px; }
+        .achievement-card .title { font-size: 16px; font-weight: 700; margin-bottom: 5px; }
+        .achievement-card .count { font-size: 24px; font-weight: 700; }
+        
+        .achievement-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 40px;
+            animation: badgeFloat 2s ease-in-out infinite;
+        }
+        
+        @keyframes badgeFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-5px) rotate(10deg); }
+        }
+        
+        .achievement-detail {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .achievement-card.expanded .achievement-detail {
+            max-height: 300px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .achievement-detail .thought-label { font-size: 12px; opacity: 0.8; margin-bottom: 5px; }
+        .achievement-detail .thought { font-size: 14px; line-height: 1.5; }
+        
+        .other-awards {
+            background: white;
+            padding: 20px;
+            border-radius: 18px;
+            margin-top: 20px;
+        }
+        
+        .award-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 0;
+            border-bottom: 1px dashed var(--secondary-pink);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .award-item:last-child { border-bottom: none; }
+        
+        .award-item:hover {
+            padding-left: 10px;
+            background: linear-gradient(90deg, var(--secondary-pink), transparent);
+        }
+        
+        .award-item .emoji { font-size: 24px; }
+        
+        .goal-card {
+            background: rgba(126, 182, 255, 0.85);
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .goal-card:hover { transform: scale(1.02); }
+        
+        .goal-card .goal-type { font-size: 12px; opacity: 0.9; margin-bottom: 5px; }
+        .goal-card .goal-content { font-size: 20px; font-weight: 700; }
+        
+        .goal-card .goal-emoji {
+            font-size: 50px;
+            float: right;
+            animation: emojiWiggle 1s ease-in-out infinite;
+        }
+        
+        .motto-card {
+            background: rgba(255, 158, 181, 0.85);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .motto-card .quote {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .motto-card .author { font-size: 14px; opacity: 0.9; position: relative; z-index: 1; }
+        
+        .motto-card .decoration {
+            position: absolute;
+            font-size: 60px;
+            opacity: 0.3;
+        }
+        
+        .motto-card .decoration.left { left: 15px; top: 15px; }
+        .motto-card .decoration.right { right: 15px; bottom: 15px; }
+        
+        .personality-card {
+            background: rgba(126, 182, 255, 0.85);
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .personality-card:hover { transform: scale(1.02); }
+        
+        .personality-type {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            animation: typeGlow 2s ease-in-out infinite;
+        }
+        
+        @keyframes typeGlow {
+            0%, 100% { text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+            50% { text-shadow: 0 0 20px rgba(255,255,255,0.8); }
+        }
+        
+        .personality-desc { font-size: 14px; opacity: 0.9; }
+        
+        .trait-tags {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .trait-tag {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .trait-tag:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(1.1);
+        }
+        
+        .message-card {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            border: 3px dashed var(--primary-pink);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .message-card:hover {
+            border-style: solid;
+            transform: scale(1.02);
+        }
+        
+        .message-card .emoji {
+            font-size: 60px;
+            margin-bottom: 15px;
+            display: inline-block;
+            animation: emojiBounce 1s ease-in-out infinite;
+        }
+        
+        .message-card .text { font-size: 18px; color: var(--dark-text); line-height: 1.6; }
+        
+        .social-card {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 20px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .social-card:hover {
+            transform: translateX(10px);
+            background: linear-gradient(90deg, var(--secondary-pink), white);
+        }
+        
+        .social-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+        }
+        
+        .social-icon.xiaohongshu { background: linear-gradient(135deg, #FF2442, #FF6B81); }
+        .social-icon.shipinhao { background: linear-gradient(135deg, #07C160, #4CD964); }
+        .social-icon.douyin { background: linear-gradient(135deg, #000000, #333333); }
+        .social-icon.lofter { background: linear-gradient(135deg, #2EA9D3, #5BC0DE); }
+        
+        .social-info .platform { font-weight: 700; color: var(--dark-text); }
+        .social-info .account { font-size: 12px; color: var(--light-text); }
+        
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--light-text);
+            font-size: 14px;
+        }
+        
+        .footer .hearts { font-size: 24px; animation: heartbeat 1s ease-in-out infinite; }
+        
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 25px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+        
+        .modal-overlay.show .modal-content { transform: scale(1); }
+        
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--light-text);
+            transition: color 0.3s ease;
+        }
+        
+        .modal-close:hover { color: var(--primary-pink); }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .modal-body { font-size: 14px; line-height: 1.8; color: var(--dark-text); }
+        .modal-body .label { font-weight: 700; color: var(--primary-blue); margin-top: 15px; }
+        
+        .funny-comment {
+            background: linear-gradient(135deg, var(--secondary-pink), var(--secondary-blue));
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 15px;
+            color: white;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .player-card { flex-direction: column; text-align: center; }
+            .player-name { font-size: 24px; }
+            .level-badge { position: static; margin-top: 15px; }
+            .coins-display { position: static; margin-top: 10px; }
+            .navigation { gap: 8px; }
+            .nav-btn { padding: 10px 15px; font-size: 13px; }
+            .chat-container { width: 280px; }
+            .radar-chart { width: 250px; height: 250px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-animation" id="mainLoadingAnimation">
+            <div class="loading-type scooter-scene active" id="loadingScooter">
+                <div class="scooter">🧑‍🎓🛵💨</div>
+                <div class="scooter">👧🛵💨</div>
+            </div>
+            <div class="loading-type dancing-scene" id="loadingDance">
+                <div class="dancer">💃</div>
+                <div class="dancer">🕺</div>
+                <div class="dancer">💃</div>
+            </div>
+            <div class="loading-type running-scene" id="loadingRun">
+                <div class="runner">🏃‍♂️💨</div>
+                <div class="runner">🏃‍♀️💨</div>
+            </div>
+            <div class="loading-type floating-scene" id="loadingFloat">
+                <div class="floater">🌸</div>
+                <div class="floater">⭐</div>
+                <div class="floater">💫</div>
+            </div>
+        </div>
+        <div class="loading-text">正在进入夏江南的冒险世界...</div>
+    </div>
+    
+    <div class="section-loading" id="sectionLoading">
+        <div class="loading-type chat-scene active" id="sectionChat">
+            <div class="chat-container">
+                <div class="chat-bubble left" id="chatBubble1">加载中...</div>
+                <div class="chat-bubble right" id="chatBubble2">马上就好~</div>
+                <div class="chat-emoji left">😊</div>
+                <div class="chat-emoji right">🌈</div>
+            </div>
+        </div>
+        <div class="loading-type dancing-scene" id="sectionDance">
+            <div class="dancer">🎉</div>
+            <div class="dancer">🎊</div>
+            <div class="dancer">✨</div>
+        </div>
+        <div class="loading-type running-scene" id="sectionRun">
+            <div class="runner">🚀💨</div>
+            <div class="runner">🌟💨</div>
+        </div>
+        <div class="loading-type floating-scene" id="sectionFloat">
+            <div class="floater">💖</div>
+            <div class="floater">💙</div>
+            <div class="floater">💜</div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="modalOverlay">
+
+    </div>
+    
+    <!-- 音频元素 -->
+    <audio id="backgroundMusic" loop>
+        <source src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_speech?text=soft%20gentle%20background%20music%20peaceful&voice=zh-CN-YunxiNeural&format=mp3" type="audio/mp3">
+    </audio>
+    <audio id="errorSound1">
+        <source src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_speech?text=beep%20error%20sound&voice=zh-CN-YunxiNeural&format=mp3" type="audio/mp3">
+    </audio>
+    <audio id="errorSound2">
+        <source src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_speech?text=alert%20warning%20sound&voice=zh-CN-YunxiNeural&format=mp3" type="audio/mp3">
+    </audio>
+    <audio id="errorSound3">
+        <source src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_speech?text=system%20error%20beep&voice=zh-CN-YunxiNeural&format=mp3" type="audio/mp3">
+    </audio>
+    
+    <div class="main-container">
+        <header class="game-header">
+            <div class="level-badge">Lv.14</div>
+            <div class="coins-display">🪙 12,580</div>
+            <div class="player-card">
+                <div class="avatar-container" onclick="showModal('avatar')" ondblclick="handleDoubleClick()"><img src="123.jpg" alt="重音teto" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"></div>
+                <div class="player-info">
+                    <h1 class="player-name">夏江南</h1>
+                    <p class="player-title">✨ ENFP表演家 | 白羊座战士 | 广东省探险家</p>
+                    <div class="status-bars">
+                        <div class="bar-container">
+                            <span class="bar-label">HP</span>
+                            <div class="bar-wrapper">
+                                <div class="bar-fill hp-bar"><span class="bar-value">85/100</span></div>
+                            </div>
+                        </div>
+                        <div class="bar-container">
+                            <span class="bar-label">MP</span>
+                            <div class="bar-wrapper">
+                                <div class="bar-fill mp-bar"><span class="bar-value">70/100</span></div>
+                            </div>
+                        </div>
+                        <div class="bar-container">
+                            <span class="bar-label">EXP</span>
+                            <div class="bar-wrapper">
+                                <div class="bar-fill exp-bar"><span class="bar-value">60/100</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <nav class="navigation">
+            <button class="nav-btn active" data-section="profile">📋 个人档案</button>
+            <button class="nav-btn" data-section="favorites">💖 我的喜爱</button>
+            <button class="nav-btn" data-section="skills">📚 学业技能</button>
+            <button class="nav-btn" data-section="achievements">🏆 荣誉殿堂</button>
+            <button class="nav-btn" data-section="goals">🎯 目标愿景</button>
+            <button class="nav-btn" data-section="social">🌐 社交网络</button>
+        </nav>
+        
+        <section id="profile" class="content-section active">
+            <div class="game-card" onclick="toggleCard(this)">
+                <h2 class="card-title">📌 基础信息</h2>
+                <div class="info-grid">
+                    <div class="info-item"><span class="emoji">🎂</span><div><div class="label">生日</div><div class="value">2012年3月</div></div></div>
+                    <div class="info-item"><span class="emoji">♈</span><div><div class="label">星座</div><div class="value">白羊座</div></div></div>
+                    <div class="info-item"><span class="emoji">📍</span><div><div class="label">所在地</div><div class="value">广东省</div></div></div>
+                    <div class="info-item"><span class="emoji">🎮</span><div><div class="label">年龄</div><div class="value">14岁</div></div></div>
+                </div>
+                <div class="card-expand-content">
+                    <div class="funny-comment">🤪 小知识：白羊座的人天生自带"热血buff"，战斗力+10%，冲动值+50%！</div>
+                </div>
+            </div>
+            
+            <div class="personality-card" onclick="showModal('personality')">
+                <div class="personality-type">ENFP</div>
+                <div class="personality-desc">表演家型人格 | 热情洋溢的创意天才</div>
+                <div class="trait-tags">
+                    <span class="trait-tag">🎭 外向</span>
+                    <span class="trait-tag">😄 幽默</span>
+                    <span class="trait-tag">🌟 开朗</span>
+                    <span class="trait-tag">🤣 搞笑</span>
+                    <span class="trait-tag">😎 高冷人设</span>
+                </div>
+            </div>
+            
+            <div class="motto-card" style="margin-top: 20px;" onclick="showModal('motto')">
+                <span class="decoration left">✨</span>
+                <span class="decoration right">💫</span>
+                <div class="quote">"尽全力做到自己能做到的事"</div>
+                <div class="author">—— 夏江南的人生格言</div>
+            </div>
+        </section>
+        
+        <section id="favorites" class="content-section">
+            <div class="game-card" onclick="toggleCard(this)">
+                <h2 class="card-title">💖 最爱清单</h2>
+                <div class="favorites-grid">
+                    <div class="favorite-card" onclick="event.stopPropagation(); showModal('movie')"><div class="emoji">🎬</div><div class="category">最喜欢的电影</div><div class="name">西红市首富</div></div>
+                    <div class="favorite-card" onclick="event.stopPropagation(); showModal('book')"><div class="emoji">📚</div><div class="category">最喜欢的书籍</div><div class="name">昆虫记、青铜葵花</div></div>
+                    <div class="favorite-card" onclick="event.stopPropagation(); showModal('sport')"><div class="emoji">🏊</div><div class="category">最喜欢的运动</div><div class="name">游泳</div></div>
+                    <div class="favorite-card" onclick="event.stopPropagation(); showModal('music')"><div class="emoji">🎵</div><div class="category">最喜欢的音乐</div><div class="name">向修女忏悔吧、求与影</div></div>
+                    <div class="favorite-card" onclick="event.stopPropagation(); showModal('singer')"><div class="emoji">🎤</div><div class="category">最喜欢的歌手</div><div class="name">重音Teto</div></div>
+                    <div class="favorite-card" onclick="event.stopPropagation(); showModal('game')"><div class="emoji">🎮</div><div class="category">最喜欢的游戏</div><div class="name">沙威玛传奇</div></div>
+                </div>
+                <div class="card-expand-content">
+                    <div class="funny-comment">🎯 点击每个卡片可以查看我的"深度"（并不）感想哦~</div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="skills" class="content-section">
+            <div class="game-card" onclick="toggleCard(this)">
+                <h2 class="card-title">📊 学科属性面板</h2>
+                <div class="subject-grid">
+                    <div class="subject-card excellent" onclick="event.stopPropagation(); showModal('subject-english')"><div class="subject-name">英语</div><div class="subject-level">上等</div><div class="stars">⭐⭐⭐⭐⭐</div></div>
+                    <div class="subject-card excellent" onclick="event.stopPropagation(); showModal('subject-bio')"><div class="subject-name">生物</div><div class="subject-level">上等</div><div class="stars">⭐⭐⭐⭐⭐</div></div>
+                    <div class="subject-card good" onclick="event.stopPropagation(); showModal('subject-chinese')"><div class="subject-name">语文</div><div class="subject-level">中上</div><div class="stars">⭐⭐⭐⭐</div></div>
+                    <div class="subject-card good" onclick="event.stopPropagation(); showModal('subject-math')"><div class="subject-name">数学</div><div class="subject-level">中上</div><div class="stars">⭐⭐⭐⭐</div></div>
+                    <div class="subject-card good" onclick="event.stopPropagation(); showModal('subject-physics')"><div class="subject-name">物理</div><div class="subject-level">中上</div><div class="stars">⭐⭐⭐⭐</div></div>
+                    <div class="subject-card average" onclick="event.stopPropagation(); showModal('subject-politics')"><div class="subject-name">道法</div><div class="subject-level">中等</div><div class="stars">⭐⭐⭐</div></div>
+                    <div class="subject-card average" onclick="event.stopPropagation(); showModal('subject-history')"><div class="subject-name">历史</div><div class="subject-level">中等</div><div class="stars">⭐⭐⭐</div></div>
+                    <div class="subject-card average" onclick="event.stopPropagation(); showModal('subject-geo')"><div class="subject-name">地理</div><div class="subject-level">中等</div><div class="stars">⭐⭐⭐</div></div>
+                </div>
+                <div class="card-expand-content">
+                    <div class="radar-container">
+                        <div class="radar-chart hexagon-chart" id="hexagonChart">
+                            <svg class="radar-bg" viewBox="0 0 300 300">
+                                <polygon points="150,20 260,85 260,215 150,280 40,215 40,85" fill="none" stroke="#E0E0E0" stroke-width="1"/>
+                                <polygon points="150,50 230,96 230,204 150,250 70,204 70,96" fill="none" stroke="#E0E0E0" stroke-width="1"/>
+                                <polygon points="150,80 200,109 200,179 150,220 100,179 100,109" fill="none" stroke="#E0E0E0" stroke-width="1"/>
+                                <polygon points="150,110 170,122 170,154 150,190 130,154 130,122" fill="none" stroke="#E0E0E0" stroke-width="1"/>
+                                <line x1="150" y1="20" x2="150" y2="280" stroke="#E0E0E0" stroke-width="1"/>
+                                <line x1="40" y1="85" x2="260" y2="215" stroke="#E0E0E0" stroke-width="1"/>
+                                <line x1="260" y1="85" x2="40" y2="215" stroke="#E0E0E0" stroke-width="1"/>
+                                <polygon class="radar-polygon" points="150,50 225,93 210,200 150,230 90,195 75,96"/>
+                            </svg>
+                            <span class="radar-label" style="top: 0; left: 50%; transform: translateX(-50%);">英语 95</span>
+                            <span class="radar-label" style="top: 80px; right: 0;">生物 92</span>
+                            <span class="radar-label" style="bottom: 80px; right: 0;">物理 85</span>
+                            <span class="radar-label" style="bottom: 0; left: 50%; transform: translateX(-50%);">地理 70</span>
+                            <span class="radar-label" style="bottom: 80px; left: 0;">语文 82</span>
+                            <span class="radar-label" style="top: 80px; left: 0;">数学 80</span>
+                        </div>
+                    </div>
+                    <div class="funny-comment">📈 这就是传说中的"六边形战士"...的六边形缺了一角版！</div>
+                </div>
+            </div>
+            
+            <div class="game-card" onclick="toggleCard(this)">
+                <h2 class="card-title">💭 学科心情</h2>
+                <div class="info-grid">
+                    <div class="info-item" style="background: linear-gradient(135deg, #B8F0C0, #98D8C8);"><span class="emoji">💚</span><div><div class="label">喜欢</div><div class="value">生物、物理</div></div></div>
+                    <div class="info-item" style="background: linear-gradient(135deg, #FFB6C1, #FF9EB5);"><span class="emoji">💔</span><div><div class="label">不喜欢</div><div class="value">地理、数学</div></div></div>
+                    <div class="info-item" style="background: linear-gradient(135deg, #E0E0E0, #BDBDBD);"><span class="emoji">😐</span><div><div class="label">无感</div><div class="value">其他科目</div></div></div>
+                </div>
+                <div class="card-expand-content">
+                    <div class="funny-comment">🤔 数学：我到底做错了什么... 地理：+1 我：你们没错，是我错了（指考试分数）</div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="achievements" class="content-section">
+            <div class="achievement-grid">
+                <div class="achievement-card" onclick="toggleCard(this)">
+                    <span class="achievement-badge">🏅</span>
+                    <div class="period">小学时期</div>
+                    <div class="title">演讲节特等奖</div>
+                    <div class="count">×3</div>
+                    <div class="achievement-detail">
+                        <div class="thought-label">🏆 获奖感想：</div>
+                        <div class="thought">当时站在台上腿都在抖，但一开口就觉得自己是世界的王！演讲让我学会了如何在紧张中找到自信，虽然现在想起来当时的稿子有点中二...</div>
+                    </div>
+                </div>
+                <div class="achievement-card" onclick="toggleCard(this)">
+                    <span class="achievement-badge">📖</span>
+                    <div class="period">小学时期</div>
+                    <div class="title">阅读节特等奖</div>
+                    <div class="count">×2</div>
+                    <div class="achievement-detail">
+                        <div class="thought-label">🏆 获奖感想：</div>
+                        <div class="thought">读书真的很有用！不仅增长了知识，还让我在写作文的时候有东西可写。虽然现在有时候还是会凑字数...</div>
+                    </div>
+                </div>
+                <div class="achievement-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" onclick="toggleCard(this)">
+                    <span class="achievement-badge">�</span>
+                    <div class="period">初中时期</div>
+                    <div class="title">卓越奖</div>
+                    <div class="count">×2</div>
+                    <div class="achievement-detail">
+                        <div class="thought-label">🏆 获奖感想：</div>
+                        <div class="thought">卓越奖是初中阶段的基础奖项，能拿到说明成绩还不错，但还有很大的进步空间~</div>
+                    </div>
+                </div>
+                <div class="achievement-card" style="background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);" onclick="toggleCard(this)">
+                    <span class="achievement-badge">�</span>
+                    <div class="period">初中时期</div>
+                    <div class="title">精英奖</div>
+                    <div class="count">×4</div>
+                    <div class="achievement-detail">
+                        <div class="thought-label">🏆 获奖感想：</div>
+                        <div class="thought">精英奖比卓越奖更难拿！这是对我学习能力的认可，拿到这个奖的时候感觉自己离学霸又近了一步，虽然离真正的学霸还有一段距离...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="other-awards game-card" style="margin-top: 20px;">
+                <h2 class="card-title">🎖️ 其他荣誉</h2>
+                <div class="award-item" onclick="showModal('award-singer')"><span class="emoji">🎤</span><span>校园十大歌手优秀奖</span></div>
+                <div class="award-item" onclick="showModal('award-piano')"><span class="emoji">🎹</span><span>少儿钢琴手一等奖</span></div>
+                <div class="award-item" onclick="showModal('award-certificate')"><span class="emoji">📜</span><span>钢琴5级证书</span></div>
+                <div class="award-item" onclick="showModal('award-taekwondo')"><span class="emoji">🥋</span><span>跆拳道红黑带</span></div>
+            </div>
+        </section>
+        
+        <section id="goals" class="content-section">
+            <div class="goal-card" onclick="showModal('goal-short')">
+                <span class="goal-emoji">🎯</span>
+                <div class="goal-type">近期目标</div>
+                <div class="goal-content">考上750分！</div>
+            </div>
+            <div class="goal-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" onclick="showModal('goal-long')">
+                <span class="goal-emoji">🏫</span>
+                <div class="goal-type">长远目标</div>
+                <div class="goal-content">考上一中！</div>
+            </div>
+            
+            <div class="message-card" style="margin-top: 20px;" onclick="showModal('message')">
+                <div class="emoji">🌈</div>
+                <div class="text">我是个很幼稚的人，认识一下吧！<br><span style="font-size: 14px; color: var(--light-text);">期待与你成为朋友~</span></div>
+            </div>
+        </section>
+        
+        <section id="social" class="content-section">
+            <div class="game-card">
+                <h2 class="card-title">🌐 社交网络</h2>
+                <p style="color: var(--light-text); margin-bottom: 20px;">目前在视频号、小红书、抖音、LOFTER建设账号</p>
+                <div class="social-card" onclick="showModal('social-xiaohongshu')"><div class="social-icon xiaohongshu">📕</div><div class="social-info"><div class="platform">小红书</div><div class="account">账号：95391251135</div></div></div>
+                <div class="social-card" onclick="showModal('social-shipinhao')"><div class="social-icon shipinhao">📺</div><div class="social-info"><div class="platform">视频号</div><div class="account">建设中...</div></div></div>
+                <div class="social-card" onclick="showModal('social-douyin')"><div class="social-icon douyin">🎵</div><div class="social-info"><div class="platform">抖音</div><div class="account">建设中...</div></div></div>
+                <div class="social-card" onclick="showModal('social-lofter')"><div class="social-icon lofter">📝</div><div class="social-info"><div class="platform">LOFTER</div><div class="account">建设中...</div></div></div>
+            </div>
+        </section>
+        
+        <footer class="footer">
+            <div class="hearts">💖💙</div>
+            <p>夏江南的冒险世界 © 2024</p>
+            <p style="font-size: 12px; margin-top: 5px;">感谢你的到来，愿你每天都开心！✨</p>
+        </footer>
+    </div>
+    
+    <script>
+        const loadingTypes = ['loadingScooter', 'loadingDance', 'loadingRun', 'loadingFloat'];
+        const sectionLoadingTypes = ['sectionChat', 'sectionDance', 'sectionRun', 'sectionFloat'];
+        
+        const chatMessages = [
+            ['加载中...', '马上就好~'],
+            ['正在准备...', '请稍等哦！'],
+            ['即将到达~', '期待吗？'],
+            ['数据加载中...', '快好了！'],
+            ['正在传送...', '目的地就在前方！'],
+            ['努力加载中...', '别急别急~'],
+            ['魔法加载中...', '✨变！✨']
+        ];
+        
+        const modalData = {
+            'avatar': { title: '� 关于我的头像', body: '<p>这是我最喜欢的虚拟歌手重音Teto！</p><p class="label">为什么是重音Teto？</p><p>因为她的声音超好听，歌曲《向修女忏悔吧》和《求与影》都是我的最爱！而且她的红发双马尾超可爱~</p><p class="label">关于重音Teto</p><p>重音Teto是Vocaloid家族的一员，以红色双马尾和B44标志著称，她的歌曲风格多样，从摇滚到抒情都有。</p><div class="funny-comment">� 其实是因为她的歌太好听了，听了就停不下来！</div>' },
+            'personality': { title: '🎭 ENFP人格详解', body: '<p>ENFP - 表演家型人格，天生的社交达人！</p><p class="label">性格特点：</p><p>外向、幽默、开朗、搞笑...但在不熟的人面前会立高冷人设 😎</p><p class="label">自我评价：</p><p>我觉得自己是个很幼稚的人，但这正是我的可爱之处！</p><div class="funny-comment">🤪 朋友说我：表面高冷，实际是个逗比。我：你才逗比！你全家都逗比！</div>' },
+            'motto': { title: '✨ 人生格言', body: '<p>"尽全力做到自己能做到的事"</p><p class="label">为什么选这句话？</p><p>因为我觉得，只要尽力了，结果怎么样都不后悔。而且这样想的话，压力也不会太大~</p><div class="funny-comment">💪 虽然有时候"尽全力"="尽全力学10分钟然后玩手机2小时"</div>' },
+            'movie': { title: '🎬 最喜欢的电影', body: '<p>《西红市首富》</p><p class="label">为什么喜欢？</p><p>超级搞笑！每次看都能笑出腹肌。沈腾的表演太绝了，而且剧情也很解压。</p><div class="funny-comment">🤑 看完之后做梦都在数钱，醒来发现还是穷学生一个</div>' },
+            'book': { title: '📚 最喜欢的书籍', body: '<p>《昆虫记》和《青铜葵花》</p><p class="label">《昆虫记》：</p><p>法布尔写的昆虫世界太有趣了！原来小虫子们也有这么多故事。</p><p class="label">《青铜葵花》：</p><p>曹文轩的书总是很感人，看完之后哭了好久...</p><div class="funny-comment">📖 其实还喜欢漫画书，但这个说出来就不文艺了</div>' },
+            'sport': { title: '🏊 最喜欢的运动', body: '<p>游泳！</p><p class="label">为什么喜欢游泳？</p><p>在水里感觉特别自由，而且夏天的时候超凉快！最重要的是，游泳的时候不用流汗（虽然其实是在水里感觉不到）。</p><div class="funny-comment">🏊‍♀️ 游泳唯一的问题就是...游完之后超级饿，然后就会吃很多，白游了</div>' },
+            'music': { title: '🎵 最喜欢的音乐', body: '<p>《向修女忏悔吧》和《求与影》</p><p class="label">为什么喜欢？</p><p>旋律超级好听！而且重音Teto的声音很有特色，听一遍就忘不掉。</p><div class="funny-comment">🎶 在学校哼的时候被同学问"你在唱什么"，我："你不会懂的"</div>' },
+            'singer': { title: '🎤 最喜欢的歌手', body: '<p>重音Teto</p><p class="label">为什么喜欢？</p><p>虽然是虚拟歌手，但是声音真的很有辨识度！而且歌曲风格很多变。</p><div class="funny-comment">🎤 朋友："你喜欢的歌手是谁？" 我："重音Teto" 朋友："没听过" 我："你out了！"</div>' },
+            'game': { title: '🎮 最喜欢的游戏', body: '<p>《沙威玛传奇》</p><p class="label">为什么喜欢？</p><p>超级好玩！做沙威玛的感觉太爽了，而且看着顾客排队很有成就感。</p><div class="funny-comment">🎮 玩到半夜被妈妈发现，我："我在学习做菜！" 妈妈："..."</div>' },
+            'subject-english': { title: '📚 英语学科', body: '<p>等级：上等 ⭐⭐⭐⭐⭐</p><p class="label">我的看法：</p><p>英语其实挺有意思的，而且学会了可以看更多的东西！单词虽然多，但背起来还挺有成就感的。</p><div class="funny-comment">🇬🇧 My English is very good! (自信)</div>' },
+            'subject-bio': { title: '📚 生物学科', body: '<p>等级：上等 ⭐⭐⭐⭐⭐</p><p class="label">我的看法：</p><p>生物是我最喜欢的科目之一！了解生命的奥秘真的很有趣，而且实验课超好玩。</p><div class="funny-comment">🧬 显微镜下的世界：哇！考试时的生物题：啊？</div>' },
+            'subject-chinese': { title: '📚 语文学科', body: '<p>等级：中上 ⭐⭐⭐⭐</p><p class="label">我的看法：</p><p>语文还行吧，作文有时候写不出来，但阅读理解还是可以的。</p><div class="funny-comment">📖 阅读理解：作者想表达什么？作者：我就是随便写写...</div>' },
+            'subject-math': { title: '📚 数学学科', body: '<p>等级：中上 ⭐⭐⭐⭐</p><p class="label">我的看法：</p><p>数学...我不喜欢它，它好像也不太喜欢我。但我们还是勉强维持着"中上"的关系。</p><div class="funny-comment">🔢 数学题：请证明1+1=2 我：因为...因为就是等于2啊！</div>' },
+            'subject-physics': { title: '📚 物理学科', body: '<p>等级：中上 ⭐⭐⭐⭐</p><p class="label">我的看法：</p><p>物理很有趣！虽然公式多，但理解了原理之后就会发现万物皆物理。</p><div class="funny-comment">⚡ 牛顿：我发现了万有引力 我：我发现了物理好难</div>' },
+            'subject-politics': { title: '📚 道法学科', body: '<p>等级：中等 ⭐⭐⭐</p><p class="label">我的看法：</p><p>道法需要背的东西太多了...而且有时候感觉和实际生活有点距离。</p><div class="funny-comment">📜 背诵ing...大脑：已放弃处理</div>' },
+            'subject-history': { title: '📚 历史学科', body: '<p>等级：中等 ⭐⭐⭐</p><p class="label">我的看法：</p><p>历史故事挺有趣的，但是要记住那么多年代和事件真的很难！</p><div class="funny-comment">📅 1840年发生了什么？我：呃...有事情发生？</div>' },
+            'subject-geo': { title: '📚 地理学科', body: '<p>等级：中等 ⭐⭐⭐</p><p class="label">我的看法：</p><p>地理我真的不太擅长...那些地图和气候类型，看了就头晕。</p><div class="funny-comment">🌍 这是哪个国家？我：地球上的？</div>' },
+            'award-singer': { title: '🎤 校园十大歌手优秀奖', body: '<p class="label">🏆 获奖感想：</p><p>虽然只是优秀奖，但能进十大歌手我已经很满足了！当时唱歌的时候超级紧张，但一开口就忘记了紧张。</p><div class="funny-comment">🎵 朋友说我唱得很好听，我觉得他们可能是真爱</div>' },
+            'award-piano': { title: '🎹 少儿钢琴手一等奖', body: '<p class="label">🏆 获奖感想：</p><p>练琴真的很辛苦，但拿到奖的那一刻觉得一切都值了！虽然现在弹得没有以前那么勤了，但还是挺喜欢钢琴的。</p><div class="funny-comment">🎹 每次练琴：再弹一遍就好...算了再弹亿遍</div>' },
+            'award-certificate': { title: '📜 钢琴5级证书', body: '<p class="label">🏆 获奖感想：</p><p>考级的时候超级紧张，手都在抖！但考完之后发现其实没那么可怕。5级只是一个开始，继续努力！</p><div class="funny-comment">🎼 考级前：我准备好了！考级时：这是啥？</div>' },
+            'award-taekwondo': { title: '🥋 跆拳道红黑带', body: '<p class="label">🏆 获奖感想：</p><p>练跆拳道让我变得更自信了！虽然训练很累，但学会防身技能感觉很酷。红黑带离黑带就差一点点了！</p><div class="funny-comment">🥋 我：我会跆拳道！朋友：哇好厉害！我：但我不打架哦~</div>' },
+            'goal-short': { title: '🎯 近期目标', body: '<p>考上750分！</p><p class="label">为什么定这个目标？</p><p>750分是一个很有挑战性的目标，但我觉得只要努力，就有可能达到！而且有了目标才有动力嘛~</p><div class="funny-comment">📊 现在的分数：保密 目标：750 差距：努力中...</div>' },
+            'goal-long': { title: '🏫 长远目标', body: '<p>考上一中！</p><p class="label">为什么是一中？</p><p>一中是我们这里最好的高中，能考进去说明我很厉害！而且一中的学习氛围也很好。</p><div class="funny-comment">🎓 一中：等我！我：我来了！（虽然还在努力中）</div>' },
+            'message': { title: '🌈 给访客的话', body: '<p>"我是个很幼稚的人，认识一下吧！"</p><p class="label">想说的：</p><p>谢谢你看到这里！虽然我有时候很幼稚，但我认为幼稚也是一种可爱。希望你也能保持一颗童心，快乐每一天！</p><div class="funny-comment">🌈 幼稚怎么了？幼稚可爱啊！（自我安慰ing）</div>' },
+            'social-xiaohongshu': { title: '📕 小红书', body: '<p>账号：95391251135</p><p class="label">我在分享什么？</p><p>会分享一些日常、学习心得，偶尔还有一些搞笑的内容~</p><div class="funny-comment">📱 欢迎来找我玩！点赞关注不迷路~</div>' },
+            'social-shipinhao': { title: '📺 视频号', body: '<p>建设中...</p><p class="label">未来计划：</p><p>可能会发一些vlog或者有趣的视频，敬请期待！</p><div class="funny-comment">🎬 等我火了记得说"我早就关注了"</div>' },
+            'social-douyin': { title: '🎵 抖音', body: '<p>建设中...</p><p class="label">未来计划：</p><p>可能会发一些短视频，还在构思内容中~</p><div class="funny-comment">📱 说不定哪天就火了呢（做梦ing）</div>' },
+            'social-lofter': { title: '📝 LOFTER', body: '<p>建设中...</p><p class="label">未来计划：</p><p>可能会发一些同人创作或者文字作品~</p><div class="funny-comment">✍️ 文艺青年（自称）的聚集地</div>' }
+        };
+        
+        let currentLoadingIndex = 0;
+        let currentSectionLoadingIndex = 0;
+        
+        window.addEventListener('load', function() {
+            const randomIndex = Math.floor(Math.random() * loadingTypes.length);
+            document.querySelectorAll('#mainLoadingAnimation .loading-type').forEach(el => el.classList.remove('active'));
+            document.getElementById(loadingTypes[randomIndex]).classList.add('active');
+            
+            setTimeout(function() {
+                document.getElementById('loadingScreen').classList.add('hidden');
+            }, 2000);
+        });
+        
+        const navBtns = document.querySelectorAll('.nav-btn');
+        const sections = document.querySelectorAll('.content-section');
+        const sectionLoading = document.getElementById('sectionLoading');
+        
+        navBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const targetSection = this.dataset.section;
+                if (this.classList.contains('active')) return;
+                
+                currentSectionLoadingIndex = (currentSectionLoadingIndex + 1) % sectionLoadingTypes.length;
+                document.querySelectorAll('#sectionLoading .loading-type').forEach(el => el.classList.remove('active'));
+                document.getElementById(sectionLoadingTypes[currentSectionLoadingIndex]).classList.add('active');
+                
+                const randomChat = chatMessages[Math.floor(Math.random() * chatMessages.length)];
+                document.getElementById('chatBubble1').textContent = randomChat[0];
+                document.getElementById('chatBubble2').textContent = randomChat[1];
+                
+                sectionLoading.classList.add('show');
+                
+                setTimeout(function() {
+                    navBtns.forEach(b => b.classList.remove('active'));
+                    sections.forEach(s => s.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.getElementById(targetSection).classList.add('active');
+                    sectionLoading.classList.remove('show');
+                }, 1200);
+            });
+        });
+        
+        function toggleCard(card) {
+            card.classList.toggle('expanded');
+        }
+        
+        function showModal(id) {
+            const data = modalData[id];
+            if (data) {
+                document.getElementById('modalTitle').innerHTML = data.title;
+                document.getElementById('modalBody').innerHTML = data.body;
+                document.getElementById('modalOverlay').classList.add('show');
+            }
+        }
+        
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+        }
+        
+        document.getElementById('modalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+        
+        // 鼠标emoji互动效果
+        const mouseEmoji = document.createElement('div');
+        mouseEmoji.className = 'mouse-emoji';
+        mouseEmoji.style.position = 'fixed';
+        mouseEmoji.style.pointerEvents = 'none';
+        mouseEmoji.style.zIndex = '9999';
+        mouseEmoji.style.fontSize = '24px';
+        mouseEmoji.style.transition = 'all 0.2s ease';
+        mouseEmoji.style.opacity = '0';
+        document.body.appendChild(mouseEmoji);
+        
+        const interactions = [
+            { emoji: '👋', action: 'wave', delay: 2000 },
+            { emoji: '💕', action: 'love', delay: 3000 },
+            { emoji: '🤣', action: 'laugh', delay: 4000 },
+            { emoji: '✨', action: 'sparkle', delay: 5000 },
+            { emoji: '🎉', action: 'celebrate', delay: 6000 },
+            { emoji: '👀', action: 'stare', delay: 7000 },
+            { emoji: '🤏', action: 'pinch', delay: 8000 },
+            { emoji: '🏃‍♂️', action: 'run', delay: 9000 },
+            { emoji: '🐭', action: 'mouse', delay: 10000 },
+            { emoji: '🔥', action: 'fire', delay: 11000 }
+        ];
+        
+        let currentInteraction = 0;
+        let isInteracting = false;
+        
+        function startMouseInteraction() {
+            if (isInteracting) return;
+            
+            const interaction = interactions[currentInteraction];
+            mouseEmoji.textContent = interaction.emoji;
+            mouseEmoji.style.opacity = '1';
+            
+            isInteracting = true;
+            
+            setTimeout(() => {
+                mouseEmoji.style.opacity = '0';
+                isInteracting = false;
+                currentInteraction = (currentInteraction + 1) % interactions.length;
+                
+                // 随机延迟后开始下一个互动
+                const nextDelay = Math.random() * 5000 + 3000;
+                setTimeout(startMouseInteraction, nextDelay);
+            }, interaction.delay);
+        }
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isInteracting) return;
+            
+            const interaction = interactions[currentInteraction];
+            let offsetX = 0;
+            let offsetY = 0;
+            
+            switch (interaction.action) {
+                case 'wave':
+                    offsetX = 20;
+                    offsetY = -20;
+                    break;
+                case 'love':
+                    offsetX = 25;
+                    offsetY = -25;
+                    break;
+                case 'laugh':
+                    offsetX = 30;
+                    offsetY = -15;
+                    break;
+                case 'sparkle':
+                    offsetX = -20;
+                    offsetY = -30;
+                    break;
+                case 'celebrate':
+                    offsetX = 15;
+                    offsetY = -20;
+                    break;
+                case 'stare':
+                    offsetX = 10;
+                    offsetY = -10;
+                    break;
+                case 'pinch':
+                    offsetX = 5;
+                    offsetY = -5;
+                    break;
+                case 'run':
+                    offsetX = 35;
+                    offsetY = -10;
+                    break;
+                case 'mouse':
+                    offsetX = 20;
+                    offsetY = 10;
+                    break;
+                case 'fire':
+                    offsetX = -15;
+                    offsetY = -20;
+                    break;
+            }
+            
+            mouseEmoji.style.left = (e.clientX + offsetX) + 'px';
+            mouseEmoji.style.top = (e.clientY + offsetY) + 'px';
+        });
+        
+        // 页面加载后开始互动
+        window.addEventListener('load', function() {
+            // 播放背景音乐
+            const backgroundMusic = document.getElementById('backgroundMusic');
+            backgroundMusic.volume = 0.3;
+            backgroundMusic.play().catch(e => console.log('Music play failed:', e));
+            
+            setTimeout(startMouseInteraction, 2000);
+        });
+        
+        // 双击头像功能
+        let clickCount = 0;
+        let isProcessing = false;
+        
+        function handleDoubleClick() {
+            if (isProcessing) return;
+            isProcessing = true;
+            
+            // 停止背景音乐
+            const backgroundMusic = document.getElementById('backgroundMusic');
+            backgroundMusic.pause();
+            backgroundMusic.currentTime = 0;
+            
+            clickCount++;
+            
+            if (clickCount === 1) {
+                // 播放错误提示音
+                playErrorSounds();
+                
+                // 第一次双击：画面混乱抖动
+                createGlitchEffect();
+                setTimeout(() => {
+                    removeGlitchEffect();
+                    isProcessing = false;
+                }, 1000);
+            } else if (clickCount === 2) {
+                // 播放错误提示音
+                playErrorSounds();
+                
+                // 第二次双击：出现错误栏
+                errorBarCount = 0;
+                closedErrorBarCount = 0;
+                createErrorBar("你真的要这么做吗？", "Are you sure you want to do this?");
+            }
+        }
+        
+        function createGlitchEffect() {
+            // 创建更多的叠加效果层
+            for (let i = 0; i < 5; i++) {
+                const glitchOverlay = document.createElement('div');
+                glitchOverlay.className = 'glitch-layer';
+                glitchOverlay.style.position = 'fixed';
+                glitchOverlay.style.top = '0';
+                glitchOverlay.style.left = '0';
+                glitchOverlay.style.width = '100%';
+                glitchOverlay.style.height = '100%';
+                glitchOverlay.style.zIndex = '99999';
+                glitchOverlay.style.pointerEvents = 'none';
+                glitchOverlay.style.mixBlendMode = ['xor', 'screen', 'overlay', 'difference', 'exclusion'][i % 5];
+                glitchOverlay.style.opacity = 0.8;
+                
+                // 更强烈的颜色效果
+                const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'];
+                glitchOverlay.style.background = `linear-gradient(${Math.random() * 360}deg, transparent 0%, ${colors[i % 5]} 50%, transparent 100%)`;
+                glitchOverlay.style.animation = `glitch ${0.5 + i * 0.2}s linear infinite`;
+                glitchOverlay.style.transform = `translateX(${Math.random() * 30 - 15}px) translateY(${Math.random() * 30 - 15}px) rotate(${Math.random() * 5 - 2.5}deg)`;
+                
+                document.body.appendChild(glitchOverlay);
+            }
+            
+            // 添加更强的噪点效果
+            const noiseOverlay = document.createElement('div');
+            noiseOverlay.id = 'noiseOverlay';
+            noiseOverlay.style.position = 'fixed';
+            noiseOverlay.style.top = '0';
+            noiseOverlay.style.left = '0';
+            noiseOverlay.style.width = '100%';
+            noiseOverlay.style.height = '100%';
+            noiseOverlay.style.zIndex = '99999';
+            noiseOverlay.style.pointerEvents = 'none';
+            noiseOverlay.style.background = 'url("data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" height=\"100%\"%3E%3Cfilter id=\"noise\"%3E%3CfeTurbulence type=\"fractalNoise\" baseFrequency=\"1.2\" numOctaves=\"4\" result=\"noise\"/%3E%3C/filter%3E%3Crect width=\"100%\" height=\"100%\" filter=\"url(%23noise)\" opacity=\"0.5\"/%3E%3C/svg%3E")';
+            noiseOverlay.style.animation = 'flicker 0.2s linear infinite';
+            document.body.appendChild(noiseOverlay);
+            
+            // 添加多个扫描线效果
+            for (let i = 0; i < 3; i++) {
+                const scanlineOverlay = document.createElement('div');
+                scanlineOverlay.className = 'scanline-overlay';
+                scanlineOverlay.style.position = 'fixed';
+                scanlineOverlay.style.top = '0';
+                scanlineOverlay.style.left = '0';
+                scanlineOverlay.style.width = '100%';
+                scanlineOverlay.style.height = '100%';
+                scanlineOverlay.style.zIndex = '99999';
+                scanlineOverlay.style.pointerEvents = 'none';
+                scanlineOverlay.style.background = 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 50%, transparent 100%)';
+                scanlineOverlay.style.backgroundSize = '100% 2px';
+                scanlineOverlay.style.animation = `scanline ${1 + i * 0.5}s linear infinite`;
+                scanlineOverlay.style.animationDirection = i % 2 === 0 ? 'normal' : 'reverse';
+                document.body.appendChild(scanlineOverlay);
+            }
+            
+            // 添加更强的抖动效果
+            document.body.style.animation = 'intense-shake 0.5s linear infinite';
+            
+            // 添加更多的随机色块
+            for (let i = 0; i < 15; i++) {
+                const colorBlock = document.createElement('div');
+                colorBlock.className = 'color-block';
+                colorBlock.style.position = 'fixed';
+                colorBlock.style.width = `${Math.random() * 300 + 100}px`;
+                colorBlock.style.height = `${Math.random() * 200 + 50}px`;
+                colorBlock.style.top = `${Math.random() * 100}%`;
+                colorBlock.style.left = `${Math.random() * 100}%`;
+                colorBlock.style.zIndex = '99999';
+                colorBlock.style.pointerEvents = 'none';
+                colorBlock.style.background = `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.8)`;
+                colorBlock.style.animation = `glitch ${Math.random() * 0.8 + 0.2}s linear infinite`;
+                colorBlock.style.border = `2px solid rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 1)`;
+                document.body.appendChild(colorBlock);
+            }
+            
+            // 添加闪烁的警告文字
+            const warningText = document.createElement('div');
+            warningText.id = 'warningText';
+            warningText.style.position = 'fixed';
+            warningText.style.top = '50%';
+            warningText.style.left = '50%';
+            warningText.style.transform = 'translate(-50%, -50%)';
+            warningText.style.zIndex = '100000';
+            warningText.style.pointerEvents = 'none';
+            warningText.style.fontSize = '48px';
+            warningText.style.fontWeight = 'bold';
+            warningText.style.color = '#ff0000';
+            warningText.style.textShadow = '0 0 20px #ff0000';
+            warningText.style.animation = 'flicker 0.1s linear infinite';
+            warningText.style.mixBlendMode = 'screen';
+            warningText.textContent = 'SYSTEM ERROR';
+            document.body.appendChild(warningText);
+            
+            // 添加随机的数字和符号
+            for (let i = 0; i < 20; i++) {
+                const randomChar = document.createElement('div');
+                randomChar.className = 'random-char';
+                randomChar.style.position = 'fixed';
+                randomChar.style.top = `${Math.random() * 100}%`;
+                randomChar.style.left = `${Math.random() * 100}%`;
+                randomChar.style.zIndex = '99999';
+                randomChar.style.pointerEvents = 'none';
+                randomChar.style.fontSize = `${Math.random() * 20 + 10}px`;
+                randomChar.style.color = `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.8)`;
+                randomChar.style.animation = `flicker ${Math.random() * 0.5 + 0.2}s linear infinite`;
+                randomChar.textContent = String.fromCharCode(Math.floor(Math.random() * 94) + 33); // 随机ASCII字符
+                document.body.appendChild(randomChar);
+            }
+        }
+        
+        function removeGlitchEffect() {
+            // 移除所有效果层
+            const glitchLayers = document.querySelectorAll('.glitch-layer');
+            glitchLayers.forEach(layer => layer.remove());
+            
+            const noiseOverlay = document.getElementById('noiseOverlay');
+            if (noiseOverlay) {
+                noiseOverlay.remove();
+            }
+            
+            const scanlineOverlays = document.querySelectorAll('.scanline-overlay');
+            scanlineOverlays.forEach(overlay => overlay.remove());
+            
+            const colorBlocks = document.querySelectorAll('.color-block');
+            colorBlocks.forEach(block => block.remove());
+            
+            const warningText = document.getElementById('warningText');
+            if (warningText) {
+                warningText.remove();
+            }
+            
+            const randomChars = document.querySelectorAll('.random-char');
+            randomChars.forEach(char => char.remove());
+            
+            document.body.style.animation = '';
+        }
+        
+        let errorBarCount = 0;
+        let closedErrorBarCount = 0;
+        
+        function createErrorBar(title, subtitle) {
+            const errorBar = document.createElement('div');
+            errorBar.className = 'error-bar';
+            errorBar.innerHTML = `
+                <div class="error-content">
+                    <button class="error-close" onclick="handleErrorBarClose(this)">✖</button>
+                    <h3>${title}</h3>
+                    <p>${subtitle}</p>
+                </div>
+            `;
+            
+            // 随机位置
+            errorBar.style.top = `${Math.random() * 70 + 10}%`;
+            errorBar.style.left = `${Math.random() * 70 + 10}%`;
+            
+            document.body.appendChild(errorBar);
+            errorBarCount++;
+            
+            // 自动复制更多错误栏
+            if (errorBarCount < 15) {
+                setTimeout(() => {
+                    createErrorBar(title, subtitle);
+                }, 200);
+            }
+        }
+        
+        function removeErrorBar() {
+            const errorBar = document.querySelector('.error-bar');
+            if (errorBar) {
+                errorBar.remove();
+                isProcessing = false;
+            }
+        }
+        
+        function handleErrorBarClose(button) {
+            const errorBar = button.closest('.error-bar');
+            if (errorBar) {
+                errorBar.remove();
+                closedErrorBarCount++;
+                
+                // 播放错误提示音
+                playErrorSounds();
+                
+                // 当关闭了大约5个栏目后，触发黑屏效果
+                if (closedErrorBarCount >= 5) {
+                    // 移除所有剩余的错误栏
+                    const remainingErrorBars = document.querySelectorAll('.error-bar');
+                    remainingErrorBars.forEach(bar => bar.remove());
+                    
+                    // 触发黑屏效果
+                    createBlackoutEffect();
+                }
+            }
+        }
+        
+        function playErrorSounds() {
+            const errorSounds = [
+                document.getElementById('errorSound1'),
+                document.getElementById('errorSound2'),
+                document.getElementById('errorSound3')
+            ];
+            
+            // 随机播放一个错误提示音
+            const randomSound = errorSounds[Math.floor(Math.random() * errorSounds.length)];
+            randomSound.volume = 0.6;
+            randomSound.currentTime = 0;
+            randomSound.play().catch(e => console.log('Error sound play failed:', e));
+            
+            // 播放多个错误提示音，营造混乱效果
+            setTimeout(() => {
+                const anotherSound = errorSounds[Math.floor(Math.random() * errorSounds.length)];
+                anotherSound.volume = 0.6;
+                anotherSound.currentTime = 0;
+                anotherSound.play().catch(e => console.log('Error sound play failed:', e));
+            }, 200);
+            
+            setTimeout(() => {
+                const thirdSound = errorSounds[Math.floor(Math.random() * errorSounds.length)];
+                thirdSound.volume = 0.6;
+                thirdSound.currentTime = 0;
+                thirdSound.play().catch(e => console.log('Error sound play failed:', e));
+            }, 400);
+        }
+        
+        function createBlackoutEffect() {
+            const blackout = document.createElement('div');
+            blackout.id = 'blackout';
+            blackout.style.position = 'fixed';
+            blackout.style.top = '0';
+            blackout.style.left = '0';
+            blackout.style.width = '100%';
+            blackout.style.height = '100%';
+            blackout.style.zIndex = '99999';
+            blackout.style.background = 'black';
+            blackout.style.transition = 'all 0.5s ease';
+            blackout.style.overflow = 'hidden';
+            document.body.appendChild(blackout);
+            
+            // 雪花屏效果
+            setTimeout(() => {
+                blackout.style.background = 'url("data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" height=\"100%\"%3E%3Cfilter id=\"noise\"%3E%3CfeTurbulence type=\"fractalNoise\" baseFrequency=\"0.9\" numOctaves=\"3\" result=\"noise\"/%3E%3C/filter%3E%3Crect width=\"100%\" height=\"100%\" filter=\"url(%23noise)\"/%3E%3C/svg%3E")';
+                
+                // 彩屏效果
+                setTimeout(() => {
+                    blackout.style.background = 'url("data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" height=\"100%\"%3E%3Cfilter id=\"colorGlitch\"%3E%3CfeTurbulence type=\"fractalNoise\" baseFrequency=\"0.05\" numOctaves=\"2\" result=\"noise\"/%3E%3CfeDisplacementMap in=\"SourceGraphic\" in2=\"noise\" scale=\"5\" xChannelSelector=\"R\" yChannelSelector=\"G\"/%3E%3C/filter%3E%3Crect width=\"100%\" height=\"100%\" filter=\"url(%23colorGlitch)\" fill=\"%23ff0000\"/%3E%3Crect width=\"100%\" height=\"100%\" filter=\"url(%23colorGlitch)\" fill=\"%2300ff00\" opacity=\"0.5\"/%3E%3Crect width=\"100%\" height=\"100%\" filter=\"url(%23colorGlitch)\" fill=\"%230000ff\" opacity=\"0.3\"/%3E%3C/svg%3E")';
+                    
+                    // 切换到黑暗风背景
+                    setTimeout(() => {
+                        // 直接设置背景，不使用fixed定位
+                        blackout.style.background = 'url("beijing.jpeg") no-repeat center center';
+                        blackout.style.backgroundSize = 'cover';
+                        blackout.style.animation = 'intense-shake 0.5s linear infinite';
+                        
+                        // 添加突脸效果
+                        const face1 = document.createElement('div');
+                        face1.className = 'scary-face';
+                        face1.style.position = 'absolute';
+                        face1.style.top = '50%';
+                        face1.style.left = '50%';
+                        face1.style.transform = 'translate(-50%, -50%) scale(0)';
+                        face1.style.width = '300px';
+                        face1.style.height = '300px';
+                        face1.style.background = 'url("tulian.jpeg") no-repeat center center';
+                        face1.style.backgroundSize = 'cover';
+                        face1.style.zIndex = '100001';
+                        face1.style.transition = 'all 0.3s ease';
+                        blackout.appendChild(face1);
+                        
+                        // 强制重排
+                        void face1.offsetWidth;
+                        
+                        // 突脸动画
+                        setTimeout(() => {
+                            face1.style.transform = 'translate(-50%, -50%) scale(2)';
+                            
+                            // 播放错误提示音
+                            playErrorSounds();
+                            
+                            // 切换到第二个突脸
+                            setTimeout(() => {
+                                face1.style.background = 'url("tulian2.jpg") no-repeat center center';
+                                face1.style.backgroundSize = 'cover';
+                                
+                                // 播放错误提示音
+                                playErrorSounds();
+                                
+                                // 画面开始模糊
+                                setTimeout(() => {
+                                    blackout.style.filter = 'blur(5px)';
+                                    
+                                    // 显示双字幕
+                                    const subtitle = document.createElement('div');
+                                    subtitle.className = 'dual-subtitle';
+                                    subtitle.style.position = 'absolute';
+                                    subtitle.style.bottom = '10%';
+                                    subtitle.style.left = '50%';
+                                    subtitle.style.transform = 'translateX(-50%)';
+                                    subtitle.style.zIndex = '100002';
+                                    subtitle.style.textAlign = 'center';
+                                    subtitle.style.color = 'white';
+                                    subtitle.style.textShadow = '0 0 10px #ff0000';
+                                    subtitle.style.animation = 'flicker 1s linear infinite';
+                                    subtitle.style.fontFamily = 'Arial, sans-serif';
+                                    subtitle.innerHTML = '<div style="font-size: 24px; margin-bottom: 10px;">不必惊慌，保持镇静，祝您好运....</div><div style="font-size: 18px;">Do not panic, stay calm, good luck....</div>';
+                                    blackout.appendChild(subtitle);
+                                    
+                                    // 恢复黑屏
+                                    setTimeout(() => {
+                                        blackout.style.filter = 'none';
+                                        blackout.style.background = 'black';
+                                        face1.remove();
+                                        subtitle.remove();
+                                        
+                                        // 显示像素字
+                                        setTimeout(() => {
+                                            blackout.innerHTML = '<div class="pixel-text">祝你好运</div>';
+                                            blackout.style.display = 'flex';
+                                            blackout.style.justifyContent = 'center';
+                                            blackout.style.alignItems = 'center';
+                                            blackout.style.animation = '';
+                                            
+                                            // 逐渐亮起
+                                            let opacity = 0;
+                                            const fadeIn = setInterval(() => {
+                                                opacity += 0.05;
+                                                blackout.style.opacity = opacity;
+                                                if (opacity >= 1) {
+                                                    clearInterval(fadeIn);
+                                                    
+                                                    // 移除黑屏
+                                                    setTimeout(() => {
+                                                        blackout.remove();
+                                                        isProcessing = false;
+                                                        clickCount = 0;
+                                                        errorBarCount = 0;
+                                                        closedErrorBarCount = 0;
+                                                        
+                                                        // 恢复背景音乐
+                                                        const backgroundMusic = document.getElementById('backgroundMusic');
+                                                        backgroundMusic.volume = 0.3;
+                                                        backgroundMusic.play().catch(e => console.log('Music play failed:', e));
+                                                    }, 2000);
+                                                }
+                                            }, 50);
+                                        }, 500);
+                                    }, 2000);
+                                }, 1000);
+                            }, 1000);
+                        }, 100);
+                    }, 1000);
+                }, 1000);
+            }, 500);
+        }
+    </script>
+    <style>
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+        
+        @keyframes intense-shake {
+            0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
+            10% { transform: translateX(-10px) translateY(-5px) rotate(-1deg); }
+            20% { transform: translateX(10px) translateY(5px) rotate(1deg); }
+            30% { transform: translateX(-15px) translateY(-10px) rotate(-1.5deg); }
+            40% { transform: translateX(15px) translateY(10px) rotate(1.5deg); }
+            50% { transform: translateX(-10px) translateY(-5px) rotate(-1deg); }
+            60% { transform: translateX(10px) translateY(5px) rotate(1deg); }
+            70% { transform: translateX(-5px) translateY(-2px) rotate(-0.5deg); }
+            80% { transform: translateX(5px) translateY(2px) rotate(0.5deg); }
+            90% { transform: translateX(-2px) translateY(-1px) rotate(-0.2deg); }
+        }
+        
+        @keyframes flicker {
+            0%, 100% { opacity: 0.1; }
+            10% { opacity: 0.9; }
+            20% { opacity: 0.2; }
+            30% { opacity: 0.8; }
+            40% { opacity: 0.3; }
+            50% { opacity: 1; }
+            60% { opacity: 0.4; }
+            70% { opacity: 0.7; }
+            80% { opacity: 0.5; }
+            90% { opacity: 0.6; }
+        }
+        
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        
+        .error-bar {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+            z-index: 99999;
+            min-width: 300px;
+            max-width: 400px;
+            text-align: center;
+            animation: glitch 0.5s linear infinite;
+        }
+        
+        .error-content {
+            position: relative;
+        }
+        
+        .error-content .error-close {
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 100000;
+        }
+        
+        .error-content .error-close:hover {
+            background: #ff5252;
+            transform: scale(1.1);
+        }
+        
+        .error-content h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #ff6b6b;
+            margin-top: 10px;
+        }
+        
+        .error-content p {
+            font-size: 14px;
+            margin-bottom: 15px;
+            color: #f0f0f0;
+        }
+        
+        .pixel-text {
+            font-family: 'Courier New', monospace;
+            font-size: 48px;
+            color: white;
+            text-shadow: 2px 2px 0 #ff0000, -2px -2px 0 #00ff00, 2px -2px 0 #0000ff, -2px 2px 0 #ffff00;
+            animation: glitch 2s infinite;
+        }
+    </style>
+</body>
+</html>
