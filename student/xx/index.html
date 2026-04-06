@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>肖啸 - 个人主页</title>
+    <style>
+        :root {
+            --primary: #165DFF;
+            --secondary: #4E5969;
+            --bg-dark: #0F172A;
+            --bg-light: #1E293B;
+            --text-white: #F8FAFC;
+            --text-gray: #94A3B8;
+            --accent: #00B4FF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', 'Microsoft YaHei', -apple-system, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* 背景网格效果 */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(22, 93, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(22, 93, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* 浮动光点 */
+        .glow-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .glow-orb-1 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(22, 93, 255, 0.15), transparent 70%);
+            top: -100px;
+            right: -100px;
+        }
+
+        .glow-orb-2 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(0, 180, 255, 0.1), transparent 70%);
+            bottom: 20%;
+            left: -150px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 导航栏 */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 20px 0;
+            transition: all 0.3s ease;
+            background: transparent;
+        }
+
+        nav.scrolled {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(22, 93, 255, 0.1);
+        }
+
+        .nav-content {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-gray);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-white);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* 英雄区 */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding-top: 80px;
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .hero-text h1 {
+            font-size: 56px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .hero-text h1 span {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: var(--text-gray);
+            margin-bottom: 24px;
+        }
+
+        .hero-desc {
+            font-size: 16px;
+            color: var(--text-gray);
+            margin-bottom: 32px;
+            max-width: 500px;
+        }
+
+        .hero-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 40px;
+        }
+
+        .badge {
+            padding: 8px 16px;
+            background: rgba(22, 93, 255, 0.1);
+            border: 1px solid rgba(22, 93, 255, 0.2);
+            border-radius: 20px;
+            font-size: 14px;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hero-avatar {
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+
+        .avatar-ring {
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, var(--primary), var(--accent), var(--primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: spin 20s linear infinite;
+        }
+
+        .avatar-inner {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: var(--bg-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: spin 20s linear infinite reverse;
+        }
+
+        .avatar-main {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--bg-light), var(--bg-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 96px;
+            border: 2px solid rgba(22, 93, 255, 0.3);
+            box-shadow: 
+                0 0 60px rgba(22, 93, 255, 0.2),
+                inset 0 0 60px rgba(22, 93, 255, 0.05);
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 通用板块 */
+        section {
+            padding: 100px 0;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-tag {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(22, 93, 255, 0.1);
+            border: 1px solid rgba(22, 93, 255, 0.2);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .section-desc {
+            color: var(--text-gray);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* 卡片通用样式 */
+        .card {
+            background: var(--bg-light);
+            border-radius: 16px;
+            padding: 32px;
+            border: 1px solid rgba(22, 93, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(22, 93, 255, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        /* 关于我板块 */
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .about-card p {
+            color: var(--text-gray);
+            line-height: 1.8;
+        }
+
+        /* 教育经历 */
+        .timeline {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--primary), var(--accent));
+            opacity: 0.3;
+        }
+
+        .timeline-item {
+            display: flex;
+            justify-content: flex-end;
+            padding-right: 50%;
+            position: relative;
+            margin-bottom: 40px;
+        }
+
+        .timeline-item:nth-child(even) {
+            justify-content: flex-start;
+            padding-right: 0;
+            padding-left: 50%;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 50%;
+            border: 3px solid var(--bg-dark);
+            box-shadow: 0 0 20px rgba(22, 93, 255, 0.5);
+            z-index: 1;
+        }
+
+        .timeline-content {
+            width: 90%;
+            background: var(--bg-light);
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid rgba(22, 93, 255, 0.1);
+        }
+
+        .timeline-date {
+            font-size: 13px;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .timeline-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .timeline-desc {
+            color: var(--text-gray);
+            font-size: 14px;
+        }
+
+        /* 技能网格 */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .skill-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px 24px;
+            background: var(--bg-light);
+            border-radius: 12px;
+            border: 1px solid rgba(22, 93, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .skill-item:hover {
+            border-color: rgba(22, 93, 255, 0.3);
+            background: rgba(22, 93, 255, 0.05);
+        }
+
+        .skill-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(22, 93, 255, 0.2), rgba(0, 180, 255, 0.2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .skill-info h4 {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .skill-info p {
+            font-size: 13px;
+            color: var(--text-gray);
+        }
+
+        /* 项目展示 */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .project-card {
+            background: var(--bg-light);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(22, 93, 255, 0.1);
+            transition: all 0.4s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(22, 93, 255, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .project-preview {
+            height: 180px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            position: relative;
+        }
+
+        .project-content {
+            padding: 24px;
+        }
+
+        .project-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .project-desc {
+            color: var(--text-gray);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .project-tags {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .project-tag {
+            padding: 4px 12px;
+            background: rgba(22, 93, 255, 0.1);
+            border-radius: 12px;
+            font-size: 12px;
+            color: var(--accent);
+        }
+
+        /* 联系板块 */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .contact-item {
+            text-align: center;
+            padding: 32px;
+            background: var(--bg-light);
+            border-radius: 16px;
+            border: 1px solid rgba(22, 93, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .contact-item:hover {
+            border-color: rgba(22, 93, 255, 0.3);
+            transform: translateY(-4px);
+        }
+
+        .contact-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(22, 93, 255, 0.2), rgba(0, 180, 255, 0.2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin: 0 auto 16px;
+        }
+
+        .contact-item h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .contact-item p {
+            color: var(--text-gray);
+            font-size: 14px;
+        }
+
+        /* 页脚 */
+        footer {
+            padding: 40px 0;
+            border-top: 1px solid rgba(22, 93, 255, 0.1);
+            text-align: center;
+        }
+
+        .footer-text {
+            color: var(--text-gray);
+            font-size: 14px;
+        }
+
+        /* 滚动动画 */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 响应式 */
+        @media (max-width: 900px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-text h1 {
+                font-size: 40px;
+            }
+
+            .hero-badges {
+                justify-content: center;
+            }
+
+            .hero-avatar {
+                order: -1;
+            }
+
+            .skills-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .timeline::before {
+                left: 20px;
+            }
+
+            .timeline-item,
+            .timeline-item:nth-child(even) {
+                padding-left: 60px;
+                padding-right: 0;
+                justify-content: flex-start;
+            }
+
+            .timeline-dot {
+                left: 20px;
+            }
+
+            .timeline-content {
+                width: 100%;
+            }
+
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .nav-links {
+                gap: 16px;
+            }
+
+            .hero-text h1 {
+                font-size: 32px;
+            }
+
+            .skills-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .about-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .avatar-ring {
+                width: 260px;
+                height: 260px;
+            }
+
+            .avatar-inner {
+                width: 240px;
+                height: 240px;
+            }
+
+            .avatar-main {
+                width: 220px;
+                height: 220px;
+                font-size: 72px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+
+    <!-- 导航栏 -->
+    <nav id="navbar">
+        <div class="nav-content">
+            <div class="nav-logo">🚀 肖啸</div>
+            <ul class="nav-links">
+                <li><a href="#home">首页</a></li>
+                <li><a href="#about">关于我</a></li>
+                <li><a href="#education">教育</a></li>
+                <li><a href="#skills">技能</a></li>
+                <li><a href="#projects">项目</a></li>
+                <li><a href="#contact">联系</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- 英雄区 -->
+        <section id="home" class="hero">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>你好，我是 <span>肖啸</span></h1>
+                    <p class="hero-subtitle">🎯 探索者 · 终身学习者 · 创造家</p>
+                    <p class="hero-desc">
+                        热爱探索未知领域，致力于用科技创造价值。
+                        保持好奇心，追求卓越，在学习中不断成长。
+                    </p>
+                    <div class="hero-badges">
+                        <span class="badge">📚 终身学习</span>
+                        <span class="badge">💡 创新思维</span>
+                        <span class="badge">🎯 目标导向</span>
+                        <span class="badge">🤝 团队协作</span>
+                    </div>
+                </div>
+                <div class="hero-avatar">
+                    <div class="avatar-ring">
+                        <div class="avatar-inner">
+                            <div class="avatar-main">
+                                <img src="肖啸.png" alt="肖啸" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 关于我 -->
+        <section id="about">
+            <div class="section-header fade-in">
+                <span class="section-tag">👋 认识我</span>
+                <h2 class="section-title">关于我</h2>
+                <p class="section-desc">一个对世界充满好奇，不断探索与成长的学习者</p>
+            </div>
+            <div class="about-grid">
+                <div class="card fade-in">
+                    <h3 style="margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
+                        🚀 我的使命
+                    </h3>
+                    <p>
+                        我相信知识的力量可以改变世界。在这个快速发展的时代，我始终保持学习的热情，
+                        不断提升自己的能力，希望能够为社会贡献自己的一份力量。在成长的道路上，
+                        我勇于挑战自我，突破舒适区，追求更高的目标。
+                    </p>
+                </div>
+                <div class="card fade-in">
+                    <h3 style="margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
+                        💫 我的价值观
+                    </h3>
+                    <p>
+                        真诚待人，认真做事。我坚信只有脚踏实地，才能仰望星空。每一个小的进步，
+                        都是通往成功的基石。保持开放的心态，接纳不同的观点，在交流中获得成长。
+                        感恩每一次相遇，珍惜每一个学习的机会。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 教育经历 -->
+        <section id="education">
+            <div class="section-header fade-in">
+                <span class="section-tag">🎓 成长之路</span>
+                <h2 class="section-title">教育经历</h2>
+                <p class="section-desc">知识的积累，见证每一步成长</p>
+            </div>
+            <div class="timeline">
+                <div class="timeline-item fade-in">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-date">📅 2015年6月</div>
+                        <div class="timeline-title">🎉 新的起点</div>
+                        <div class="timeline-desc">开启了人生的美好旅程，带着好奇心探索这个精彩的世界</div>
+                    </div>
+                </div>
+                <div class="timeline-item fade-in">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-date">📅 2021年9月</div>
+                        <div class="timeline-title">🎒 踏入校园</div>
+                        <div class="timeline-desc">正式成为一名小学生，开启系统学习知识的新篇章</div>
+                    </div>
+                </div>
+                <div class="timeline-item fade-in">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-date">📅 至今</div>
+                        <div class="timeline-title">⚡ 持续成长</div>
+                        <div class="timeline-desc">在学习中不断进步，在探索中发现兴趣，在挑战中超越自我</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 技能专长 -->
+        <section id="skills">
+            <div class="section-header fade-in">
+                <span class="section-tag">⚡ 能力矩阵</span>
+                <h2 class="section-title">技能专长</h2>
+                <p class="section-desc">持续学习，不断精进的核心能力</p>
+            </div>
+            <div class="skills-grid">
+                <div class="skill-item fade-in">
+                    <div class="skill-icon">📝</div>
+                    <div class="skill-info">
+                        <h4>语文素养</h4>
+                        <p>阅读写作 · 语言表达</p>
+                    </div>
+                </div>
+                <div class="skill-item fade-in">
+                    <div class="skill-icon">🔢</div>
+                    <div class="skill-info">
+                        <h4>数学思维</h4>
+                        <p>逻辑推理 · 问题解决</p>
+                    </div>
+                </div>
+                <div class="skill-item fade-in">
+                    <div class="skill-icon">🌍</div>
+                    <div class="skill-info">
+                        <h4>英语能力</h4>
+                        <p>听说读写 · 国际视野</p>
+                    </div>
+                </div>
+                <div class="skill-item fade-in">
+                    <div class="skill-icon">🎨</div>
+                    <div class="skill-info">
+                        <h4>艺术创作</h4>
+                        <p>绘画设计 · 审美培养</p>
+                    </div>
+                </div>
+                <div class="skill-item fade-in">
+                    <div class="skill-icon">🎵</div>
+                    <div class="skill-info">
+                        <h4>音乐鉴赏</h4>
+                        <p>声乐乐器 · 艺术熏陶</p>
+                    </div>
+                </div>
+                <div class="skill-item fade-in">
+                    <div class="skill-icon">⚽</div>
+                    <div class="skill-info">
+                        <h4>体育运动</h4>
+                        <p>强健体魄 · 团队协作</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 项目展示 -->
+        <section id="projects">
+            <div class="section-header fade-in">
+                <span class="section-tag">🏆 成果展示</span>
+                <h2 class="section-title">项目作品</h2>
+                <p class="section-desc">将知识转化为实践，用创意点亮生活</p>
+            </div>
+            <div class="projects-grid">
+                <div class="project-card fade-in">
+                    <div class="project-preview">📚</div>
+                    <div class="project-content">
+                        <h3 class="project-title">阅读笔记系统</h3>
+                        <p class="project-desc">
+                            建立个人阅读数据库，整理每本书的核心观点和感悟。
+                            使用思维导图方式梳理知识结构，实现知识体系化。
+                        </p>
+                        <div class="project-tags">
+                            <span class="project-tag">阅读管理</span>
+                            <span class="project-tag">知识整理</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="project-card fade-in">
+                    <div class="project-preview">🧠</div>
+                    <div class="project-content">
+                        <h3 class="project-title">学习规划系统</h3>
+                        <p class="project-desc">
+                            制定科学的学习计划，追踪每日学习进度。
+                            通过数据化分析，优化学习方法和时间管理。
+                        </p>
+                        <div class="project-tags">
+                            <span class="project-tag">目标管理</span>
+                            <span class="project-tag">效率提升</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="project-card fade-in">
+                    <div class="project-preview">🎮</div>
+                    <div class="project-content">
+                        <h3 class="project-title">创意作品集</h3>
+                        <p class="project-desc">
+                            收集个人绘画、手工、设计等创意作品。
+                            记录每个创作过程，展示从想法到成品的演变。
+                        </p>
+                        <div class="project-tags">
+                            <span class="project-tag">艺术创作</span>
+                            <span class="project-tag">设计思维</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="project-card fade-in">
+                    <div class="project-preview">🌟</div>
+                    <div class="project-content">
+                        <h3 class="project-title">个人成长档案</h3>
+                        <p class="project-desc">
+                            系统记录成长轨迹，从各方面展示个人发展。
+                            建立个人品牌，展示独特的个人魅力。
+                        </p>
+                        <div class="project-tags">
+                            <span class="project-tag">自我管理</span>
+                            <span class="project-tag">个人品牌</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 联系方式 -->
+        <section id="contact">
+            <div class="section-header fade-in">
+                <span class="section-tag">📬 与我联系</span>
+                <h2 class="section-title">联系方式</h2>
+                <p class="section-desc">期待与你的交流，共同成长</p>
+            </div>
+            <div class="contact-grid">
+                <div class="contact-item fade-in">
+                    <div class="contact-icon">📧</div>
+                    <h4>电子邮件</h4>
+                    <p>随时欢迎邮件交流</p>
+                </div>
+                <div class="contact-item fade-in">
+                    <div class="contact-icon">💬</div>
+                    <h4>即时沟通</h4>
+                    <p>在线交流，共同探讨</p>
+                </div>
+                <div class="contact-item fade-in">
+                    <div class="contact-icon">📍</div>
+                    <h4>所在地区</h4>
+                    <p>中国 · 探索之城</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 页脚 -->
+    <footer>
+        <p class="footer-text">© 2026 肖啸 · 用科技创造未来，用热爱点亮人生 ✨</p>
+    </footer>
+
+    <script>
+        // 导航栏滚动效果
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // 滚动动画
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
