@@ -1,0 +1,2612 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>王立德的战术档案</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-green: #2d4a3e;
+            --secondary-green: #3d6b5a;
+            --accent-sand: #c4a574;
+            --dark-bg: #1a1a1a;
+            --card-bg: #2a2a2a;
+            --text-light: #e0e0e0;
+            --text-dim: #a0a0a0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="%23c4a574" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M32 14l-6 1v14c0 1.5-0.5 2.5-2 2.5H14c-1.5 0-2-1-2-2.5V16c0-1.5 0.5-2.5 2-2.5h10l6-1h6z" fill="%23ffeb3b"/><path d="M18 12v2"/><path d="M22 12v2"/><path d="M26 12v2"/><path d="M28 14l-1-0.5"/><circle cx="20" cy="20" r="2" fill="%23000"/><circle cx="24" cy="20" r="2" fill="%23000"/><path d="M19 24h5" stroke="%23000" stroke-width="1.5" stroke-linecap="round"/></svg>'), auto;
+        }
+
+        /* 游戏区域使用十字光标 */
+        #gameArea {
+            cursor: crosshair;
+        }
+
+        /* 可点击元素的光标 */
+        button, a, .info-card, .skill-card, .favorite-card, .equipment-card, .achievement-card {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="%23c4a574" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M32 14l-6 1v14c0 1.5-0.5 2.5-2 2.5H14c-1.5 0-2-1-2-2.5V16c0-1.5 0.5-2.5 2-2.5h10l6-1h6z" fill="%23ffeb3b"/><path d="M18 12v2"/><path d="M22 12v2"/><path d="M26 12v2"/><path d="M28 14l-1-0.5"/><circle cx="20" cy="20" r="2" fill="%23000"/><circle cx="24" cy="20" r="2" fill="%23000"/><path d="M19 24h5" stroke="%23000" stroke-width="1.5" stroke-linecap="round"/></svg>'), pointer;
+        }
+
+        /* 子弹样式 */
+        .bullet {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background-color: #c4a574;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            box-shadow: 0 0 10px #c4a574, 0 0 20px #c4a574;
+        }
+
+        /* 粒子样式 */
+        .particle {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            background-color: #c4a574;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            box-shadow: 0 0 15px #c4a574, 0 0 30px #c4a574;
+        }
+
+        /* 导弹样式 */
+        .missile {
+            position: fixed;
+            width: 8px;
+            height: 3px;
+            background-color: #ff5722;
+            border-radius: 2px;
+            pointer-events: none;
+            z-index: 9999;
+            box-shadow: 0 0 15px #ff5722, 0 0 30px #ff5722;
+        }
+
+        /* 大型粒子样式 */
+        .big-particle {
+            position: fixed;
+            background-color: #c4a574;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            box-shadow: 0 0 25px #c4a574, 0 0 50px #c4a574;
+        }
+
+        /* 滚动动画 */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+            transition: opacity 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* 卡片加载动画延迟 */
+        .fade-in:nth-child(1) {
+            transition-delay: 0.1s;
+        }
+
+        .fade-in:nth-child(2) {
+            transition-delay: 0.2s;
+        }
+
+        .fade-in:nth-child(3) {
+            transition-delay: 0.3s;
+        }
+
+        .fade-in:nth-child(4) {
+            transition-delay: 0.4s;
+        }
+
+        /* 增强卡片悬停效果 */
+        .info-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(196, 165, 116, 0.2), transparent);
+            transition: left 0.6s ease;
+            z-index: 1;
+        }
+
+        .info-card:hover::before {
+            left: 100%;
+        }
+
+        .info-card:hover {
+            transform: translateY(-12px) scale(1.03) rotateX(5deg);
+            box-shadow: 0 20px 40px rgba(45, 74, 62, 0.6), 0 0 30px rgba(196, 165, 116, 0.3);
+        }
+
+        .info-card:active {
+            transform: translateY(-5px) scale(0.98);
+            box-shadow: 0 5px 15px rgba(45, 74, 62, 0.3);
+        }
+
+        .skill-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skill-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(196, 165, 116, 0.2), transparent);
+            transition: left 0.6s ease;
+            z-index: 1;
+        }
+
+        .skill-card:hover::before {
+            left: 100%;
+        }
+
+        .skill-card:hover {
+            transform: translateY(-12px) scale(1.03) rotateX(5deg);
+            box-shadow: 0 20px 40px rgba(45, 74, 62, 0.6), 0 0 30px rgba(196, 165, 116, 0.3);
+        }
+
+        .skill-card:active {
+            transform: translateY(-5px) scale(0.98);
+            box-shadow: 0 5px 15px rgba(45, 74, 62, 0.3);
+        }
+
+        .favorite-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .favorite-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(196, 165, 116, 0.2), transparent);
+            transition: left 0.6s ease;
+            z-index: 1;
+        }
+
+        .favorite-card:hover::before {
+            left: 100%;
+        }
+
+        .favorite-card:hover {
+            transform: translateY(-12px) scale(1.03) rotateX(5deg);
+            box-shadow: 0 20px 40px rgba(45, 74, 62, 0.6), 0 0 30px rgba(196, 165, 116, 0.3);
+        }
+
+        .favorite-card:active {
+            transform: translateY(-5px) scale(0.98);
+            box-shadow: 0 5px 15px rgba(45, 74, 62, 0.3);
+        }
+
+        .equipment-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .equipment-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(196, 165, 116, 0.2), transparent);
+            transition: left 0.6s ease;
+            z-index: 1;
+        }
+
+        .equipment-card:hover::before {
+            left: 100%;
+        }
+
+        .equipment-card:hover {
+            transform: translateY(-12px) scale(1.03) rotateX(5deg);
+            box-shadow: 0 20px 40px rgba(45, 74, 62, 0.6), 0 0 30px rgba(196, 165, 116, 0.3);
+        }
+
+        .equipment-card:active {
+            transform: translateY(-5px) scale(0.98);
+            box-shadow: 0 5px 15px rgba(45, 74, 62, 0.3);
+        }
+
+        .achievement-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .achievement-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(196, 165, 116, 0.2), transparent);
+            transition: left 0.6s ease;
+            z-index: 1;
+        }
+
+        .achievement-card:hover::before {
+            left: 100%;
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-12px) scale(1.03) rotateX(5deg);
+            box-shadow: 0 20px 40px rgba(196, 165, 116, 0.4), 0 0 30px rgba(196, 165, 116, 0.3);
+        }
+
+        .achievement-card:active {
+            transform: translateY(-5px) scale(0.98);
+            box-shadow: 0 5px 15px rgba(196, 165, 116, 0.3);
+        }
+
+        /* 卡片状态样式 */
+        .card-active {
+            border-color: var(--accent-sand) !important;
+            box-shadow: 0 0 20px rgba(196, 165, 116, 0.5) !important;
+            background: rgba(196, 165, 116, 0.1) !important;
+        }
+
+        .card-disabled {
+            opacity: 0.6;
+            cursor: not-allowed !important;
+        }
+
+        .card-disabled:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .card-disabled:active {
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: 
+                linear-gradient(rgba(26, 26, 26, 0.5), rgba(26, 26, 26, 0.6)),
+                url('u=773954048,1849101079&fm=253&fmt=auto&app=138&f=JPEG.webp');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(196, 165, 116, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(45, 74, 62, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+            animation: backgroundPulse 8s ease-in-out infinite;
+        }
+
+        @keyframes backgroundPulse {
+            0%, 100% {
+                opacity: 0.5;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 60px 20px;
+            background: 
+                linear-gradient(180deg, rgba(45, 74, 62, 0.5) 0%, rgba(13, 31, 26, 0.3) 100%),
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 10px,
+                    rgba(196, 165, 116, 0.02) 10px,
+                    rgba(196, 165, 116, 0.02) 20px
+                );
+            background-blend-mode: normal, normal;
+            border-bottom: 3px solid var(--accent-sand);
+            position: relative;
+            z-index: 2;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes breakEffect {
+            0% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+            20% {
+                transform: scale(1.1) rotate(2deg);
+                opacity: 0.8;
+            }
+            50% {
+                transform: scale(0.8) rotate(-5deg);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(0.5) rotate(10deg);
+                opacity: 0;
+            }
+        }
+
+        .rank-badge {
+            display: inline-block;
+            background: var(--accent-sand);
+            color: var(--dark-bg);
+            padding: 8px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        h1 {
+            font-size: 48px;
+            color: var(--accent-sand);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .subtitle {
+            font-size: 20px;
+            color: var(--text-dim);
+            margin-bottom: 30px;
+        }
+
+        .intro-box {
+            background: rgba(45, 74, 62, 0.2);
+            border: 2px solid var(--secondary-green);
+            padding: 20px 30px;
+            border-radius: 8px;
+            display: inline-block;
+            max-width: 600px;
+        }
+
+        .intro-box::before {
+            content: '🪖 ';
+            font-size: 24px;
+        }
+
+        .intro-text {
+            font-size: 18px;
+            color: var(--text-light);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 4px solid var(--accent-sand);
+            object-fit: cover;
+            box-shadow: 0 0 20px rgba(196, 165, 116, 0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(196, 165, 116, 0.5);
+        }
+
+        .header-info {
+            text-align: left;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            background: rgba(26, 26, 26, 0.95);
+            padding: 15px 0;
+            z-index: 100;
+            border-bottom: 2px solid var(--secondary-green);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hamburger {
+            display: none;
+            cursor: pointer;
+        }
+
+        .bar {
+            display: block;
+            width: 25px;
+            height: 3px;
+            margin: 5px auto;
+            transition: all 0.3s ease;
+            background-color: var(--accent-sand);
+        }
+
+        nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            gap: 40px;
+        }
+
+        nav a {
+            color: var(--accent-sand);
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        nav a:hover {
+            background: var(--secondary-green);
+            color: var(--text-light);
+        }
+
+        nav a.active {
+            background: var(--accent-sand);
+            color: var(--dark-bg);
+        }
+
+        @media (max-width: 768px) {
+            .hamburger {
+                display: block;
+            }
+
+            .hamburger.active .bar:nth-child(2) {
+                opacity: 0;
+            }
+
+            .hamburger.active .bar:nth-child(1) {
+                transform: translateY(8px) rotate(45deg);
+            }
+
+            .hamburger.active .bar:nth-child(3) {
+                transform: translateY(-8px) rotate(-45deg);
+            }
+
+            nav ul {
+                position: fixed;
+                left: -100%;
+                top: 70px;
+                gap: 0;
+                flex-direction: column;
+                background-color: rgba(26, 26, 26, 0.95);
+                width: 100%;
+                text-align: center;
+                transition: 0.3s;
+                border-bottom: 2px solid var(--secondary-green);
+            }
+
+            nav ul.active {
+                left: 0;
+            }
+
+            nav li {
+                margin: 16px 0;
+            }
+        }
+
+        section {
+            padding: 60px 0;
+            border-bottom: 1px solid rgba(196, 165, 116, 0.2);
+            position: relative;
+            z-index: 2;
+        }
+
+        section:nth-child(odd) {
+            background: rgba(26, 26, 26, 0.3);
+        }
+
+        section:nth-child(even) {
+            background: rgba(45, 74, 62, 0.1);
+        }
+
+        .section-title {
+            font-size: 32px;
+            color: var(--accent-sand);
+            margin-bottom: 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title::before {
+            content: '🛡️ ';
+            font-size: 28px;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 3px;
+            background: var(--accent-sand);
+            margin: 15px auto 0;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .info-card {
+            background: var(--card-bg);
+            border: 2px solid var(--secondary-green);
+            border-radius: 8px;
+            padding: 25px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(45, 74, 62, 0.4);
+        }
+
+        .info-card h3 {
+            color: var(--accent-sand);
+            font-size: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-card ul {
+            list-style: none;
+        }
+
+        .info-card li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(196, 165, 116, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-card li:last-child {
+            border-bottom: none;
+        }
+
+        .info-card li::before {
+            content: '▸';
+            color: var(--accent-sand);
+            font-weight: bold;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .skill-card {
+            background: linear-gradient(135deg, var(--secondary-green) 0%, var(--primary-green) 100%);
+            border: 2px solid var(--accent-sand);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skill-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-sand);
+        }
+
+        .skill-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .skill-name {
+            font-size: 22px;
+            color: var(--accent-sand);
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .skill-level {
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        .skill-desc {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+
+        .skill-progress {
+            margin-top: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(26, 26, 26, 0.5);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-sand), #a88a5a);
+            border-radius: 4px;
+            transition: width 1s ease-in-out;
+        }
+
+        .equipment-section {
+            margin-top: 60px;
+        }
+
+        .equipment-title {
+            font-size: 24px;
+            color: var(--accent-sand);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .equipment-card {
+            background: var(--card-bg);
+            border: 2px solid var(--secondary-green);
+            border-radius: 8px;
+            padding: 25px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .equipment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(45, 74, 62, 0.4);
+        }
+
+        .equipment-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .equipment-name {
+            font-size: 18px;
+            color: var(--accent-sand);
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .equipment-desc {
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        .favorites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .favorite-card {
+            background: var(--card-bg);
+            border-left: 4px solid var(--accent-sand);
+            border-radius: 4px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .favorite-card::before {
+            content: '🔫';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            opacity: 0.5;
+        }
+
+        .favorite-card:nth-child(2)::before {
+            content: '🎬';
+        }
+
+        .favorite-card:nth-child(3)::before {
+            content: '📚';
+        }
+
+        .favorite-card:nth-child(4)::before {
+            content: '🎯';
+        }
+
+        .favorite-label {
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .favorite-value {
+            font-size: 20px;
+            color: var(--text-light);
+            font-weight: bold;
+        }
+
+        .game-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-item {
+            background: rgba(45, 74, 62, 0.3);
+            border: 1px solid var(--secondary-green);
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            color: var(--accent-sand);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .achievement-card {
+            background: linear-gradient(135deg, rgba(196, 165, 116, 0.2) 0%, rgba(45, 74, 62, 0.2) 100%);
+            border: 2px solid var(--accent-sand);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .achievement-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .achievement-title {
+            font-size: 24px;
+            color: var(--accent-sand);
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .achievement-desc {
+            font-size: 16px;
+            color: var(--text-dim);
+        }
+
+        .achievement-timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .achievement-timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 20px;
+            height: 100%;
+            width: 2px;
+            background: var(--secondary-green);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 40px;
+            padding-left: 60px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 11px;
+            top: 20px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--accent-sand);
+            border: 4px solid var(--secondary-green);
+        }
+
+        .timeline-date {
+            position: absolute;
+            left: -20px;
+            top: 0;
+            background: var(--secondary-green);
+            color: var(--text-light);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            transform: translateX(-50%);
+        }
+
+        .achievement-card {
+            background: linear-gradient(135deg, rgba(196, 165, 116, 0.2) 0%, rgba(45, 74, 62, 0.2) 100%);
+            border: 2px solid var(--accent-sand);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(196, 165, 116, 0.3);
+        }
+
+        .game-container {
+            background: rgba(26, 26, 26, 0.8);
+            border: 3px solid var(--accent-sand);
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--secondary-green);
+        }
+
+        .game-stats-display {
+            display: flex;
+            gap: 30px;
+        }
+
+        .game-stat {
+            text-align: center;
+        }
+
+        .game-stat-value {
+            font-size: 28px;
+            color: var(--accent-sand);
+            font-weight: bold;
+        }
+
+        .game-stat-label {
+            font-size: 12px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .game-area {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: 
+                linear-gradient(135deg, #1a2f25 0%, #0d1f1a 100%),
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 20px,
+                    rgba(196, 165, 116, 0.05) 20px,
+                    rgba(196, 165, 116, 0.05) 21px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 20px,
+                    rgba(196, 165, 116, 0.05) 20px,
+                    rgba(196, 165, 116, 0.05) 21px
+                );
+            background-blend-mode: normal, normal, normal;
+            border: 2px solid var(--secondary-green);
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        .game-area::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border: 2px solid rgba(196, 165, 116, 0.2);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .game-area::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            border: 2px solid rgba(196, 165, 116, 0.15);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .crosshair-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+
+        .crosshair-lines::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(196, 165, 116, 0.1);
+        }
+
+        .crosshair-lines::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: rgba(196, 165, 116, 0.1);
+        }
+
+        .distance-markers {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-size: 10px;
+            color: rgba(196, 165, 116, 0.4);
+            pointer-events: none;
+        }
+
+        .compass {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 12px;
+            color: rgba(196, 165, 116, 0.4);
+            pointer-events: none;
+        }
+
+        .target {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, #ff4444 0%, #cc0000 50%, #990000 100%);
+            border-radius: 50%;
+            border: 3px solid var(--accent-sand);
+            cursor: pointer;
+            transition: transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .target:hover {
+            transform: scale(1.1);
+        }
+
+        .target::before {
+            content: '🎯';
+            position: absolute;
+            font-size: 30px;
+        }
+
+        .target.hit {
+            animation: hitEffect 0.3s ease-out;
+        }
+
+        @keyframes hitEffect {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .game-btn {
+            background: linear-gradient(135deg, var(--secondary-green) 0%, var(--primary-green) 100%);
+            border: 2px solid var(--accent-sand);
+            color: var(--text-light);
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .game-btn:hover {
+            background: linear-gradient(135deg, var(--accent-sand) 0%, #a88a5a 100%);
+            color: var(--dark-bg);
+            transform: translateY(-2px);
+        }
+
+        .game-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .difficulty-select {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .difficulty-select label {
+            color: var(--accent-sand);
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .difficulty-dropdown {
+            background: var(--secondary-green);
+            color: var(--text-light);
+            border: 2px solid var(--accent-sand);
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .difficulty-dropdown:hover {
+            background: var(--accent-sand);
+            color: var(--dark-bg);
+        }
+
+        .difficulty-dropdown option {
+            background: var(--dark-bg);
+            color: var(--text-light);
+        }
+
+        .game-message {
+            text-align: center;
+            font-size: 18px;
+            color: var(--accent-sand);
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .combo-display {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(196, 165, 116, 0.9);
+            color: var(--dark-bg);
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .game-records {
+            margin-top: 60px;
+            background: rgba(26, 26, 26, 0.8);
+            border: 2px solid var(--secondary-green);
+            border-radius: 8px;
+            padding: 30px;
+        }
+
+        .records-title {
+            font-size: 24px;
+            color: var(--accent-sand);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .records-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .record-item {
+            background: rgba(45, 74, 62, 0.3);
+            border: 1px solid var(--secondary-green);
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .record-label {
+            font-size: 14px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .record-value {
+            font-size: 36px;
+            color: var(--accent-sand);
+            font-weight: bold;
+        }
+
+        .game-achievements {
+            margin-top: 60px;
+            background: rgba(26, 26, 26, 0.8);
+            border: 2px solid var(--secondary-green);
+            border-radius: 8px;
+            padding: 30px;
+        }
+
+        .achievements-title {
+            font-size: 24px;
+            color: var(--accent-sand);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .achievement-item {
+            background: rgba(45, 74, 62, 0.3);
+            border: 1px solid var(--secondary-green);
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .achievement-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(45, 74, 62, 0.4);
+        }
+
+        .achievement-item.unlocked {
+            border-color: var(--accent-sand);
+            background: rgba(196, 165, 116, 0.2);
+        }
+
+        .achievement-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .achievement-name {
+            font-size: 18px;
+            color: var(--accent-sand);
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .achievement-desc {
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-bottom: 15px;
+        }
+
+        .achievement-status {
+            font-size: 14px;
+            font-weight: bold;
+            padding: 5px 15px;
+            border-radius: 4px;
+        }
+
+        .achievement-status.unlocked {
+            background: var(--accent-sand);
+            color: var(--dark-bg);
+        }
+
+        .achievement-status {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-dim);
+        }
+
+        .crosshair {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1000;
+            font-size: 30px;
+            transform: translate(-50%, -50%);
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(26, 26, 26, 0.5);
+            border-top: 2px solid var(--secondary-green);
+        }
+
+        .footer-text {
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        .footer-text::before {
+            content: '🎮 ';
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 32px;
+            }
+
+            .subtitle {
+                font-size: 16px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .avatar {
+                width: 120px;
+                height: 120px;
+            }
+
+            .header-info {
+                text-align: center;
+            }
+
+            nav ul {
+                gap: 20px;
+            }
+
+            nav a {
+                font-size: 14px;
+                padding: 6px 12px;
+            }
+
+            .section-title {
+                font-size: 24px;
+            }
+
+            /* 技能装备部分响应式调整 */
+            .skills-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .game-stats {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+
+            .equipment-grid {
+                grid-template-columns: 1fr;
+            }
+
+            /* 荣誉勋章部分响应式调整 */
+            .achievement-timeline {
+                padding-left: 20px;
+            }
+
+            .achievement-timeline::before {
+                left: 10px;
+            }
+
+            .timeline-item {
+                padding-left: 40px;
+            }
+
+            .timeline-item::before {
+                left: 1px;
+            }
+
+            .timeline-date {
+                left: -10px;
+                font-size: 12px;
+                padding: 3px 8px;
+            }
+
+            /* 游戏区域响应式调整 */
+            .game-container {
+                padding: 15px;
+            }
+
+            .game-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .game-stats-display {
+                flex-wrap: wrap;
+                gap: 20px;
+            }
+
+            .game-area {
+                height: 300px;
+            }
+
+            .game-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .difficulty-select {
+                margin-bottom: 10px;
+            }
+
+            .game-btn {
+                width: 100%;
+                max-width: 200px;
+                margin: 5px 0;
+            }
+
+            .game-message {
+                font-size: 16px;
+            }
+
+            /* 游戏记录和成就响应式调整 */
+            .records-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+
+            .achievements-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .record-item {
+                padding: 15px;
+            }
+
+            .record-value {
+                font-size: 28px;
+            }
+
+            .achievement-item {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="rank-badge">士兵档案</div>
+            <div class="header-content">
+                <img src="王立德.png" alt="王立德头像" class="avatar">
+                <div class="header-info">
+                    <h1>王立德</h1>
+                    <p class="subtitle">2014年 | 摩羯座</p>
+                </div>
+            </div>
+            <div class="intro-box">
+                <p class="intro-text">一个平平无奇的小学生，只不过天天被我妹打</p>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+            <div class="nav-container">
+                <div class="hamburger" id="hamburger">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+                <ul id="navMenu">
+                    <li><a href="#profile">个人档案</a></li>
+                    <li><a href="#skills">技能装备</a></li>
+                    <li><a href="#favorites">喜好清单</a></li>
+                    <li><a href="#game">狙击挑战</a></li>
+                    <li><a href="#achievements">荣誉勋章</a></li>
+                </ul>
+            </div>
+        </nav>
+
+    <main class="container">
+        <section id="profile">
+            <h2 class="section-title fade-in">个人档案</h2>
+            <div class="info-grid">
+                <div class="info-card fade-in">
+                    <h3>🎯 基本信息</h3>
+                    <ul>
+                        <li>姓名：王立德</li>
+                        <li>出生年份：2014年</li>
+                        <li>星座：摩羯座</li>
+                        <li>身高：150cm</li>
+                        <li>体重：40kg</li>
+                        <li>血型：O型</li>
+                    </ul>
+                </div>
+                <div class="info-card fade-in">
+                    <h3>🎓 教育背景</h3>
+                    <ul>
+                        <li>学校：XX小学</li>
+                        <li>年级：六年级</li>
+                        <li>兴趣科目：数学、体育</li>
+                    </ul>
+                </div>
+                <div class="info-card fade-in">
+                    <h3>🤝 战友</h3>
+                    <ul>
+                        <li>要</li>
+                        <li>姚尧</li>
+                    </ul>
+                </div>
+                <div class="info-card fade-in">
+                    <h3>🌟 个人格言</h3>
+                    <ul>
+                        <li>永不言弃，坚持到底！</li>
+                        <li>没有最好，只有更好</li>
+                        <li>每天进步一点点</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="skills">
+            <h2 class="section-title fade-in">技能装备</h2>
+            <div class="skills-grid">
+                <div class="skill-card fade-in">
+                    <div class="skill-icon">🎮</div>
+                    <div class="skill-name">打游戏</div>
+                    <div class="skill-level">精通级</div>
+                    <div class="skill-desc">玩游戏已有3年经验，擅长多种类型的游戏，包括射击、策略和角色扮演游戏。</div>
+                    <div class="skill-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 90%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="skill-card fade-in">
+                    <div class="skill-icon">🏸</div>
+                    <div class="skill-name">打羽球</div>
+                    <div class="skill-level">熟练级</div>
+                    <div class="skill-desc">学习羽毛球2年，每周训练3次，擅长前场技术和发球。</div>
+                    <div class="skill-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 75%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="skill-card fade-in">
+                    <div class="skill-icon">🔫</div>
+                    <div class="skill-name">枪战游戏</div>
+                    <div class="skill-level">专家级</div>
+                    <div class="skill-desc">专注于射击游戏，擅长狙击和团队配合，经常在游戏中获得MVP。</div>
+                    <div class="skill-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 95%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="game-stats fade-in">
+                <div class="stat-item">
+                    <div class="stat-value">99+</div>
+                    <div class="stat-label">击杀数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">85%</div>
+                    <div class="stat-label">命中率</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">TOP 3</div>
+                    <div class="stat-label">平均排名</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">500+</div>
+                    <div class="stat-label">游戏场次</div>
+                </div>
+            </div>
+            <div class="equipment-section fade-in">
+                <h3 class="equipment-title">装备展示</h3>
+                <div class="equipment-grid">
+                    <div class="equipment-card fade-in">
+                        <div class="equipment-icon">🎮</div>
+                        <div class="equipment-name">游戏手柄</div>
+                        <div class="equipment-desc">专业游戏手柄，提供精准控制</div>
+                    </div>
+                    <div class="equipment-card fade-in">
+                        <div class="equipment-icon">🎧</div>
+                        <div class="equipment-name">游戏耳机</div>
+                        <div class="equipment-desc">7.1环绕音效，沉浸式游戏体验</div>
+                    </div>
+                    <div class="equipment-card fade-in">
+                        <div class="equipment-icon">🖱️</div>
+                        <div class="equipment-name">游戏鼠标</div>
+                        <div class="equipment-desc">高精度传感器，快速响应</div>
+                    </div>
+                    <div class="equipment-card fade-in">
+                        <div class="equipment-icon">🏸</div>
+                        <div class="equipment-name">羽毛球拍</div>
+                        <div class="equipment-desc">专业碳素球拍，轻量化设计</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="favorites">
+            <h2 class="section-title fade-in">喜好清单</h2>
+            <div class="favorites-grid">
+                <div class="favorite-card fade-in">
+                    <div class="favorite-label">最喜欢的歌</div>
+                    <div class="favorite-value">烧不死的鸟才叫凤凰</div>
+                </div>
+                <div class="favorite-card fade-in">
+                    <div class="favorite-label">最喜欢的电影</div>
+                    <div class="favorite-value">熊出没</div>
+                </div>
+                <div class="favorite-card fade-in">
+                    <div class="favorite-label">最喜欢的书</div>
+                    <div class="favorite-value">假如历史是群猫</div>
+                </div>
+                <div class="favorite-card fade-in">
+                    <div class="favorite-label">最喜欢的游戏</div>
+                    <div class="favorite-value">和平精英 / 三角洲部队</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="game">
+            <h2 class="section-title fade-in">狙击挑战</h2>
+            <div class="game-container fade-in">
+                <div class="game-header">
+                    <div class="game-stats-display">
+                        <div class="game-stat">
+                            <div class="game-stat-value" id="score">0</div>
+                            <div class="game-stat-label">得分</div>
+                        </div>
+                        <div class="game-stat">
+                            <div class="game-stat-value" id="hits">0</div>
+                            <div class="game-stat-label">命中</div>
+                        </div>
+                        <div class="game-stat">
+                            <div class="game-stat-value" id="misses">0</div>
+                            <div class="game-stat-label">脱靶</div>
+                        </div>
+                        <div class="game-stat">
+                            <div class="game-stat-value" id="time">30</div>
+                            <div class="game-stat-label">时间</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="game-area" id="gameArea">
+                    <div class="crosshair-lines"></div>
+                    <div class="compass">N 0° | E 90° | S 180° | W 270°</div>
+                    <div class="distance-markers">DIST: 100m-500m</div>
+                    <div class="combo-display" id="comboDisplay">连击: 0</div>
+                </div>
+                <div class="game-message" id="gameMessage">点击"开始游戏"开始狙击挑战！</div>
+                <div class="game-controls">
+                    <div class="difficulty-select">
+                        <label for="difficulty">难度：</label>
+                        <select id="difficulty" class="difficulty-dropdown">
+                            <option value="easy">简单</option>
+                            <option value="medium" selected>中等</option>
+                            <option value="hard">困难</option>
+                        </select>
+                    </div>
+                    <button class="game-btn" id="startBtn" onclick="startGame()">开始游戏</button>
+                    <button class="game-btn" id="resetBtn" onclick="resetGame()" disabled>重置</button>
+                </div>
+            </div>
+            <div class="game-records fade-in">
+                <h3 class="records-title">游戏记录</h3>
+                <div class="records-grid">
+                    <div class="record-item">
+                        <div class="record-label">最高分</div>
+                        <div class="record-value" id="highScore">0</div>
+                    </div>
+                    <div class="record-item">
+                        <div class="record-label">最近得分</div>
+                        <div class="record-value" id="lastScore">0</div>
+                    </div>
+                    <div class="record-item">
+                        <div class="record-label">总游戏次数</div>
+                        <div class="record-value" id="totalGames">0</div>
+                    </div>
+                    <div class="record-item">
+                        <div class="record-label">总命中数</div>
+                        <div class="record-value" id="totalHits">0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="game-achievements fade-in">
+                <h3 class="achievements-title">游戏成就</h3>
+                <div class="achievements-grid">
+                    <div class="achievement-item" id="achievement-first-game">
+                        <div class="achievement-icon">🎮</div>
+                        <div class="achievement-name">初次尝试</div>
+                        <div class="achievement-desc">完成第一次游戏</div>
+                        <div class="achievement-status" id="status-first-game">未解锁</div>
+                    </div>
+                    <div class="achievement-item" id="achievement-100-score">
+                        <div class="achievement-icon">🏆</div>
+                        <div class="achievement-name">百发百中</div>
+                        <div class="achievement-desc">得分达到100分</div>
+                        <div class="achievement-status" id="status-100-score">未解锁</div>
+                    </div>
+                    <div class="achievement-item" id="achievement-5-combo">
+                        <div class="achievement-icon">🔥</div>
+                        <div class="achievement-name">连击大师</div>
+                        <div class="achievement-desc">达成5连击</div>
+                        <div class="achievement-status" id="status-5-combo">未解锁</div>
+                    </div>
+                    <div class="achievement-item" id="achievement-perfect">
+                        <div class="achievement-icon">💎</div>
+                        <div class="achievement-name">完美通关</div>
+                        <div class="achievement-desc">无脱靶完成游戏</div>
+                        <div class="achievement-status" id="status-perfect">未解锁</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="achievements">
+            <h2 class="section-title fade-in">荣誉勋章</h2>
+            <div class="achievement-timeline">
+                <div class="timeline-item fade-in">
+                    <div class="timeline-date">2026年3月</div>
+                    <div class="achievement-card">
+                        <div class="achievement-icon">🏆</div>
+                        <div class="achievement-title">编程猫考级证书</div>
+                        <div class="achievement-desc">编程能力认证</div>
+                    </div>
+                </div>
+                <div class="timeline-item fade-in">
+                    <div class="timeline-date">2026年2月</div>
+                    <div class="achievement-card">
+                        <div class="achievement-icon">🥇</div>
+                        <div class="achievement-title">学校羽毛球比赛冠军</div>
+                        <div class="achievement-desc">六年级组单打冠军</div>
+                    </div>
+                </div>
+                <div class="timeline-item fade-in">
+                    <div class="timeline-date">2026年1月</div>
+                    <div class="achievement-card">
+                        <div class="achievement-icon">🎮</div>
+                        <div class="achievement-title">和平精英赛季前100</div>
+                        <div class="achievement-desc">单排模式赛季排名前100</div>
+                    </div>
+                </div>
+                <div class="timeline-item fade-in">
+                    <div class="timeline-date">2025年12月</div>
+                    <div class="achievement-card">
+                        <div class="achievement-icon">📚</div>
+                        <div class="achievement-title">数学竞赛二等奖</div>
+                        <div class="achievement-desc">校级数学竞赛二等奖</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p class="footer-text">战术档案系统 v1.0 | 2024</p>
+    </footer>
+
+    <script>
+        let score = 0;
+        let hits = 0;
+        let misses = 0;
+        let timeLeft = 30;
+        let gameInterval;
+        let targetInterval;
+        let combo = 0;
+        let isPlaying = false;
+        let totalShots = 0;
+        let difficulty = 'medium';
+        let audioContext;
+        let maxCombo = 0;
+
+        // 游戏记录
+        let gameRecords = {
+            highScore: 0,
+            lastScore: 0,
+            totalGames: 0,
+            totalHits: 0,
+            achievements: {
+                firstGame: false,
+                score100: false,
+                combo5: false,
+                perfect: false
+            }
+        };
+
+        // 初始化音频上下文
+        function initAudio() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        // 从localStorage加载游戏记录
+        function loadGameRecords() {
+            const savedRecords = localStorage.getItem('gameRecords');
+            if (savedRecords) {
+                gameRecords = JSON.parse(savedRecords);
+                updateRecordsDisplay();
+                updateAchievementsDisplay();
+            }
+        }
+
+        // 保存游戏记录到localStorage
+        function saveGameRecords() {
+            localStorage.setItem('gameRecords', JSON.stringify(gameRecords));
+        }
+
+        // 更新游戏记录显示
+        function updateRecordsDisplay() {
+            document.getElementById('highScore').textContent = gameRecords.highScore;
+            document.getElementById('lastScore').textContent = gameRecords.lastScore;
+            document.getElementById('totalGames').textContent = gameRecords.totalGames;
+            document.getElementById('totalHits').textContent = gameRecords.totalHits;
+        }
+
+        // 更新成就显示
+        function updateAchievementsDisplay() {
+            // 初次尝试
+            if (gameRecords.achievements.firstGame) {
+                document.getElementById('achievement-first-game').classList.add('unlocked');
+                document.getElementById('status-first-game').textContent = '已解锁';
+                document.getElementById('status-first-game').classList.add('unlocked');
+            }
+
+            // 百发百中
+            if (gameRecords.achievements.score100) {
+                document.getElementById('achievement-100-score').classList.add('unlocked');
+                document.getElementById('status-100-score').textContent = '已解锁';
+                document.getElementById('status-100-score').classList.add('unlocked');
+            }
+
+            // 连击大师
+            if (gameRecords.achievements.combo5) {
+                document.getElementById('achievement-5-combo').classList.add('unlocked');
+                document.getElementById('status-5-combo').textContent = '已解锁';
+                document.getElementById('status-5-combo').classList.add('unlocked');
+            }
+
+            // 完美通关
+            if (gameRecords.achievements.perfect) {
+                document.getElementById('achievement-perfect').classList.add('unlocked');
+                document.getElementById('status-perfect').textContent = '已解锁';
+                document.getElementById('status-perfect').classList.add('unlocked');
+            }
+        }
+
+        // 检查并解锁成就
+        function checkAchievements() {
+            // 初次尝试
+            if (!gameRecords.achievements.firstGame) {
+                gameRecords.achievements.firstGame = true;
+                saveGameRecords();
+                updateAchievementsDisplay();
+            }
+
+            // 百发百中
+            if (score >= 100 && !gameRecords.achievements.score100) {
+                gameRecords.achievements.score100 = true;
+                saveGameRecords();
+                updateAchievementsDisplay();
+            }
+
+            // 连击大师
+            if (maxCombo >= 5 && !gameRecords.achievements.combo5) {
+                gameRecords.achievements.combo5 = true;
+                saveGameRecords();
+                updateAchievementsDisplay();
+            }
+
+            // 完美通关
+            if (misses === 0 && !gameRecords.achievements.perfect) {
+                gameRecords.achievements.perfect = true;
+                saveGameRecords();
+                updateAchievementsDisplay();
+            }
+        }
+
+        // 生成音效
+        function playSound(frequency, duration, type = 'sine') {
+            if (!audioContext) {
+                initAudio();
+            }
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        // 卡片点击音效
+        function playCardClickSound() {
+            playSound(800, 0.1);
+        }
+
+        // 游戏开始音效
+        function playStartSound() {
+            playSound(800, 0.3);
+            setTimeout(() => playSound(1000, 0.2), 100);
+        }
+
+        // 命中目标音效
+        function playHitSound() {
+            playSound(600, 0.15);
+        }
+
+        // 游戏结束音效
+        function playEndSound() {
+            playSound(400, 0.3);
+            setTimeout(() => playSound(300, 0.2), 150);
+            setTimeout(() => playSound(200, 0.2), 300);
+        }
+
+        // 连击音效
+        function playComboSound() {
+            playSound(800 + combo * 100, 0.1);
+        }
+
+        // 导航栏高亮和平滑滚动
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('nav a');
+            const sections = document.querySelectorAll('section');
+            const hamburger = document.getElementById('hamburger');
+            const navMenu = document.getElementById('navMenu');
+            const fadeElements = document.querySelectorAll('.fade-in');
+            const clickableCards = document.querySelectorAll('.info-card, .skill-card, .favorite-card, .equipment-card, .achievement-card');
+            
+            // 加载游戏记录
+            loadGameRecords();
+            
+            // 为卡片添加点击音效
+            clickableCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    playCardClickSound();
+                });
+            });
+        
+            // 空格发射子弹
+            let isFiring = false;
+            let bulletInterval = null;
+            let mouseX = 0;
+            let mouseY = 0;
+            
+            // 跟踪鼠标位置
+            document.addEventListener('mousemove', function(e) {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+            
+            // 空格键按下时开始发射
+            document.addEventListener('keydown', function(e) {
+                if (e.code === 'Space' && !isFiring) {
+                    isFiring = true;
+                    
+                    // 持续发射子弹
+                    bulletInterval = setInterval(() => {
+                        // 计算子弹发射方向（从手枪枪口向前）
+                        const deltaX = 1; // 向前发射（手枪指向右侧）
+                        const deltaY = 0;
+                        
+                        // 50%几率发射导弹
+                        if (Math.random() > 0.5) {
+                            createMissile(mouseX, mouseY, deltaX, deltaY);
+                        } else {
+                            createBullet(mouseX, mouseY, deltaX, deltaY);
+                        }
+                    }, 100);
+                }
+            });
+            
+            // 空格键释放时停止发射
+            document.addEventListener('keyup', function(e) {
+                if (e.code === 'Space' && isFiring) {
+                    isFiring = false;
+                    if (bulletInterval) {
+                        clearInterval(bulletInterval);
+                        bulletInterval = null;
+                    }
+                }
+            });
+            
+            // 创建子弹
+            function createBullet(x, y, directionX, directionY) {
+                const bullet = document.createElement('div');
+                bullet.className = 'bullet';
+                
+                // 计算子弹初始位置（从手枪枪口发射）
+                const angle = Math.atan2(directionY, directionX);
+                const offsetX = Math.cos(angle) * 20;
+                const offsetY = Math.sin(angle) * 20;
+                
+                bullet.style.left = (x + offsetX) + 'px';
+                bullet.style.top = (y + offsetY) + 'px';
+                document.body.appendChild(bullet);
+                
+                // 计算子弹速度
+                const speed = 10;
+                const velocityX = (directionX / Math.sqrt(directionX * directionX + directionY * directionY)) * speed;
+                const velocityY = (directionY / Math.sqrt(directionX * directionX + directionY * directionY)) * speed;
+                
+                // 子弹动画
+                const animateBullet = () => {
+                    const currentX = parseFloat(bullet.style.left);
+                    const currentY = parseFloat(bullet.style.top);
+                    
+                    // 更新子弹位置
+                    bullet.style.left = (currentX + velocityX) + 'px';
+                    bullet.style.top = (currentY + velocityY) + 'px';
+                    
+                    // 检查子弹是否超出屏幕范围
+                    if (currentX < 0 || currentX > window.innerWidth || currentY < 0 || currentY > window.innerHeight) {
+                        // 创建爆炸效果
+                        createExplosion(currentX, currentY);
+                        document.body.removeChild(bullet);
+                    } else {
+                        requestAnimationFrame(animateBullet);
+                    }
+                };
+                
+                // 开始子弹动画
+                requestAnimationFrame(animateBullet);
+                
+                // 播放子弹音效
+                playSound(1000, 0.1, 'square');
+            }
+            
+            // 创建导弹
+            function createMissile(x, y, directionX, directionY) {
+                const missile = document.createElement('div');
+                missile.className = 'missile';
+                
+                // 计算导弹初始位置（从手枪枪口发射）
+                const angle = Math.atan2(directionY, directionX);
+                const offsetX = Math.cos(angle) * 20;
+                const offsetY = Math.sin(angle) * 20;
+                
+                missile.style.left = (x + offsetX) + 'px';
+                missile.style.top = (y + offsetY) + 'px';
+                document.body.appendChild(missile);
+                
+                // 计算导弹速度
+                const speed = 15;
+                const velocityX = (directionX / Math.sqrt(directionX * directionX + directionY * directionY)) * speed;
+                const velocityY = (directionY / Math.sqrt(directionX * directionX + directionY * directionY)) * speed;
+                
+                // 导弹动画
+                const animateMissile = () => {
+                    const currentX = parseFloat(missile.style.left);
+                    const currentY = parseFloat(missile.style.top);
+                    
+                    // 更新导弹位置
+                    missile.style.left = (currentX + velocityX) + 'px';
+                    missile.style.top = (currentY + velocityY) + 'px';
+                    
+                    // 检查是否击中卡片
+                    const cards = document.querySelectorAll('.info-card, .skill-card, .favorite-card, .equipment-card, .achievement-card');
+                    let hitCard = false;
+                    
+                    cards.forEach(card => {
+                        const cardRect = card.getBoundingClientRect();
+                        if (currentX >= cardRect.left && currentX <= cardRect.right && currentY >= cardRect.top && currentY <= cardRect.bottom) {
+                            // 击中卡片
+                            hitCard = true;
+                            createBigExplosion(currentX, currentY);
+                            document.body.removeChild(missile);
+                            breakCard(card);
+                        }
+                    });
+                    
+                    // 检查导弹是否超出屏幕范围
+                    if (!hitCard && (currentX < 0 || currentX > window.innerWidth || currentY < 0 || currentY > window.innerHeight)) {
+                        // 创建大型爆炸效果
+                        createBigExplosion(currentX, currentY);
+                        document.body.removeChild(missile);
+                    } else if (!hitCard) {
+                        requestAnimationFrame(animateMissile);
+                    }
+                };
+                
+                // 开始导弹动画
+                requestAnimationFrame(animateMissile);
+                
+                // 播放导弹音效
+                playSound(800, 0.15, 'sawtooth');
+            }
+            
+            // 创建爆炸效果
+            function createExplosion(x, y) {
+                // 播放爆炸音效
+                playSound(500, 0.2, 'square');
+                
+                // 创建多个粒子
+                for (let i = 0; i < 15; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    
+                    // 设置粒子初始位置
+                    particle.style.left = x + 'px';
+                    particle.style.top = y + 'px';
+                    document.body.appendChild(particle);
+                    
+                    // 随机角度和速度
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 2 + Math.random() * 3;
+                    const velocityX = Math.cos(angle) * speed;
+                    const velocityY = Math.sin(angle) * speed;
+                    
+                    // 粒子动画
+                    let opacity = 1;
+                    const animateParticle = () => {
+                        const currentX = parseFloat(particle.style.left);
+                        const currentY = parseFloat(particle.style.top);
+                        
+                        // 更新粒子位置
+                        particle.style.left = (currentX + velocityX) + 'px';
+                        particle.style.top = (currentY + velocityY) + 'px';
+                        
+                        // 降低透明度
+                        opacity -= 0.05;
+                        particle.style.opacity = opacity;
+                        
+                        // 检查粒子是否消失
+                        if (opacity <= 0) {
+                            document.body.removeChild(particle);
+                        } else {
+                            requestAnimationFrame(animateParticle);
+                        }
+                    };
+                    
+                    // 开始粒子动画
+                    requestAnimationFrame(animateParticle);
+                }
+            }
+            
+            // 创建大型爆炸效果（覆盖全屏）
+            function createBigExplosion(x, y) {
+                // 播放大型爆炸音效
+                playSound(300, 0.5, 'square');
+                
+                // 创建大量粒子，覆盖全屏
+                for (let i = 0; i < 100; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'big-particle';
+                    
+                    // 设置粒子初始位置
+                    particle.style.left = x + 'px';
+                    particle.style.top = y + 'px';
+                    document.body.appendChild(particle);
+                    
+                    // 随机角度和速度
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 5 + Math.random() * 10;
+                    const velocityX = Math.cos(angle) * speed;
+                    const velocityY = Math.sin(angle) * speed;
+                    
+                    // 粒子动画
+                    let opacity = 1;
+                    let size = 10 + Math.random() * 20;
+                    particle.style.width = size + 'px';
+                    particle.style.height = size + 'px';
+                    
+                    const animateParticle = () => {
+                        const currentX = parseFloat(particle.style.left);
+                        const currentY = parseFloat(particle.style.top);
+                        
+                        // 更新粒子位置
+                        particle.style.left = (currentX + velocityX) + 'px';
+                        particle.style.top = (currentY + velocityY) + 'px';
+                        
+                        // 降低透明度和大小
+                        opacity -= 0.02;
+                        size *= 0.98;
+                        particle.style.opacity = opacity;
+                        particle.style.width = size + 'px';
+                        particle.style.height = size + 'px';
+                        
+                        // 检查粒子是否消失
+                        if (opacity <= 0) {
+                            document.body.removeChild(particle);
+                        } else {
+                            requestAnimationFrame(animateParticle);
+                        }
+                    };
+                    
+                    // 开始粒子动画
+                    requestAnimationFrame(animateParticle);
+                }
+            }
+            
+            // 卡片破碎效果
+            function breakCard(card) {
+                // 保存卡片的原始样式
+                const originalStyle = card.style.cssText;
+                
+                // 应用破碎效果
+                card.style.animation = 'breakEffect 0.5s ease-out forwards';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.5) rotate(10deg)';
+                card.style.pointerEvents = 'none';
+                
+                // 3秒后恢复卡片
+                setTimeout(() => {
+                    card.style.animation = '';
+                    card.style.cssText = originalStyle;
+                    card.style.pointerEvents = 'auto';
+                }, 3000);
+            }
+
+            // 汉堡菜单功能
+            hamburger.addEventListener('click', function() {
+                hamburger.classList.toggle('active');
+                navMenu.classList.toggle('active');
+            });
+
+            // 点击导航链接后关闭菜单
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    hamburger.classList.remove('active');
+                    navMenu.classList.remove('active');
+                });
+            });
+
+            // 平滑滚动
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    const targetSection = document.querySelector(targetId);
+                    window.scrollTo({
+                        top: targetSection.offsetTop - 70,
+                        behavior: 'smooth'
+                    });
+                });
+            });
+
+            // 滚动高亮
+            window.addEventListener('scroll', function() {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.clientHeight;
+                    if (pageYOffset >= sectionTop - 100) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === '#' + current) {
+                        link.classList.add('active');
+                    }
+                });
+
+                // 滚动动画
+                fadeElements.forEach(element => {
+                    const elementTop = element.getBoundingClientRect().top;
+                    const windowHeight = window.innerHeight;
+                    if (elementTop < windowHeight - 100) {
+                        element.classList.add('visible');
+                    }
+                });
+            });
+
+            // 初始检查
+            fadeElements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const windowHeight = window.innerHeight;
+                if (elementTop < windowHeight - 100) {
+                    element.classList.add('visible');
+                }
+            });
+            
+            // 背景切换功能
+            const body = document.body;
+            let isAlternateBackground = false;
+            
+            // 创建一个可点击的刀元素
+            const knifeElement = document.createElement('div');
+            knifeElement.style.position = 'absolute';
+            knifeElement.style.top = '20px';
+            knifeElement.style.left = '20px';
+            knifeElement.style.fontSize = '40px';
+            knifeElement.style.cursor = 'pointer';
+            knifeElement.style.zIndex = '10';
+            knifeElement.style.animation = 'float 3s ease-in-out infinite';
+            knifeElement.innerHTML = '⚔️';
+            knifeElement.style.opacity = '0.3';
+            knifeElement.style.transition = 'opacity 0.3s, transform 0.3s';
+            
+            // 添加悬停效果
+            knifeElement.addEventListener('mouseenter', function() {
+                this.style.opacity = '0.8';
+                this.style.transform = 'scale(1.1)';
+            });
+            
+            knifeElement.addEventListener('mouseleave', function() {
+                this.style.opacity = '0.3';
+                this.style.transform = 'scale(1)';
+            });
+            
+            // 添加点击事件
+            knifeElement.addEventListener('click', function() {
+                if (!isAlternateBackground) {
+                    // 切换到新背景
+                    body.style.background = `linear-gradient(rgba(26, 26, 26, 0.5), rgba(26, 26, 26, 0.6)), url('3c67ec823954c3017f769821b6bc3f0e7972131c.jpg')`;
+                    body.style.backgroundSize = 'cover';
+                    body.style.backgroundPosition = 'center';
+                    body.style.backgroundAttachment = 'fixed';
+                    isAlternateBackground = true;
+                } else {
+                    // 切换回原始背景
+                    body.style.background = `linear-gradient(rgba(26, 26, 26, 0.5), rgba(26, 26, 26, 0.6)), url('u=773954048,1849101079&fm=253&fmt=auto&app=138&f=JPEG.webp')`;
+                    body.style.backgroundSize = 'cover';
+                    body.style.backgroundPosition = 'center';
+                    body.style.backgroundAttachment = 'fixed';
+                    isAlternateBackground = false;
+                }
+            });
+            
+            // 将刀元素添加到header中
+            header.appendChild(knifeElement);
+        });
+
+        function startGame() {
+            if (isPlaying) return;
+            
+            isPlaying = true;
+            score = 0;
+            hits = 0;
+            misses = 0;
+            combo = 0;
+            totalShots = 0;
+            
+            // 获取难度级别
+            difficulty = document.getElementById('difficulty').value;
+            
+            // 根据难度设置游戏参数
+            let targetIntervalTime, targetSize, gameTime;
+            
+            switch(difficulty) {
+                case 'easy':
+                    targetIntervalTime = 1800;
+                    targetSize = 70;
+                    gameTime = 40;
+                    break;
+                case 'medium':
+                    targetIntervalTime = 1500;
+                    targetSize = 60;
+                    gameTime = 30;
+                    break;
+                case 'hard':
+                    targetIntervalTime = 1200;
+                    targetSize = 50;
+                    gameTime = 25;
+                    break;
+            }
+            
+            timeLeft = gameTime;
+            
+            updateDisplay();
+            document.getElementById('gameMessage').textContent = `游戏进行中...瞄准射击！难度：${difficulty === 'easy' ? '简单' : difficulty === 'medium' ? '中等' : '困难'}`;
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('resetBtn').disabled = false;
+            
+            // 播放游戏开始音效
+            playStartSound();
+            
+            gameInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('time').textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+            
+            spawnTarget(targetSize);
+            targetInterval = setInterval(() => spawnTarget(targetSize), targetIntervalTime);
+        }
+
+        function spawnTarget(targetSize) {
+            if (!isPlaying) return;
+            
+            const gameArea = document.getElementById('gameArea');
+            const target = document.createElement('div');
+            target.className = 'target';
+            
+            // 设置目标大小
+            target.style.width = targetSize + 'px';
+            target.style.height = targetSize + 'px';
+            
+            const maxX = gameArea.offsetWidth - targetSize;
+            const maxY = gameArea.offsetHeight - targetSize;
+            
+            const randomX = Math.random() * maxX;
+            const randomY = Math.random() * maxY;
+            
+            target.style.left = randomX + 'px';
+            target.style.top = randomY + 'px';
+            
+            target.onclick = function(e) {
+                e.stopPropagation();
+                hitTarget(target);
+            };
+            
+            gameArea.appendChild(target);
+            
+            // 根据难度设置目标消失时间
+            let targetLifetime;
+            switch(difficulty) {
+                case 'easy':
+                    targetLifetime = 2500;
+                    break;
+                case 'medium':
+                    targetLifetime = 2000;
+                    break;
+                case 'hard':
+                    targetLifetime = 1500;
+                    break;
+            }
+            
+            setTimeout(() => {
+                if (target.parentNode && !target.classList.contains('hit')) {
+                    target.remove();
+                    misses++;
+                    combo = 0;
+                    updateDisplay();
+                }
+            }, targetLifetime);
+        }
+
+        function hitTarget(target) {
+            if (!isPlaying) return;
+            
+            target.classList.add('hit');
+            hits++;
+            combo++;
+            totalShots++;
+            
+            // 更新最大连击数
+            if (combo > maxCombo) {
+                maxCombo = combo;
+            }
+            
+            const baseScore = 10;
+            const comboBonus = combo > 1 ? (combo - 1) * 5 : 0;
+            score += baseScore + comboBonus;
+            
+            // 播放命中目标音效
+            playHitSound();
+            
+            // 播放连击音效（当连击数大于2时）
+            if (combo > 2) {
+                playComboSound();
+            }
+            
+            updateDisplay();
+            
+            setTimeout(() => {
+                target.remove();
+            }, 300);
+        }
+
+        function endGame() {
+            isPlaying = false;
+            clearInterval(gameInterval);
+            clearInterval(targetInterval);
+            
+            const gameArea = document.getElementById('gameArea');
+            const targets = gameArea.querySelectorAll('.target');
+            targets.forEach(target => target.remove());
+            
+            const accuracy = totalShots > 0 ? Math.round((hits / totalShots) * 100) : 0;
+            
+            let message = `游戏结束！得分: ${score} | 命中: ${hits} | 脱靶: ${misses} | 命中率: ${accuracy}%`;
+            
+            if (score >= 200) {
+                message += ' | 🏆 狙击大师！';
+            } else if (score >= 150) {
+                message += ' | 🎯 神射手！';
+            } else if (score >= 100) {
+                message += ' | 🔫 精英射手！';
+            } else {
+                message += ' | 💪 继续努力！';
+            }
+            
+            document.getElementById('gameMessage').textContent = message;
+            document.getElementById('startBtn').disabled = false;
+            
+            // 更新游戏记录
+            gameRecords.lastScore = score;
+            if (score > gameRecords.highScore) {
+                gameRecords.highScore = score;
+            }
+            gameRecords.totalGames++;
+            gameRecords.totalHits += hits;
+            
+            // 检查成就
+            checkAchievements();
+            
+            // 保存游戏记录
+            saveGameRecords();
+            
+            // 更新显示
+            updateRecordsDisplay();
+            
+            // 播放游戏结束音效
+            playEndSound();
+        }
+
+        function resetGame() {
+            isPlaying = false;
+            clearInterval(gameInterval);
+            clearInterval(targetInterval);
+            
+            score = 0;
+            hits = 0;
+            misses = 0;
+            timeLeft = 30;
+            combo = 0;
+            maxCombo = 0;
+            totalShots = 0;
+            
+            updateDisplay();
+            
+            const gameArea = document.getElementById('gameArea');
+            const targets = gameArea.querySelectorAll('.target');
+            targets.forEach(target => target.remove());
+            
+            document.getElementById('gameMessage').textContent = '点击"开始游戏"开始狙击挑战！';
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('resetBtn').disabled = true;
+        }
+
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('hits').textContent = hits;
+            document.getElementById('misses').textContent = misses;
+            document.getElementById('time').textContent = timeLeft;
+            document.getElementById('comboDisplay').textContent = `连击: ${combo}`;
+        }
+
+        document.getElementById('gameArea').addEventListener('click', function(e) {
+            if (isPlaying && e.target === this) {
+                misses++;
+                combo = 0;
+                totalShots++;
+                updateDisplay();
+            }
+        });
+    </script>
+</body>
+</html>
