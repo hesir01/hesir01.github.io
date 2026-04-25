@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>难言的个人主页</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 25% 25%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                              radial-gradient(circle at 75% 75%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* 导航栏 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .nav-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+        
+        .nav-links li a {
+            color: #e0e0e0;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        
+        .nav-links li a:hover {
+            color: #667eea;
+            background-color: rgba(102, 126, 234, 0.1);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            margin-top: 80px;
+            animation: fadeIn 1s ease-in-out;
+        }
+        
+        .avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(102, 126, 234, 0.7);
+        }
+        
+        h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            color: #ffffff;
+            animation: slideIn 0.8s ease-out 0.2s both;
+        }
+        
+        .subtitle {
+            font-size: 18px;
+            color: #b0b0b0;
+            margin-bottom: 20px;
+            animation: slideIn 0.8s ease-out 0.4s both;
+        }
+        
+        .quote {
+            font-style: italic;
+            color: #8e8e8e;
+            margin-top: 20px;
+            font-size: 16px;
+            animation: slideIn 0.8s ease-out 0.6s both;
+        }
+        
+        .section {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.8s ease-out;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+        
+        .section h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section h2::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 24px;
+            background-color: #667eea;
+            margin-right: 12px;
+            border-radius: 2px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .info-item:hover {
+            transform: translateX(10px);
+        }
+        
+        .info-item i {
+            font-size: 20px;
+            margin-right: 12px;
+            color: #667eea;
+        }
+        
+        .skill-list {
+            list-style: none;
+        }
+        
+        .skill-item {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .skill-item-content {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        
+        .skill-item-content::before {
+            content: '⚽';
+            margin-right: 10px;
+            margin-top: 2px;
+        }
+        
+        .skill-level {
+            width: 100%;
+            height: 8px;
+            background-color: #2d2d2d;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-left: 25px;
+        }
+        
+        .skill-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+        
+        .hobbies-list {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .hobby-item {
+            background-color: #2d2d2d;
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .hobby-item:hover {
+            background-color: #3a3a3a;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .hobby-item i {
+            margin-right: 8px;
+            color: #667eea;
+        }
+        
+        .dream-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+        
+        .dream-item {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .dream-item:hover {
+            transform: translateX(10px);
+        }
+        
+        .dream-item::before {
+            content: '🌟';
+            margin-right: 10px;
+        }
+        
+        .daily-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+        
+        .daily-item {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .daily-item:hover {
+            transform: translateX(10px);
+        }
+        
+        .daily-item::before {
+            content: '📅';
+            margin-right: 10px;
+        }
+        
+        .catchphrase-list {
+            list-style: none;
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .catchphrase-item {
+            background-color: #2d2d2d;
+            padding: 8px 16px;
+            border-radius: 16px;
+            display: inline-block;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .catchphrase-item:hover {
+            background-color: #667eea;
+            color: #ffffff;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+        
+        .certificate-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+        
+        .certificate-item {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .certificate-item:hover {
+            transform: translateX(10px);
+        }
+        
+        .certificate-item::before {
+            content: '🏆';
+            margin-right: 10px;
+        }
+        
+        .quote-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+        
+        .quote-item {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+            transition: transform 0.3s ease;
+        }
+        
+        .quote-item:hover {
+            transform: translateX(10px);
+        }
+        
+        .quote-item::before {
+            content: '💬';
+            margin-right: 10px;
+            margin-top: 2px;
+        }
+        
+        /* 成就板块 */
+        .achievements-section {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.8s ease-out;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .achievements-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+        
+        .achievements-section h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+        }
+        
+        .achievements-section h2::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 24px;
+            background-color: #667eea;
+            margin-right: 12px;
+            border-radius: 2px;
+        }
+        
+        .achievement-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+        
+        .achievement-item {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .achievement-item:hover {
+            transform: translateX(10px);
+        }
+        
+        .achievement-item::before {
+            content: '🎖️';
+            margin-right: 10px;
+        }
+        
+        /* 未来计划板块 */
+        .plans-section {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.8s ease-out;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .plans-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+        
+        .plans-section h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+        }
+        
+        .plans-section h2::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 24px;
+            background-color: #667eea;
+            margin-right: 12px;
+            border-radius: 2px;
+        }
+        
+        .plan-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+        
+        .plan-item {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .plan-item:hover {
+            transform: translateX(10px);
+        }
+        
+        .plan-item::before {
+            content: '📋';
+            margin-right: 10px;
+        }
+        
+        /* 游戏中心样式 */
+        .games-section {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.8s ease-out;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .games-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+        
+        .games-section h2::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 24px;
+            background-color: #667eea;
+            margin-right: 12px;
+            border-radius: 2px;
+        }
+        
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .game-card {
+            background-color: #2d2d2d;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-5px);
+            background-color: #3a3a3a;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        
+        .game-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        .game-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+        
+        .game-desc {
+            font-size: 12px;
+            color: #b0b0b0;
+        }
+        
+        .game-container {
+            margin-top: 20px;
+        }
+        
+        .game-area {
+            width: 100%;
+            height: 400px;
+            background-color: #2d2d2d;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-score {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .game-high-score {
+            font-size: 14px;
+            color: #b0b0b0;
+            margin-top: 5px;
+            text-align: center;
+        }
+        
+        .game-back-btn {
+            display: block;
+            margin: 20px auto 0;
+            padding: 10px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .game-back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* 游戏内元素样式 */
+        .game-character {
+            position: absolute;
+            font-size: 30px;
+            transition: bottom 0.1s ease;
+        }
+        
+        .game-target {
+            position: absolute;
+            font-size: 40px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .game-target:hover {
+            transform: scale(1.2);
+        }
+        
+        .game-ball {
+            position: absolute;
+            font-size: 40px;
+            transition: all 0.5s ease;
+        }
+        
+        .game-goal {
+            position: absolute;
+            bottom: 20px;
+            width: 120px;
+            height: 80px;
+            border: 4px solid #667eea;
+            border-radius: 8px;
+            background-color: rgba(102, 126, 234, 0.1);
+        }
+        
+        .game-obstacle {
+            position: absolute;
+            font-size: 30px;
+        }
+        
+        .game-star {
+            position: absolute;
+            font-size: 30px;
+            animation: twinkle 0.5s ease infinite alternate;
+        }
+        
+        @keyframes twinkle {
+            from { transform: scale(1); }
+            to { transform: scale(1.2); }
+        }
+        
+        .quiz-option {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background-color: #2d2d2d;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+        
+        .quiz-option:hover {
+            background-color: #3a3a3a;
+            border-color: #667eea;
+        }
+        
+        .quiz-option.correct {
+            background-color: rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+        
+        .quiz-option.wrong {
+            background-color: rgba(255, 0, 0, 0.3);
+            border-color: #ff4444;
+        }
+        
+        .quiz-question {
+            font-size: 18px;
+            color: #ffffff;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            color: #8e8e8e;
+            font-size: 14px;
+            padding: 20px 0;
+        }
+        
+        /* 返回顶部按钮 */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+        
+        .back-to-top.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .back-to-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.5);
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #121212;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .container {
+                padding: 20px 15px;
+            }
+            
+            header {
+                margin-top: 60px;
+            }
+            
+            .section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">难言的主页</div>
+            <ul class="nav-links">
+                <li><a href="#home">首页</a></li>
+                <li><a href="#skills">技能</a></li>
+                <li><a href="#hobbies">兴趣</a></li>
+                <li><a href="#games">游戏</a></li>
+                <li><a href="#dreams">梦想</a></li>
+                <li><a href="#daily">日常</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <header id="home">
+            <div class="avatar">😎</div>
+            <h1>难言</h1>
+            <p class="subtitle">小学生（未来的足球明星/游戏大师/跑步冠军）</p>
+            <p class="quote">"难言1米8，技术顶呱呱"</p>
+        </header>
+        
+        <section class="section">
+            <h2>👤 个人信息</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <i>📅</i>
+                    <span>出生日期：2015年2月6日（农历大年初八，注定是个不平凡的日子）</span>
+                </div>
+                <div class="info-item">
+                    <i>🎓</i>
+                    <span>职业：小学生（未来的足球明星/游戏大师/跑步冠军）</span>
+                </div>
+            </div>
+        </section>
+        
+        <section class="section" id="skills">
+            <h2>⚡ 最擅长的事</h2>
+            <div class="skill-list">
+                <div class="skill-item">
+                    <div class="skill-item-content">
+                        <span>踢足球 - 班级足球队主力前锋，射门准确率高达99.9%（剩下0.1%是因为球被狗叼走了）</span>
+                    </div>
+                    <div class="skill-level">
+                        <div class="skill-progress" style="width: 99%;"></div>
+                    </div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-item-content">
+                        <span>跑步 - 学校运动会短跑冠军，人称“小闪电”，跑起来连影子都追不上</span>
+                    </div>
+                    <div class="skill-level">
+                        <div class="skill-progress" style="width: 95%;"></div>
+                    </div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-item-content">
+                        <span>打游戏 - 王者荣耀钻石段位，吃鸡场均击杀10+，队友都叫我“难言大神”</span>
+                    </div>
+                    <div class="skill-level">
+                        <div class="skill-progress" style="width: 90%;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>💬 喜欢说的台词</h2>
+            <ul class="quote-list">
+                <li class="quote-item">难言1米8，技术顶呱呱（虽然实际身高1米4，但气势不能输）</li>
+                <li class="quote-item">我不是针对谁，我是说在座的各位都是弟弟</li>
+                <li class="quote-item">这波操作，秀到没朋友</li>
+            </ul>
+        </section>
+        
+        <section class="section" id="hobbies">
+            <h2>🎵 最喜欢的音乐</h2>
+            <ul class="hobbies-list">
+                <li class="hobby-item">
+                    <i>🎤</i>
+                    <span>最喜欢的歌手：周杰伦（伦哥的歌，我能单曲循环100遍不带停）</span>
+                </li>
+                <li class="hobby-item">
+                    <i>🎶</i>
+                    <span>最喜欢的歌：《晴天》（每次唱到“从前从前，有个人爱你很久”都会假装深沉）</span>
+                </li>
+            </ul>
+        </section>
+        
+        <section class="section">
+            <h2>🎬 最喜欢的电影</h2>
+            <ul class="hobbies-list">
+                <li class="hobby-item">
+                    <i>🎥</i>
+                    <span>《规则怪谈》（虽然看完晚上会做噩梦，但就是喜欢刺激）</span>
+                </li>
+            </ul>
+        </section>
+        
+        <section class="section">
+            <h2>📚 最喜欢的书籍</h2>
+            <ul class="hobbies-list">
+                <li class="hobby-item">
+                    <i>📖</i>
+                    <span>《西游记》（想和孙悟空学七十二变）</span>
+                </li>
+                <li class="hobby-item">
+                    <i>📖</i>
+                    <span>《三国演义》（梦想成为像诸葛亮一样的智慧担当）</span>
+                </li>
+            </ul>
+        </section>
+        
+        <section class="section">
+            <h2>🏆 荣誉证书</h2>
+            <ul class="certificate-list">
+                <li class="certificate-item">足球最厉害的那个（班主任亲自颁发，含金量杠杠的）</li>
+                <li class="certificate-item">班级“游戏达人”称号</li>
+                <li class="certificate-item">学校“跑步小能手”奖状</li>
+            </ul>
+        </section>
+        
+        <!-- 成就板块 -->
+        <section class="achievements-section">
+            <h2>🎖️ 我的成就</h2>
+            <ul class="achievement-list">
+                <li class="achievement-item">带领班级足球队获得年级冠军</li>
+                <li class="achievement-item">学校运动会100米短跑记录保持者</li>
+                <li class="achievement-item">王者荣耀钻石段位达成</li>
+                <li class="achievement-item">被评为班级“最受欢迎的同学”</li>
+            </ul>
+        </section>
+        
+        <section class="section" id="dreams">
+            <h2>🌟 梦想</h2>
+            <ul class="dream-list">
+                <li class="dream-item">挣他一个大目标（先定个小目标，比如挣它一个亿）</li>
+                <li class="dream-item">成为职业足球运动员，为国争光</li>
+                <li class="dream-item">开一家游戏公司，出一款全世界都喜欢的游戏</li>
+                <li class="dream-item">身高真的长到1米8（这是最重要的）</li>
+            </ul>
+        </section>
+        
+        <!-- 未来计划板块 -->
+        <section class="plans-section">
+            <h2>📋 未来计划</h2>
+            <ul class="plan-list">
+                <li class="plan-item">参加市级足球比赛，争取获得好成绩</li>
+                <li class="plan-item">提升游戏技术，冲击王者荣耀星耀段位</li>
+                <li class="plan-item">坚持晨跑，提高跑步速度</li>
+                <li class="plan-item">多读课外书籍，增长知识</li>
+                <li class="plan-item">学习编程，为未来开游戏公司做准备</li>
+            </ul>
+        </section>
+        
+        <section class="section" id="daily">
+            <h2>📅 日常生活</h2>
+            <ul class="daily-list">
+                <li class="daily-item">每天早上6点起床晨跑，风雨无阻（除非下雨，那就在家打游戏）</li>
+                <li class="daily-item">放学回家先写作业，然后踢足球，最后打游戏（时间管理大师）</li>
+                <li class="daily-item">周末和小伙伴们一起踢足球，顺便炫一下我的技术</li>
+                <li class="daily-item">偶尔会给同学表演一下我的游戏技巧，收获一片崇拜的目光</li>
+            </ul>
+        </section>
+        
+        <!-- 游戏中心 -->
+        <section class="games-section" id="games">
+            <h2>🎮 游戏中心</h2>
+            
+            <!-- 游戏选择界面 -->
+            <div class="games-grid" id="gamesGrid">
+                <div class="game-card" onclick="startGame('jump')">
+                    <div class="game-icon">🏃</div>
+                    <div class="game-title">难言1米8 跳高挑战</div>
+                    <div class="game-desc">控制角色不断跳跃，看能跳多高</div>
+                </div>
+                <div class="game-card" onclick="startGame('football')">
+                    <div class="game-icon">⚽</div>
+                    <div class="game-title">足球射门大赛</div>
+                    <div class="game-desc">扮演守门员，扑救随机方向的球</div>
+                </div>
+                <div class="game-card" onclick="startGame('reaction')">
+                    <div class="game-icon">🎯</div>
+                    <div class="game-title">反应速度测试</div>
+                    <div class="game-desc">点击随机出现的目标得分</div>
+                </div>
+                <div class="game-card" onclick="startGame('quiz')">
+                    <div class="game-icon">🤔</div>
+                    <div class="game-title">你有多了解难言</div>
+                    <div class="game-desc">趣味问答，测试你对难言的了解</div>
+                </div>
+                <div class="game-card" onclick="startGame('runner')">
+                    <div class="game-icon">🌟</div>
+                    <div class="game-title">收集星星跑酷</div>
+                    <div class="game-desc">控制角色收集星星，躲避障碍</div>
+                </div>
+            </div>
+            
+            <!-- 游戏容器 -->
+            <div id="gameContainer" class="game-container" style="display: none;">
+                <div id="gameArea" class="game-area"></div>
+                <div id="gameScore" class="game-score">得分: 0</div>
+                <div id="gameHighScore" class="game-high-score">最高分: 0</div>
+                <button class="game-back-btn" onclick="backToGames()">返回游戏列表</button>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2>💭 口头禅</h2>
+            <ul class="catchphrase-list">
+                <li class="catchphrase-item">问题不大，看我操作</li>
+                <li class="catchphrase-item">这波我操作</li>
+                <li class="catchphrase-item">不要慌，稳住，我们能赢</li>
+                <li class="catchphrase-item">看我的难言1米8，技术顶呱呱</li>
+            </ul>
+        </section>
+        
+        <footer>
+            <p>© 2026 难言的个人主页</p>
+        </footer>
+    </div>
+    
+    <!-- 返回顶部按钮 -->
+    <div class="back-to-top" id="backToTop">↑</div>
+    
+    <script>
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+        
+        // 滚动动画
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('.section, .achievements-section, .plans-section').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(30px)';
+            section.style.transition = 'opacity 0.8s ease-out, transform 0.8s ease-out';
+            observer.observe(section);
+        });
+        
+        // 技能进度条动画
+        const skillObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const progressBars = entry.target.querySelectorAll('.skill-progress');
+                    progressBars.forEach(bar => {
+                        const width = bar.style.width;
+                        bar.style.width = '0';
+                        setTimeout(() => {
+                            bar.style.width = width;
+                        }, 500);
+                    });
+                    skillObserver.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+        
+        const skillsSection = document.querySelector('.section#skills');
+        if (skillsSection) {
+            skillObserver.observe(skillsSection);
+        }
+        
+        // 导航栏滚动效果
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 100) {
+                navbar.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.5)';
+            } else {
+                navbar.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.3)';
+            }
+        });
+        
+        // 返回顶部按钮
+        const backToTop = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 300) {
+                backToTop.classList.add('active');
+            } else {
+                backToTop.classList.remove('active');
+            }
+        });
+        
+        backToTop.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // 口头禅点击效果
+        document.querySelectorAll('.catchphrase-item').forEach(item => {
+            item.addEventListener('click', function() {
+                this.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    this.style.transform = 'translateY(-3px)';
+                }, 200);
+            });
+        });
+        
+        // 兴趣爱好点击效果
+        document.querySelectorAll('.hobby-item').forEach(item => {
+            item.addEventListener('click', function() {
+                this.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    this.style.transform = 'translateY(-3px)';
+                }, 200);
+            });
+        });
+        
+        // 游戏相关变量
+        let currentGame = null;
+        let gameScore = 0;
+        let gameHighScores = {
+            jump: 0,
+            football: 0,
+            reaction: 0,
+            quiz: 0,
+            runner: 0
+        };
+        let gameInterval = null;
+        let gameTimeout = null;
+        
+        // 开始游戏
+        function startGame(gameType) {
+            currentGame = gameType;
+            gameScore = 0;
+            document.getElementById('gamesGrid').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'block';
+            document.getElementById('gameScore').textContent = '得分: 0';
+            document.getElementById('gameHighScore').textContent = '最高分: ' + gameHighScores[gameType];
+            
+            switch(gameType) {
+                case 'jump':
+                    startJumpGame();
+                    break;
+                case 'football':
+                    startFootballGame();
+                    break;
+                case 'reaction':
+                    startReactionGame();
+                    break;
+                case 'quiz':
+                    startQuizGame();
+                    break;
+                case 'runner':
+                    startRunnerGame();
+                    break;
+            }
+        }
+        
+        // 返回游戏列表
+        function backToGames() {
+            if (gameInterval) clearInterval(gameInterval);
+            if (gameTimeout) clearTimeout(gameTimeout);
+            currentGame = null;
+            document.getElementById('gamesGrid').style.display = 'grid';
+            document.getElementById('gameContainer').style.display = 'none';
+            document.getElementById('gameArea').innerHTML = '';
+        }
+        
+        // 更新分数
+        function updateScore(points) {
+            gameScore += points;
+            document.getElementById('gameScore').textContent = '得分: ' + gameScore;
+            if (gameScore > gameHighScores[currentGame]) {
+                gameHighScores[currentGame] = gameScore;
+                document.getElementById('gameHighScore').textContent = '最高分: ' + gameScore;
+            }
+        }
+        
+        // ========== 跳高挑战游戏 ==========
+        function startJumpGame() {
+            const gameArea = document.getElementById('gameArea');
+            gameArea.innerHTML = '<div class="game-character" id="player" style="bottom: 20px; left: 50px;">🧍</div>';
+            
+            let velocity = 0;
+            let isJumping = false;
+            const gravity = 0.8;
+            const jumpForce = 15;
+            const player = document.getElementById('player');
+            
+            function jump() {
+                if (!isJumping) {
+                    velocity = jumpForce;
+                    isJumping = true;
+                }
+            }
+            
+            function gameLoop() {
+                const currentBottom = parseInt(player.style.bottom) || 20;
+                
+                if (isJumping) {
+                    velocity -= gravity;
+                    let newBottom = currentBottom + velocity;
+                    
+                    if (newBottom <= 20) {
+                        newBottom = 20;
+                        velocity = 0;
+                        isJumping = false;
+                    }
+                    
+                    player.style.bottom = newBottom + 'px';
+                    updateScore(Math.floor(newBottom / 10));
+                }
+                
+                gameInterval = requestAnimationFrame(gameLoop);
+            }
+            
+            document.addEventListener('keydown', jump);
+            gameArea.addEventListener('click', jump);
+            
+            gameLoop();
+            
+            setTimeout(() => {
+                document.removeEventListener('keydown', jump);
+                alert('游戏结束！你的最终得分: ' + gameScore);
+                backToGames();
+            }, 30000);
+        }
+        
+        // ========== 足球守门员游戏 ==========
+        function startFootballGame() {
+            const gameArea = document.getElementById('gameArea');
+            gameArea.innerHTML = `
+                <div class="game-goal" id="goal" style="left: 50%; transform: translateX(-50%);">
+                    <div class="game-character" id="goalkeeper" style="bottom: 10px; left: 50%; transform: translateX(-50%);">🧍</div>
+                </div>
+                <div class="game-ball" id="ball" style="display: none;">⚽</div>
+            `;
+            
+            const goal = document.getElementById('goal');
+            const ball = document.getElementById('ball');
+            const goalkeeper = document.getElementById('goalkeeper');
+            let canSave = true;
+            
+            function moveGoalkeeper(direction) {
+                const currentLeft = parseInt(goalkeeper.style.left) || 50;
+                let newLeft = currentLeft;
+                
+                if (direction === 'left' && currentLeft > 15) {
+                    newLeft = currentLeft - 15;
+                } else if (direction === 'right' && currentLeft < 85) {
+                    newLeft = currentLeft + 15;
+                }
+                
+                goalkeeper.style.left = newLeft + '%';
+            }
+            
+            function shootBall() {
+                if (!canSave) return;
+                canSave = false;
+                
+                const randomDirection = Math.random();
+                const ballStartX = Math.random() * 60 + 20;
+                const ballEndY = Math.random() * 30 + 20;
+                let ballEndX;
+                
+                if (randomDirection < 0.33) {
+                    ballEndX = 20;
+                } else if (randomDirection < 0.66) {
+                    ballEndX = 50;
+                } else {
+                    ballEndX = 80;
+                }
+                
+                ball.style.display = 'block';
+                ball.style.left = ballStartX + '%';
+                ball.style.bottom = '100px';
+                ball.style.opacity = '1';
+                
+                setTimeout(() => {
+                    ball.style.left = ballEndX + '%';
+                    ball.style.bottom = ballEndY + 'px';
+                }, 100);
+                
+                setTimeout(() => {
+                    const keeperLeft = parseInt(goalkeeper.style.left) || 50;
+                    const saved = Math.abs(keeperLeft - ballEndX) < 20;
+                    
+                    if (saved) {
+                        updateScore(10);
+                        ball.style.opacity = '0';
+                    } else {
+                        updateScore(-5);
+                    }
+                    
+                    canSave = true;
+                    ball.style.display = 'none';
+                }, 600);
+            }
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') moveGoalkeeper('left');
+                if (e.key === 'ArrowRight') moveGoalkeeper('right');
+            });
+            
+            gameInterval = setInterval(shootBall, 1500);
+            
+            setTimeout(() => {
+                clearInterval(gameInterval);
+                document.removeEventListener('keydown', () => {});
+                alert('游戏结束！你的最终得分: ' + gameScore);
+                backToGames();
+            }, 30000);
+        }
+        
+        // ========== 反应速度测试 ==========
+        function startReactionGame() {
+            const gameArea = document.getElementById('gameArea');
+            gameArea.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #b0b0b0; font-size: 18px;">点击开始，等待目标出现...</div>';
+            
+            let targetTimeout;
+            let gameActive = true;
+            
+            function showTarget() {
+                if (!gameActive) return;
+                
+                const x = Math.random() * (gameArea.offsetWidth - 60) + 10;
+                const y = Math.random() * (gameArea.offsetHeight - 60) + 10;
+                
+                gameArea.innerHTML = `<div class="game-target" style="left: ${x}px; top: ${y}px;" onclick="handleTargetClick(this)">🎯</div>`;
+                
+                targetTimeout = setTimeout(() => {
+                    if (gameActive) {
+                        gameActive = false;
+                        alert('游戏结束！你的最终得分: ' + gameScore);
+                        backToGames();
+                    }
+                }, 5000);
+            }
+            
+            window.handleTargetClick = function(target) {
+                if (!gameActive) return;
+                clearTimeout(targetTimeout);
+                updateScore(10);
+                gameArea.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #667eea; font-size: 24px;">太棒了！+10分</div>';
+                gameActive = false;
+                
+                setTimeout(() => {
+                    gameActive = true;
+                    showTarget();
+                }, 1000);
+            };
+            
+            gameTimeout = setTimeout(showTarget, 2000 + Math.random() * 3000);
+            
+            setTimeout(() => {
+                if (gameActive) {
+                    gameActive = false;
+                    alert('游戏结束！你的最终得分: ' + gameScore);
+                    backToGames();
+                }
+            }, 30000);
+        }
+        
+        // ========== 问答游戏 ==========
+        function startQuizGame() {
+            const gameArea = document.getElementById('gameArea');
+            const questions = [
+                {
+                    question: '难言最擅长什么运动？',
+                    options: ['篮球', '足球', '乒乓球', '羽毛球'],
+                    correct: 1
+                },
+                {
+                    question: '难言最喜欢哪个歌手？',
+                    options: ['周杰伦', '林俊杰', '陈奕迅', '张学友'],
+                    correct: 0
+                },
+                {
+                    question: '难言的身高真的有多少？',
+                    options: ['1米8', '1米4', '1米6', '1米5'],
+                    correct: 1
+                },
+                {
+                    question: '难言最喜欢的游戏段位是？',
+                    options: ['青铜', '白银', '钻石', '星耀'],
+                    correct: 2
+                },
+                {
+                    question: '难言的梦想是什么？',
+                    options: ['当老师', '成为职业足球运动员', '当医生', '当警察'],
+                    correct: 1
+                }
+            ];
+            
+            let currentQuestion = 0;
+            
+            function showQuestion() {
+                if (currentQuestion >= questions.length) {
+                    alert('恭喜完成所有问题！你的最终得分: ' + gameScore);
+                    backToGames();
+                    return;
+                }
+                
+                const q = questions[currentQuestion];
+                let optionsHTML = q.options.map((opt, i) => 
+                    `<button class="quiz-option" onclick="checkAnswer(${i}, ${q.correct})">${opt}</button>`
+                ).join('');
+                
+                gameArea.innerHTML = `
+                    <div class="quiz-question">问题 ${currentQuestion + 1}/${questions.length}: ${q.question}</div>
+                    ${optionsHTML}
+                `;
+            }
+            
+            window.checkAnswer = function(selected, correct) {
+                const options = document.querySelectorAll('.quiz-option');
+                
+                if (selected === correct) {
+                    options[selected].classList.add('correct');
+                    updateScore(20);
+                } else {
+                    options[selected].classList.add('wrong');
+                    options[correct].classList.add('correct');
+                }
+                
+                currentQuestion++;
+                setTimeout(showQuestion, 1500);
+            };
+            
+            showQuestion();
+        }
+        
+        // ========== 跑酷收集游戏 ==========
+        function startRunnerGame() {
+            const gameArea = document.getElementById('gameArea');
+            gameArea.innerHTML = '<div class="game-character" id="runner" style="bottom: 20px; left: 50px;">🧍</div>';
+            
+            const runner = document.getElementById('runner');
+            let isJumping = false;
+            let velocity = 0;
+            let gameSpeed = 5;
+            let obstacles = [];
+            let stars = [];
+            
+            function jump() {
+                if (!isJumping) {
+                    velocity = 12;
+                    isJumping = true;
+                }
+            }
+            
+            function spawnObstacle() {
+                const obstacle = document.createElement('div');
+                obstacle.className = 'game-obstacle';
+                obstacle.style.right = '0px';
+                obstacle.style.bottom = '20px';
+                obstacle.textContent = '🪨';
+                obstacle.style.fontSize = '30px';
+                gameArea.appendChild(obstacle);
+                obstacles.push({ element: obstacle, x: gameArea.offsetWidth });
+            }
+            
+            function spawnStar() {
+                const star = document.createElement('div');
+                star.className = 'game-star';
+                const x = Math.random() * (gameArea.offsetWidth - 100) + 50;
+                const y = Math.random() * 200 + 50;
+                star.style.left = x + 'px';
+                star.style.top = y + 'px';
+                star.textContent = '⭐';
+                gameArea.appendChild(star);
+                stars.push({ element: star, x: x, y: y, collected: false });
+            }
+            
+            function gameLoop() {
+                const currentBottom = parseInt(runner.style.bottom) || 20;
+                
+                if (isJumping) {
+                    velocity -= 0.8;
+                    let newBottom = currentBottom + velocity;
+                    
+                    if (newBottom <= 20) {
+                        newBottom = 20;
+                        velocity = 0;
+                        isJumping = false;
+                    }
+                    
+                    runner.style.bottom = newBottom + 'px';
+                }
+                
+                obstacles.forEach((obs, i) => {
+                    obs.x -= gameSpeed;
+                    obs.element.style.right = (gameArea.offsetWidth - obs.x) + 'px';
+                    
+                    const runnerBottom = parseInt(runner.style.bottom) || 20;
+                    if (obs.x < 80 && obs.x > 30 && runnerBottom <= 40) {
+                        updateScore(-20);
+                        obs.element.remove();
+                        obstacles.splice(i, 1);
+                    }
+                    
+                    if (obs.x < -30) {
+                        obs.element.remove();
+                        obstacles.splice(i, 1);
+                        updateScore(5);
+                    }
+                });
+                
+                stars.forEach((star, i) => {
+                    if (!star.collected) {
+                        star.x -= gameSpeed * 0.5;
+                        star.element.style.left = star.x + 'px';
+                        
+                        const runnerRect = runner.getBoundingClientRect();
+                        const starRect = star.element.getBoundingClientRect();
+                        
+                        if (starRect.left < runnerRect.right && starRect.right > runnerRect.left &&
+                            starRect.top < runnerRect.bottom && starRect.bottom > runnerRect.top) {
+                            star.collected = true;
+                            star.element.remove();
+                            stars.splice(i, 1);
+                            updateScore(15);
+                        }
+                        
+                        if (star.x < -30) {
+                            star.element.remove();
+                            stars.splice(i, 1);
+                        }
+                    }
+                });
+                
+                gameInterval = requestAnimationFrame(gameLoop);
+            }
+            
+            document.addEventListener('keydown', jump);
+            gameArea.addEventListener('click', jump);
+            
+            gameInterval = setInterval(spawnObstacle, 2000);
+            gameInterval = setInterval(spawnStar, 1500);
+            
+            gameLoop();
+            
+            setTimeout(() => {
+                document.removeEventListener('keydown', jump);
+                alert('游戏结束！你的最终得分: ' + gameScore);
+                backToGames();
+            }, 30000);
+        }
+    </script>
+</body>
+</html>
