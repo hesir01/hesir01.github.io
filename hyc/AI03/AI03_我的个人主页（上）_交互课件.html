@@ -1,0 +1,3031 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI03: 我的个人主页（上）交互课件</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap">
+    <style>
+        /* ===========================================
+           VIEWPORT FITTING: MANDATORY BASE STYLES
+           =========================================== */
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+            overflow-y: scroll;
+        }
+
+        .slide {
+            width: 100vw;
+            min-height: 100vh;
+            min-height: 100dvh;
+            height: auto;
+            overflow-y: auto;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow-y: auto;
+            padding: var(--slide-padding);
+            box-sizing: border-box;
+        }
+
+        /* ===========================================
+           THEME VARIABLES - 温暖书卷色调
+           =========================================== */
+        :root {
+            /* 主色调 - 深紫与暖金 */
+            --primary: #6b4c7a;
+            --primary-light: #9b7cb0;
+            --accent-gold: #d4a574;
+            --accent-rose: #c9a0a0;
+            --accent-sage: #8fa88f;
+
+            /* 背景色 */
+            --bg-cream: #faf8f5;
+            --bg-warm: #f5f0e8;
+            --bg-rose: #f8f0f0;
+            --bg-sage: #f0f5f0;
+
+            /* 文字色 */
+            --text-dark: #2d2a26;
+            --text-secondary: #5a5855;
+            --text-muted: #8a8680;
+
+            /* 卡片背景 */
+            --card-bg: rgba(255, 255, 255, 0.92);
+            --card-border: rgba(107, 76, 122, 0.15);
+
+            /* 徽章色 */
+            --badge-gold: #f5e6d3;
+            --badge-rose: #f0e0e0;
+            --badge-sage: #e0f0e0;
+            --badge-lavender: #e8e0f0;
+
+            /* Typography - 更大的基础字体 */
+            --title-size: clamp(2rem, 5vw, 3.5rem);
+            --h2-size: clamp(1.5rem, 3.5vw, 2.2rem);
+            --h3-size: clamp(1.2rem, 2.5vw, 1.6rem);
+            --body-size: clamp(1rem, 1.6vw, 1.15rem);
+            --small-size: clamp(0.85rem, 1.3vw, 1rem);
+
+            /* Spacing */
+            --slide-padding: clamp(1rem, 3vw, 2.5rem);
+            --content-gap: clamp(0.6rem, 1.5vw, 1rem);
+            --element-gap: clamp(0.4rem, 0.8vw, 0.6rem);
+
+            /* Animation */
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration-normal: 0.6s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg-cream);
+        }
+
+        /* ===========================================
+           SLIDE BACKGROUNDS
+           =========================================== */
+        .slide-1 { background: linear-gradient(135deg, var(--bg-cream) 0%, var(--bg-rose) 100%); }
+        .slide-2 { background: linear-gradient(135deg, var(--bg-rose) 0%, var(--bg-warm) 100%); }
+        .slide-3 { background: linear-gradient(135deg, var(--bg-warm) 0%, var(--bg-sage) 100%); }
+        .slide-4 { background: linear-gradient(135deg, var(--bg-sage) 0%, var(--bg-cream) 100%); }
+        .slide-5, .slide-9, .slide-13, .slide-17, .slide-21 { background: linear-gradient(135deg, var(--bg-cream) 0%, #f0f0f8 100%); }
+        .slide-6, .slide-10, .slide-14, .slide-18, .slide-22 { background: linear-gradient(135deg, #f0f0f8 0%, var(--bg-rose) 100%); }
+        .slide-7, .slide-11, .slide-15, .slide-19, .slide-23 { background: linear-gradient(135deg, var(--bg-rose) 0%, var(--bg-warm) 100%); }
+        .slide-8, .slide-12, .slide-16, .slide-20, .slide-24 { background: linear-gradient(135deg, var(--bg-warm) 0%, var(--bg-sage) 100%); }
+        .slide-25 { background: linear-gradient(135deg, var(--bg-cream) 0%, var(--primary) 100%); }
+
+        /* ===========================================
+           MAIN CARD CONTAINER
+           =========================================== */
+        .main-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: clamp(1rem, 3vw, 2rem);
+            box-shadow: 0 12px 40px rgba(107, 76, 122, 0.1);
+            max-width: min(95vw, 1200px);
+            width: 100%;
+            margin: auto;
+            position: relative;
+            overflow: visible;
+            border: 1px solid var(--card-border);
+            box-sizing: border-box;
+        }
+
+        /* 书卷装饰侧边栏 */
+        .book-spine {
+            position: absolute;
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            z-index: 10;
+        }
+
+        .spine-section {
+            width: 28px;
+            border-radius: 6px 0 0 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            font-size: clamp(0.45rem, 0.7vh, 0.6rem);
+            font-weight: 700;
+            color: white;
+            padding: 8px 0;
+            box-shadow: -2px 0 6px rgba(0,0,0,0.1);
+        }
+
+        .spine-1 { height: 45px; background: var(--accent-gold); }
+        .spine-2 { height: 60px; background: var(--primary); }
+        .spine-3 { height: 50px; background: var(--accent-rose); }
+        .spine-4 { height: 48px; background: var(--accent-sage); }
+
+        @media (max-width: 768px) {
+            .book-spine { display: none; }
+        }
+
+        /* ===========================================
+           TYPOGRAPHY
+           =========================================== */
+        h1 {
+            font-size: var(--title-size);
+            font-weight: 900;
+            color: var(--text-dark);
+            line-height: 1.15;
+            margin: 0 0 var(--element-gap) 0;
+            letter-spacing: -0.5px;
+        }
+
+        h2 {
+            font-size: var(--h2-size);
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1.2;
+            margin: 0 0 var(--element-gap) 0;
+        }
+
+        h3 {
+            font-size: var(--h3-size);
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.3;
+            margin: 0 0 var(--element-gap) 0;
+        }
+
+        h4 {
+            font-size: clamp(0.8rem, 1.2vw, 0.95rem);
+            font-weight: 700;
+            margin: 0 0 0.3rem 0;
+            color: var(--text-dark);
+        }
+
+        p, li {
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin: 0 0 var(--element-gap) 0;
+        }
+
+        p:last-child, li:last-child {
+            margin-bottom: 0;
+        }
+
+        /* ===========================================
+           COMPONENTS
+           =========================================== */
+        .badge-container {
+            display: flex;
+            gap: 0.4rem;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 0.25rem 0.6rem;
+            border-radius: 16px;
+            font-size: var(--small-size);
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .badge-gold { background: var(--badge-gold); }
+        .badge-rose { background: var(--badge-rose); }
+        .badge-sage { background: var(--badge-sage); }
+        .badge-lavender { background: var(--badge-lavender); }
+        .badge-primary { background: var(--primary); color: white; }
+
+        .subtitle {
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+            margin-bottom: var(--content-gap);
+            max-width: 500px;
+            line-height: 1.5;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 10px;
+            padding: clamp(0.7rem, 1.8vw, 1rem);
+            margin-bottom: var(--element-gap);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 3px 12px rgba(107, 76, 122, 0.06);
+            border: 1px solid var(--card-border);
+            overflow: visible;
+        }
+
+        .card > *:last-child {
+            margin-bottom: 0;
+        }
+
+        .card-title {
+            font-size: var(--body-size);
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: var(--element-gap);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .card-icon {
+            font-size: 1.1em;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feature-list li {
+            padding: 0.35rem 0;
+            border-bottom: 1px solid rgba(107, 76, 122, 0.08);
+            display: flex;
+            align-items: flex-start;
+            gap: 0.4rem;
+            line-height: 1.4;
+            font-size: var(--small-size);
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-list .icon {
+            font-size: 1em;
+            flex-shrink: 0;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--content-gap);
+            align-items: start;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--content-gap);
+            align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .numbered-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            counter-reset: item;
+        }
+
+        .numbered-list li {
+            counter-increment: item;
+            padding: 0.4rem 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            font-size: var(--small-size);
+        }
+
+        .numbered-list li::before {
+            content: counter(item);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            background: var(--badge-gold);
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: var(--small-size);
+            flex-shrink: 0;
+            color: var(--text-dark);
+        }
+
+        .workflow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin: var(--content-gap) 0;
+            flex-wrap: wrap;
+        }
+
+        .flow-step {
+            background: var(--card-bg);
+            color: var(--text-dark);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: var(--small-size);
+            border: 2px solid var(--accent-gold);
+            box-shadow: 0 2px 6px rgba(107, 76, 122, 0.08);
+        }
+
+        .flow-arrow {
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        /* ===========================================
+           CODE BLOCK WITH COPY BUTTON
+           =========================================== */
+        .code-block-wrapper {
+            position: relative;
+            margin: var(--element-gap) 0;
+        }
+
+        .code-block {
+            background: #2d2a26;
+            border-radius: 8px;
+            padding: 0.8rem;
+            padding-top: 1.2rem;
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            font-size: clamp(0.7rem, 1.1vw, 0.85rem);
+            color: #f5f0e8;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.5;
+            max-width: 100%;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        .copy-btn.copied {
+            background: var(--badge-sage);
+            color: var(--text-dark);
+            border-color: var(--badge-sage);
+        }
+
+        /* ===========================================
+           TEACHER MODE
+           =========================================== */
+        .teacher-mode-btn {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: var(--small-size);
+            font-weight: 600;
+            cursor: pointer;
+            z-index: 1000;
+            border: none;
+            box-shadow: 0 4px 12px rgba(107, 76, 122, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .teacher-mode-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(107, 76, 122, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .teacher-mode-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+                bottom: 10px;
+                right: 10px;
+            }
+        }
+
+        .teacher-content {
+            display: none;
+            background: linear-gradient(135deg, #f8f5ff 0%, #f3e8ff 100%);
+            border-left: 3px solid var(--primary);
+            border-radius: 8px;
+            padding: 0.8rem;
+            margin-top: 0.8rem;
+        }
+
+        .teacher-content.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        /* Teacher slides - hidden by default */
+        .slide.teacher-slide {
+            display: none;
+        }
+
+        body.teacher-mode .slide.teacher-slide {
+            display: flex;
+        }
+
+        /* Always show slide 1 (cover) and slides 7+ */
+        .slide:not(.teacher-slide) {
+            display: flex;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .teacher-label {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: var(--small-size);
+            margin-bottom: 0.4rem;
+        }
+
+        /* ===========================================
+           QUIZ OPTIONS
+           =========================================== */
+        .quiz-option {
+            background: white;
+            border: 2px solid var(--card-border);
+            border-radius: 10px;
+            padding: 0.6rem 0.8rem;
+            margin-bottom: 0.4rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .quiz-option:hover {
+            border-color: var(--primary-light);
+            transform: translateX(4px);
+            box-shadow: 0 2px 10px rgba(107, 76, 122, 0.1);
+        }
+
+        .quiz-option.correct {
+            border-color: #22c55e;
+            background: #f0fdf4;
+        }
+
+        .quiz-option.wrong {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .quiz-letter {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--badge-lavender);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .quiz-option.correct .quiz-letter {
+            background: #22c55e;
+            color: white;
+        }
+
+        .quiz-option.wrong .quiz-letter {
+            background: #ef4444;
+            color: white;
+        }
+
+        .quiz-feedback {
+            margin-top: 0.6rem;
+            padding: 0.6rem;
+            border-radius: 8px;
+            font-size: var(--small-size);
+            display: none;
+        }
+
+        .quiz-feedback.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .quiz-feedback.correct {
+            background: #f0fdf4;
+            border-left: 3px solid #22c55e;
+            color: #166534;
+        }
+
+        .quiz-feedback.wrong {
+            background: #fef2f2;
+            border-left: 3px solid #ef4444;
+            color: #991b1b;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* ===========================================
+           FLIP CARDS
+           =========================================== */
+        .flip-card-container {
+            perspective: 1000px;
+            height: 120px;
+            cursor: pointer;
+        }
+
+        .flip-card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .flip-card-container.flipped .flip-card {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            padding: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .flip-card-front {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid var(--accent-gold);
+        }
+
+        .flip-card-back {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border: 2px solid #22c55e;
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front.error {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 2px solid #ef4444;
+        }
+
+        .flip-card-back.correct {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border: 2px solid #22c55e;
+        }
+
+        .flip-hint {
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            background: rgba(255,255,255,0.8);
+            padding: 2px 6px;
+            border-radius: 8px;
+        }
+
+        /* ===========================================
+           RANDOM PICKER
+           =========================================== */
+        .picker-container {
+            background: linear-gradient(135deg, var(--bg-cream) 0%, var(--bg-warm) 100%);
+            border-radius: 12px;
+            padding: 1.2rem;
+            text-align: center;
+            border: 2px solid var(--card-border);
+        }
+
+        .picker-display {
+            font-size: clamp(1.3rem, 3.5vw, 2rem);
+            font-weight: 700;
+            color: var(--primary);
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0.8rem 0;
+            background: white;
+            border-radius: 10px;
+            padding: 0.8rem;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .picker-display.spinning {
+            animation: textSpin 0.1s infinite;
+        }
+
+        @keyframes textSpin {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .picker-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, #5a4065 100%);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.8rem;
+            border-radius: 25px;
+            font-size: var(--body-size);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(107, 76, 122, 0.3);
+        }
+
+        .picker-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(107, 76, 122, 0.4);
+        }
+
+        .picker-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===========================================
+           CHECKLIST
+           =========================================== */
+        .checklist-item {
+            background: white;
+            border: 2px solid var(--card-border);
+            border-radius: 8px;
+            padding: 0.5rem 0.8rem;
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checklist-item:hover {
+            border-color: var(--primary-light);
+        }
+
+        .checklist-item.checked {
+            background: #f0fdf4;
+            border-color: #22c55e;
+        }
+
+        .checklist-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--card-border);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            transition: all 0.3s ease;
+        }
+
+        .checklist-item.checked .checklist-checkbox {
+            background: #22c55e;
+            border-color: #22c55e;
+            color: white;
+        }
+
+        /* ===========================================
+           STYLE SELECTOR
+           =========================================== */
+        .style-option {
+            background: white;
+            border: 2px solid var(--card-border);
+            border-radius: 10px;
+            padding: 0.8rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .style-option:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(107, 76, 122, 0.12);
+        }
+
+        .style-option.selected {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, #f8f5ff 0%, #f3e8ff 100%);
+        }
+
+        .style-emoji {
+            font-size: 1.8rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .style-name {
+            font-weight: 700;
+            color: var(--text-dark);
+            font-size: var(--body-size);
+        }
+
+        .style-desc {
+            font-size: var(--small-size);
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        /* ===========================================
+           SPEECH BUBBLE
+           =========================================== */
+        .speech-bubble {
+            background: white;
+            border-radius: 12px;
+            padding: 0.8rem;
+            position: relative;
+            margin-bottom: var(--element-gap);
+            box-shadow: 0 3px 12px rgba(107, 76, 122, 0.08);
+            border: 1px solid var(--card-border);
+        }
+
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 16px;
+            width: 0;
+            height: 0;
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+            border-right: 8px solid white;
+        }
+
+        .speech-bubble.teacher {
+            background: linear-gradient(135deg, #f8f5ff 0%, #f3f0f8 100%);
+            border-left: 3px solid var(--primary);
+        }
+
+        .speech-bubble.teacher::before {
+            border-right-color: #f8f5ff;
+        }
+
+        /* ===========================================
+           ANIMATIONS
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(12px);
+            transition: opacity var(--duration-normal) var(--ease-out-expo),
+                        transform var(--duration-normal) var(--ease-out-expo);
+        }
+
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal:nth-child(1) { transition-delay: 0.06s; }
+        .reveal:nth-child(2) { transition-delay: 0.1s; }
+        .reveal:nth-child(3) { transition-delay: 0.14s; }
+        .reveal:nth-child(4) { transition-delay: 0.18s; }
+        .reveal:nth-child(5) { transition-delay: 0.22s; }
+        .reveal:nth-child(6) { transition-delay: 0.26s; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .reveal {
+                opacity: 1;
+                transform: none;
+                transition: none;
+            }
+        }
+
+        /* ===========================================
+           NAVIGATION
+           =========================================== */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-gold), var(--primary));
+            z-index: 1000;
+            transition: width 0.3s ease;
+        }
+
+        .nav-dots {
+            position: fixed;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 1000;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 10px 4px;
+        }
+
+        .nav-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(107, 76, 122, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-dot.active {
+            background: var(--primary);
+            transform: scale(1.4);
+        }
+
+        @media (max-width: 768px), (max-height: 600px) {
+            .nav-dots { display: none; }
+        }
+
+        .keyboard-hint {
+            position: fixed;
+            bottom: 12px;
+            left: 15px;
+            font-size: 11px;
+            color: var(--text-muted);
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 4px 10px;
+            border-radius: 12px;
+            backdrop-filter: blur(4px);
+        }
+
+        @media (max-width: 768px) {
+            .keyboard-hint {
+                font-size: 10px;
+                padding: 3px 8px;
+                bottom: 10px;
+                left: 10px;
+            }
+        }
+
+        /* Cover specific styles */
+        .cover-icon {
+            font-size: clamp(2.5rem, 7vw, 4rem);
+            margin-bottom: 0.8rem;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .cover-meta {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .cover-meta span {
+            font-size: var(--small-size);
+            color: var(--text-muted);
+        }
+
+        /* Feature grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 0.4rem;
+        }
+
+        .feature-item {
+            text-align: center;
+            padding: 0.4rem;
+            background: rgba(255,255,255,0.7);
+            border-radius: 8px;
+            border: 1px solid var(--card-border);
+        }
+
+        .feature-item .emoji {
+            font-size: 1.3rem;
+            margin-bottom: 0.15rem;
+        }
+
+        .feature-item h4 {
+            font-size: var(--small-size);
+            margin-bottom: 0.1rem;
+        }
+
+        .feature-item p {
+            font-size: clamp(0.6rem, 0.9vw, 0.7rem);
+            margin: 0;
+            color: var(--text-muted);
+        }
+
+        /* Two column layout */
+        .two-column {
+            display: flex;
+            gap: var(--content-gap);
+            align-items: stretch;
+        }
+
+        .column {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (max-width: 768px) {
+            .two-column { flex-direction: column; }
+        }
+
+        /* Tip box */
+        .tip-box {
+            background: linear-gradient(135deg, #f8f5ff 0%, #f3f0f8 100%);
+            border-radius: 8px;
+            padding: 0.7rem;
+            border-left: 3px solid var(--primary);
+        }
+
+        .tip-box h4 {
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .tip-box p {
+            font-size: var(--small-size);
+            margin: 0;
+        }
+
+        /* Challenge card */
+        .challenge-card {
+            background: linear-gradient(135deg, #fdf6e8 0%, #f8f0e0 100%);
+            border: 2px dashed var(--accent-gold);
+            padding: 0.7rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .challenge-card h4 {
+            color: #8c6b3d;
+            margin-top: 0;
+            margin-bottom: 0.25rem;
+        }
+
+        .challenge-card p {
+            font-size: var(--small-size);
+            margin: 0;
+        }
+
+        /* Scene cards */
+        .scene-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--content-gap);
+            align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .scene-container { grid-template-columns: 1fr; }
+        }
+
+        .scene-card {
+            padding: 0.7rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(107, 76, 122, 0.06);
+        }
+
+        .scene-card.scene-a {
+            background: linear-gradient(135deg, #f0f8f0 0%, #e8f5e8 100%);
+            border-top: 3px solid var(--accent-sage);
+        }
+
+        .scene-card.scene-b {
+            background: linear-gradient(135deg, #fdf8e8 0%, #f8f5e0 100%);
+            border-top: 3px solid var(--accent-gold);
+        }
+
+        .scene-card.scene-c {
+            background: linear-gradient(135deg, #f8f0f0 0%, #f5e8e8 100%);
+            border-top: 3px solid var(--accent-rose);
+        }
+
+        .scene-card h4 {
+            font-size: var(--small-size);
+            margin-bottom: 0.25rem;
+        }
+
+        .scene-card.scene-a h4 { color: #4a7c4a; }
+        .scene-card.scene-b h4 { color: #8c6b3d; }
+        .scene-card.scene-c h4 { color: #8c4a4a; }
+
+        .scene-card p {
+            font-size: var(--small-size);
+            line-height: 1.4;
+            color: var(--text-secondary);
+        }
+
+        /* Book structure */
+        .book-structure {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            margin: 0.8rem 0;
+            flex-wrap: wrap;
+        }
+
+        .structure-item {
+            text-align: center;
+            padding: 0.6rem;
+            background: white;
+            border-radius: 10px;
+            border: 2px solid var(--card-border);
+            min-width: 80px;
+        }
+
+        .structure-item .emoji {
+            font-size: 1.4rem;
+            margin-bottom: 0.15rem;
+        }
+
+        .structure-item h4 {
+            font-size: var(--small-size);
+            margin-bottom: 0.1rem;
+        }
+
+        .structure-item p {
+            font-size: clamp(0.6rem, 0.9vw, 0.7rem);
+            margin: 0;
+            color: var(--text-muted);
+        }
+
+        .structure-arrow {
+            font-size: 1.1rem;
+            color: var(--accent-gold);
+        }
+
+        /* Page indicator */
+        .page-indicator {
+            position: fixed;
+            top: 5px;
+            right: 12px;
+            font-size: 10px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 2px 8px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 1001;
+        }
+
+        /* Teacher checklist */
+        .teacher-checklist {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .teacher-checklist li {
+            padding: 0.3rem 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.4rem;
+            font-size: var(--small-size);
+        }
+
+        .teacher-checklist li::before {
+            content: '☐';
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* Concept table */
+        .concept-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--small-size);
+        }
+
+        .concept-table th, .concept-table td {
+            padding: 0.5rem;
+            border: 1px solid var(--card-border);
+            text-align: left;
+        }
+
+        .concept-table th {
+            background: var(--badge-lavender);
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .concept-table td {
+            background: white;
+        }
+
+        .concept-table .misconcept {
+            color: #ef4444;
+        }
+
+        .concept-table .correct {
+            color: #22c55e;
+        }
+
+        /* Progress indicator */
+        .progress-check {
+            display: flex;
+            gap: 0.4rem;
+            margin-top: 0.5rem;
+        }
+
+        .progress-item {
+            flex: 1;
+            text-align: center;
+            padding: 0.4rem;
+            background: white;
+            border-radius: 6px;
+            font-size: var(--small-size);
+            border: 2px solid var(--card-border);
+        }
+
+        .progress-item.completed {
+            background: #f0fdf4;
+            border-color: #22c55e;
+        }
+
+        /* Timer display */
+        .timer-display {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-weight: 900;
+            font-family: 'SF Mono', monospace;
+            letter-spacing: 3px;
+            margin: 0.5rem 0;
+        }
+
+        /* FAQ accordion */
+        .faq-item {
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 0.4rem;
+            border: 1px solid var(--card-border);
+        }
+
+        .faq-question {
+            padding: 0.6rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: var(--body-size);
+        }
+
+        .faq-answer {
+            padding: 0 0.6rem 0.6rem 0.6rem;
+            font-size: var(--small-size);
+            display: none;
+        }
+
+        .faq-item.open .faq-answer {
+            display: block;
+        }
+
+        /* Textarea */
+        .student-input {
+            width: 100%;
+            padding: 0.6rem;
+            border: 2px solid var(--card-border);
+            border-radius: 8px;
+            font-size: var(--body-size);
+            font-family: inherit;
+            resize: vertical;
+            min-height: 50px;
+        }
+
+        .student-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* ===========================================
+           RESPONSIVE ADJUSTMENTS
+           =========================================== */
+        @media (max-height: 700px) {
+            :root {
+                --title-size: clamp(1.6rem, 4vw, 2.5rem);
+                --h2-size: clamp(1.3rem, 3vw, 1.8rem);
+                --h3-size: clamp(1.1rem, 2.2vw, 1.4rem);
+                --body-size: clamp(0.9rem, 1.5vw, 1.05rem);
+                --small-size: clamp(0.8rem, 1.2vw, 0.95rem);
+                --slide-padding: clamp(0.8rem, 2vw, 1.5rem);
+                --content-gap: clamp(0.4rem, 1vw, 0.7rem);
+            }
+            .card { padding: 0.6rem; margin-bottom: 0.3rem; }
+            .main-card { padding: 0.8rem; }
+        }
+
+        @media (max-height: 600px) {
+            :root {
+                --title-size: clamp(1.4rem, 3.5vw, 2rem);
+                --h2-size: clamp(1.1rem, 2.5vw, 1.5rem);
+                --h3-size: clamp(1rem, 2vw, 1.2rem);
+                --body-size: clamp(0.85rem, 1.4vw, 1rem);
+                --slide-padding: clamp(0.6rem, 1.5vw, 1rem);
+            }
+            .card { padding: 0.5rem; margin-bottom: 0.25rem; }
+            .book-spine { display: none; }
+        }
+
+        @media (min-width: 1400px) {
+            :root {
+                --title-size: clamp(2.5rem, 4vw, 4rem);
+                --h2-size: clamp(1.8rem, 3vw, 2.5rem);
+                --h3-size: clamp(1.4rem, 2.2vw, 1.8rem);
+                --body-size: clamp(1.1rem, 1.5vw, 1.25rem);
+            }
+            .main-card { max-width: min(90vw, 1400px); }
+        }
+
+        @media (min-width: 1920px) {
+            .main-card { max-width: min(85vw, 1600px); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Page Indicator -->
+    <div class="page-indicator" id="pageNumber">1 / 25</div>
+
+    <!-- Navigation Dots -->
+    <nav class="nav-dots" id="navDots"></nav>
+
+    <!-- Teacher Mode Button -->
+    <button class="teacher-mode-btn" id="teacherModeBtn" onclick="toggleTeacherMode()">👨‍🏫 教师模式</button>
+
+    <!-- ==================== SLIDE 1: 封面 ==================== -->
+    <section class="slide slide-1 visible" data-slide="1">
+        <div class="slide-content" style="align-items: center; text-align: center;">
+            <div class="main-card" style="text-align: center;">
+                <div class="book-spine">
+                    <div class="spine-section spine-1">封面</div>
+                    <div class="spine-section spine-2">内容</div>
+                    <div class="spine-section spine-3">智能体</div>
+                    <div class="spine-section spine-4">设计</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-gold">AI编程</span>
+                    <span class="badge badge-lavender">第4课</span>
+                    <span class="badge badge-rose">90分钟</span>
+                    <span class="badge badge-sage">上篇</span>
+                </div>
+                <div class="cover-icon reveal">🏠</div>
+                <h1 class="reveal" style="margin-bottom: 0.4rem;">我的个人主页（上）</h1>
+                <p class="subtitle reveal" style="max-width: 450px; margin: 0 auto;">从内容到网页 —— 用AI创建属于你的个人展示空间</p>
+
+                <div class="cover-meta reveal">
+                    <span>⏱️ 90分钟</span>
+                    <span>🎯 拆解力 + 审美力</span>
+                    <span>🛠️ Trae IDE</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SLIDE 2: 课程目标 ==================== -->
+    <section class="slide slide-2 teacher-slide" data-slide="2">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-1">目标</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-lavender">课程目标</span>
+                </div>
+                <h2 class="reveal">学完这节课，你将能够...</h2>
+                <div class="grid-3 reveal">
+                    <div class="card">
+                        <div class="card-title"><span class="card-icon">📚</span>知识目标</div>
+                        <ul class="feature-list">
+                            <li><span class="icon">✓</span>理解"内容先行"原则</li>
+                            <li><span class="icon">✓</span>理解板块化结构</li>
+                            <li><span class="icon">✓</span>理解自定义智能体</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <div class="card-title"><span class="card-icon">💪</span>能力目标</div>
+                        <ul class="feature-list">
+                            <li><span class="icon">✓</span>列出8+个板块的个人信息</li>
+                            <li><span class="icon">✓</span>创建自定义智能体</li>
+                            <li><span class="icon">✓</span>生成主页并替换内容</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <div class="card-title"><span class="card-icon">❤️</span>情感目标</div>
+                        <ul class="feature-list">
+                            <li><span class="icon">✓</span>激发向世界展示的表达欲</li>
+                            <li><span class="icon">✓</span>建立"内容为核心"认知</li>
+                            <li><span class="icon">✓</span>感受能力迁移成就感</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-2">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        <strong>核心概念：</strong>内容先行 = 先想好写什么再让AI做（类比写作文列提纲）<br>
+                        <strong>板块化设计</strong>= 把页面拆成独立区域（报纸版面）<br>
+                        <strong>自定义智能体</strong>= 给AI设定角色和规则<br>
+                        <strong>误概念预警：</strong>M1-直接让AI做主页；M2-内容想到什么写什么；M3-占位内容不用换
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SLIDE 3: 教师备课体验任务 ==================== -->
+    <section class="slide slide-3 teacher-slide" data-slide="3">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-1">备课</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-primary">教师专用</span>
+                    <span class="badge badge-gold">课前准备</span>
+                </div>
+                <h2 class="reveal">教师备课体验任务</h2>
+                <p class="subtitle reveal">上课前，教师必须亲自完成以下操作：</p>
+
+                <div class="grid-2 reveal">
+                    <div class="card" style="border-left: 3px solid var(--accent-gold);">
+                        <div class="card-title">✅ 技术准备</div>
+                        <ul class="teacher-checklist">
+                            <li>在Trae中创建自定义智能体</li>
+                            <li>用智能体生成个人主页验证效果</li>
+                            <li>用Solo Coder逐块替换占位内容</li>
+                        </ul>
+                    </div>
+                    <div class="card" style="border-left: 3px solid var(--accent-sage);">
+                        <div class="card-title">✅ 教学资源</div>
+                        <ul class="teacher-checklist">
+                            <li>准备"空壳主页"截图（全是假内容）</li>
+                            <li>准备2-3个优秀个人主页截图</li>
+                            <li>准备自己的12条内容清单</li>
+                            <li>准备保底HTML模板</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card reveal" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px dashed var(--accent-gold); margin-top: 0.5rem;">
+                    <p style="font-size: var(--body-size); text-align: center; margin: 0; color: #92400e;">
+                        ⚠️ <strong>重要：</strong>不同Trae版本入口可能不同，备课时必须确认！
+                    </p>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-3">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        这是教师必须完成的备课任务，确保课堂流畅。建议提前1-2天完成，并测试教室电脑的Trae智能体功能是否正常。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SLIDE 4: 核心概念与误概念 ==================== -->
+    <section class="slide slide-4 teacher-slide" data-slide="4">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-1">概念</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-lavender">核心概念</span>
+                </div>
+                <h2 class="reveal">核心概念认知层级</h2>
+
+                <div class="card reveal">
+                    <table class="concept-table">
+                        <tr>
+                            <th>概念</th>
+                            <th>学生类比</th>
+                            <th>层级</th>
+                        </tr>
+                        <tr>
+                            <td><strong>内容先行</strong></td>
+                            <td>写作文先列提纲，不是拿起笔就写</td>
+                            <td>理解层</td>
+                        </tr>
+                        <tr>
+                            <td><strong>板块化设计</strong></td>
+                            <td>报纸分版面——头版、体育版、娱乐版</td>
+                            <td>理解层</td>
+                        </tr>
+                        <tr>
+                            <td><strong>自定义智能体</strong></td>
+                            <td>扣子里创建智能体，换到Trae定规矩</td>
+                            <td>应用层</td>
+                        </tr>
+                        <tr>
+                            <td><strong>占位内容</strong></td>
+                            <td>样板间的假家具，要换成真的</td>
+                            <td>理解层</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-4">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        这是本课的认知框架。重点关注"自定义智能体"是应用层——学生需要实际操作，不只是理解概念。误概念部分要结合教案中的激发策略。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SLIDE 5: 误概念翻转卡片 ==================== -->
+    <section class="slide slide-5 teacher-slide" data-slide="5">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-1">误概念</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-rose">典型误概念</span>
+                    <span class="badge badge-gold">点击翻转</span>
+                </div>
+                <h2 class="reveal">五大典型误概念</h2>
+                <p class="subtitle reveal">点击卡片查看正确认知</p>
+
+                <div class="scene-container reveal">
+                    <div class="flip-card-container" onclick="flipCard(this)">
+                        <div class="flip-card">
+                            <div class="flip-card-front error">
+                                <span class="flip-hint">点击翻转 👆</span>
+                                <h4 style="color: #991b1b;">❌ M1: 直接告诉AI就行</h4>
+                                <p style="font-size: var(--small-size);">"帮我做个主页"就够了</p>
+                            </div>
+                            <div class="flip-card-back correct">
+                                <h4 style="color: #166534;">✅ 正确认知</h4>
+                                <p style="font-size: var(--small-size);">没有内容的主页是空壳，AI不知道你的爱好和经历</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flip-card-container" onclick="flipCard(this)">
+                        <div class="flip-card">
+                            <div class="flip-card-front error">
+                                <span class="flip-hint">点击翻转 👆</span>
+                                <h4 style="color: #991b1b;">❌ M2: 内容随便写</h4>
+                                <p style="font-size: var(--small-size);">想到什么写什么，不需要组织</p>
+                            </div>
+                            <div class="flip-card-back correct">
+                                <h4 style="color: #166534;">✅ 正确认知</h4>
+                                <p style="font-size: var(--small-size);">有结构地组织内容，读者才能快速了解你（板块化思维）</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flip-card-container" onclick="flipCard(this)">
+                        <div class="flip-card">
+                            <div class="flip-card-front error">
+                                <span class="flip-hint">点击翻转 👆</span>
+                                <h4 style="color: #991b1b;">❌ M3: AI生成够用</h4>
+                                <p style="font-size: var(--small-size);">AI生成的文字够了，不用换</p>
+                            </div>
+                            <div class="flip-card-back correct">
+                                <h4 style="color: #166534;">✅ 正确认知</h4>
+                                <p style="font-size: var(--small-size);">占位内容是AI编的假信息，别人看了不知道真实的你</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flip-card-container" onclick="flipCard(this)">
+                        <div class="flip-card">
+                            <div class="flip-card-front error">
+                                <span class="flip-hint">点击翻转 👆</span>
+                                <h4 style="color: #991b1b;">❌ M4: 提示词随便写</h4>
+                                <p style="font-size: var(--small-size);">智能体提示词随便写写就行</p>
+                            </div>
+                            <div class="flip-card-back correct">
+                                <h4 style="color: #166534;">✅ 正确认知</h4>
+                                <p style="font-size: var(--small-size);">提示词越清楚，AI出的效果越稳定（跟扣子一样）</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card reveal" style="margin-top: 0.5rem; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
+                    <div class="card-title">⚠️ M5: 图片太麻烦</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        <span class="misconcept">❌ 错误：</span>图片太麻烦了，纯文字就行<br>
+                        <span class="correct">✅ 正确：</span>视觉元素让页面生动，可以用emoji、网络图片、AI生成SVG图标
+                    </p>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-5">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        课堂中随时警惕这些误概念。当学生说出这些话时，就是教学切入点。M1-M4用翻转卡片激发，M5用视觉对比展示。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SLIDE 6-25: 原有内容和新补充内容 ==================== -->
+    <!-- SLIDE 6: 课程流程 -->
+    <section class="slide slide-6 teacher-slide" data-slide="6">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-1">流程</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-gold">课程流程</span>
+                    <span class="badge badge-rose">90分钟</span>
+                </div>
+                <h2 class="reveal">今天我们要走四步</h2>
+
+                <div class="workflow reveal">
+                    <div class="flow-step">联系<br><small>10分钟</small></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">建构<br><small>65分钟</small></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">反思<br><small>10分钟</small></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">延续<br><small>5分钟</small></div>
+                </div>
+
+                <div class="grid-2 reveal">
+                    <div class="card">
+                        <div class="card-title">🎯 第一幕：联系</div>
+                        <ul class="feature-list">
+                            <li><span class="icon">🔗</span>回顾前三课技能</li>
+                            <li><span class="icon">🏠</span>认识个人主页</li>
+                            <li><span class="icon">💡</span>理解"内容先行"</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">🛠️ 第二幕：建构</div>
+                        <ul class="feature-list">
+                            <li><span class="icon">📝</span>写个人内容清单</li>
+                            <li><span class="icon">🤖</span>创建自定义智能体</li>
+                            <li><span class="icon">✨</span>生成并美化主页</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-6">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        <strong>本课结构：</strong>联系(10')→建构(65')→反思(10')→延续(5')<br>
+                        <strong>建构环节重点：</strong>分段一内容清单15分钟，分段二创建智能体15分钟，分段三生成与替换20分钟，分段四视觉调整15分钟。<br>
+                        <strong>注意：</strong>分段一<strong>不要打开Trae</strong>，只写内容！
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 7: FAQ常见问题 (教师模式) -->
+    <section class="slide slide-7 teacher-slide" data-slide="7">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-4">FAQ</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-lavender">常见问题</span>
+                    <span class="badge badge-primary">教师专用</span>
+                </div>
+                <h2 class="reveal">FAQ 常见问题解答</h2>
+
+                <div class="reveal">
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>怎么加真实照片？</span>
+                            <span>▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            今天先用emoji占位，课后让爸妈发照片，下节课教你放进去。
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>页面太长了怎么办？</span>
+                            <span>▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            个人主页就是滚动着看的，长一点没关系。实在太长可以删不重要的板块。
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>AI生成的打不开/空白</span>
+                            <span>▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            检查是否Accept了。已Accept还空白就让AI修复。实在不行用保底模板。
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>创建智能体的按钮在哪？</span>
+                            <span>▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            根据当前Trae版本指引，通常在AI面板顶部的智能体选择区域。
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card reveal" style="margin-top: 0.8rem; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
+                    <div class="card-title">⚠️ 课堂风险预案</div>
+                    <ul class="feature-list">
+                        <li><span class="icon">•</span>智能体功能不可用：直接在Builder/Solo Coder对话开头手动粘贴系统提示词</li>
+                        <li><span class="icon">•</span>AI生成的页面完全不能用：用保底HTML模板，Solo Coder逐块修改</li>
+                        <li><span class="icon">•</span>学生进度差异过大：慢学生完成"内容清单+基础版+替换3处"即可</li>
+                        <li><span class="icon">•</span>学生隐私顾虑：可用昵称、跳过不想写的条目、给虚构角色做主页</li>
+                    </ul>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-7">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        这些是课堂常见问题及应对方案。建议教师提前阅读，确保课堂顺利进行。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 8: 个人主页示例 -->
+    <section class="slide slide-8" data-slide="8" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="slide-content">
+            <div class="main-card" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);">
+                <div class="book-spine">
+                    <div class="spine-section spine-1" style="background: #667eea;">示例</div>
+                    <div class="spine-section spine-2" style="background: #764ba2;">主页</div>
+                    <div class="spine-section spine-3" style="background: #f093fb;">炫酷</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-gold">个人主页示例</span>
+                    <span class="badge badge-rose">点击查看</span>
+                </div>
+                <h2 class="reveal" style="color: #667eea; text-align: center; margin-bottom: 0.8rem;">🌟 个人主页示例 🌟</h2>
+
+                <div class="reveal" style="text-align: center; margin-bottom: 1rem;">
+                    <p class="subtitle" style="margin: 0 auto 1rem; max-width: 500px; color: var(--text-dark); font-size: var(--small-size);">
+                        点击卡片查看完整示例，感受炫酷设计和交互效果
+                    </p>
+                </div>
+
+                <!-- 炫酷个人主页示例卡片 -->
+                <div class="reveal" style="margin-bottom: 1rem;">
+                    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 16px; padding: 1.2rem; box-shadow: 0 15px 30px rgba(0,0,0,0.2); cursor: pointer; transition: all 0.3s ease;" onclick="window.open('https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=modern%20personal%20website%20design%20with%20colorful%20gradient%20background%20and%20interactive%20elements&image_size=landscape_16_9', '_blank')">
+                        <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                            <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: white;">👨‍💻</div>
+                        </div>
+                        <h3 style="color: white; text-align: center; margin-bottom: 0.3rem; font-size: 1.4rem;">李小明的个人主页</h3>
+                        <p style="color: rgba(255,255,255,0.9); text-align: center; margin-bottom: 1rem; font-size: 0.85rem;">热爱编程的科技爱好者</p>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin-bottom: 1rem;">
+                            <div style="background: rgba(255,255,255,0.2); border-radius: 8px; padding: 0.8rem; text-align: center;">
+                                <div style="font-size: 1.2rem; margin-bottom: 0.3rem;">🚀</div>
+                                <p style="color: white; margin: 0; font-size: 0.8rem;">科技爱好者</p>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.2); border-radius: 8px; padding: 0.8rem; text-align: center;">
+                                <div style="font-size: 1.2rem; margin-bottom: 0.3rem;">💻</div>
+                                <p style="color: white; margin: 0; font-size: 0.8rem;">编程达人</p>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.2); border-radius: 8px; padding: 0.8rem; text-align: center;">
+                                <div style="font-size: 1.2rem; margin-bottom: 0.3rem;">🎮</div>
+                                <p style="color: white; margin: 0; font-size: 0.8rem;">游戏玩家</p>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: center;">
+                            <button style="background: white; color: #667eea; border: none; padding: 0.6rem 1.5rem; border-radius: 20px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease;">查看完整主页</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 交互效果说明 -->
+                <div class="card reveal" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-left: 4px solid #667eea; margin-bottom: 0.5rem;">
+                    <div class="card-title">✨ 炫酷交互效果</div>
+                    <ul class="feature-list">
+                        <li><span class="icon">•</span>渐变背景和毛玻璃效果</li>
+                        <li><span class="icon">•</span>悬停动画和过渡效果</li>
+                        <li><span class="icon">•</span>响应式设计，适配不同设备</li>
+                    </ul>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-8">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        这个示例展示了一个炫酷的个人主页设计。学生可以参考这种风格，但要记住内容才是核心，技术是工具。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 9: 前三课回顾 -->
+    <section class="slide slide-9" data-slide="9">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-1">回顾</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-rose">上节课回顾</span>
+                </div>
+                <h2 class="reveal">前三节课我们学了什么？</h2>
+
+                <div class="feature-grid reveal" style="margin-bottom: 0.8rem;">
+                    <div class="feature-item">
+                        <div class="emoji">🏗️</div>
+                        <h4>Builder模式</h4>
+                        <p>从零做项目</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="emoji">👤</div>
+                        <h4>Solo Coder</h4>
+                        <p>精确改代码</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="emoji">🖱️</div>
+                        <h4>元素选择</h4>
+                        <p>点哪改哪</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="emoji">🔄</div>
+                        <h4>迭代深化</h4>
+                        <p>多轮修改</p>
+                    </div>
+                </div>
+
+                <div class="card reveal" style="background: linear-gradient(135deg, #f0fdf4 0%, #e8f8e8 100%); border-left: 3px solid #22c55e;">
+                    <div class="card-title">✅ 准备好了吗？</div>
+                    <p style="font-size: var(--body-size); margin: 0;">如果你已经会用了，今天我们要把这些技能用来做一个<strong>真正属于你自己的作品</strong>！</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 9: 第一幕联系 -->
+    <section class="slide slide-9" data-slide="9">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-1">联系</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-lavender">第一幕 Connect</span>
+                    <span class="badge badge-gold">10分钟</span>
+                </div>
+                <h2 class="reveal">什么是个人主页？</h2>
+
+                <div class="speech-bubble teacher reveal">
+                    <p style="font-size: var(--body-size); color: var(--text-dark); margin: 0;"><strong>老师：</strong>这些——一打开就知道这个人叫什么、喜欢什么。这些都是<strong>个人主页</strong>，一个专门介绍"你是谁"的网页。</p>
+                </div>
+
+                <div class="grid-3 reveal" style="margin-top: 0.8rem;">
+                    <div class="card" style="text-align: center;">
+                        <div style="font-size: 2.5rem; margin-bottom: 0.4rem;">🌸</div>
+                        <h4>可爱风</h4>
+                        <p style="font-size: var(--small-size);">粉色、emoji、活泼</p>
+                    </div>
+                    <div class="card" style="text-align: center;">
+                        <div style="font-size: 2.5rem; margin-bottom: 0.4rem;">🚀</div>
+                        <h4>科技风</h4>
+                        <p style="font-size: var(--small-size);">深色、酷炫、专业</p>
+                    </div>
+                    <div class="card" style="text-align: center;">
+                        <div style="font-size: 2.5rem; margin-bottom: 0.4rem;">🌙</div>
+                        <h4>暗黑风</h4>
+                        <p style="font-size: var(--small-size);">神秘、渐变、发光</p>
+                    </div>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-8">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        展示2-3个不同风格的个人主页截图，激发学生兴趣。强调："你们做的个人主页会发布到穹狼科创网站，真的会有人看到！"
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 10: 互动问答 -->
+    <section class="slide slide-10" data-slide="10">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-2">思考</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-gold">互动问答</span>
+                </div>
+                <h2 class="reveal">你会在主页上放什么？</h2>
+                <p class="subtitle reveal">点击你认为最重要的选项</p>
+
+                <div class="reveal" style="margin-top: 0.4rem;">
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">
+                        <span class="quiz-letter">A</span>
+                        <span style="font-size: var(--body-size);">放很多好看的图片</span>
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, true)">
+                        <span class="quiz-letter">B</span>
+                        <span style="font-size: var(--body-size);">你的名字和介绍</span>
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">
+                        <span class="quiz-letter">C</span>
+                        <span style="font-size: var(--body-size);">让AI随便生成内容</span>
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">
+                        <span class="quiz-letter">D</span>
+                        <span style="font-size: var(--body-size);">只放酷炫的动画效果</span>
+                    </div>
+                </div>
+
+                <div class="quiz-feedback" id="quizFeedback-10"></div>
+
+                <div class="teacher-content" id="teacherContent-10">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        引导学生理解"内容先行"——先想清楚要展示什么，再让AI动手做。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 11: 反面教材 -->
+    <section class="slide slide-11" data-slide="11">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-2">反面</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-rose">反面教材</span>
+                </div>
+                <h2 class="reveal">为什么"内容先行"很重要？</h2>
+
+                <div class="two-column reveal">
+                    <div class="column">
+                        <div class="card" style="border-left: 3px solid #ef4444;">
+                            <div class="card-title">❌ 空壳主页（AI编的）</div>
+                            <p style="font-size: var(--small-size);"><strong>名字：</strong>小明</p>
+                            <p style="font-size: var(--small-size);"><strong>爱好：</strong>画画、弹钢琴、踢足球</p>
+                            <p style="font-size: var(--small-size);"><strong>梦想：</strong>成为一名科学家</p>
+                            <p style="font-size: var(--small-size); color: #ef4444;">😕 但这不是真实的我！</p>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="card" style="border-left: 3px solid #22c55e;">
+                            <div class="card-title">✅ 真实主页（自己写的）</div>
+                            <p style="font-size: var(--small-size);"><strong>名字：</strong>张小明 / 大明同学</p>
+                            <p style="font-size: var(--small-size);"><strong>爱好：</strong>乐高、编程、打篮球</p>
+                            <p style="font-size: var(--small-size);"><strong>梦想：</strong>用AI改变世界</p>
+                            <p style="font-size: var(--small-size); color: #22c55e;">😊 这才是真正的我！</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card reveal" style="margin-top: 0.5rem; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px dashed var(--accent-gold);">
+                    <p style="text-align: center; font-weight: 700; margin: 0; color: #92400e; font-size: var(--body-size);">💡 结论：直接跟AI说"帮我做主页"，它会编假信息。先想清楚要展示什么！</p>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-10">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        误概念M1演示：展示一个全是假信息的"空壳主页"，问学生"这是你吗？"引出"没有内容的主页是空壳，AI不知道你的真实信息"。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 12: 第二幕建构 - 内容清单 -->
+    <section class="slide slide-12" data-slide="12">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-2">内容</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-lavender">第二幕 Construct</span>
+                    <span class="badge badge-gold">分段一 15分钟</span>
+                </div>
+                <h2 class="reveal">我要展示什么？</h2>
+                <p class="subtitle reveal">点击完成你的内容清单（至少完成8项）</p>
+
+                <div class="scene-container reveal">
+                    <div>
+                        <div class="checklist-item" onclick="toggleChecklist(this)">
+                            <div class="checklist-checkbox"></div>
+                            <span style="font-size: var(--small-size);">1. 名字（中文+英文/昵称）</span>
+                        </div>
+                        <div class="checklist-item" onclick="toggleChecklist(this)">
+                            <div class="checklist-checkbox"></div>
+                            <span style="font-size: var(--small-size);">2. 一句话介绍自己</span>
+                        </div>
+                        <div class="checklist-item" onclick="toggleChecklist(this)">
+                            <div class="checklist-checkbox"></div>
+                            <span style="font-size: var(--small-size);">3. 出生日期/星座</span>
+                        </div>
+                        <div class="checklist-item" onclick="toggleChecklist(this)">
+                            <div class="checklist-checkbox"></div>
+                            <span style="font-size: var(--small-size);">4. 最擅长的三件事</span>
+                        </div>
+                        <div class="checklist-item" onclick="toggleChecklist(this)">
+                            <div class="checklist-checkbox"></div>
+                            <span style="font-size: var(--small-size);">5. 最好的朋友+原因</span>
+                        </div>
+                        <div class="checklist-item" onclick="toggleChecklist(this)">
+                            <div class="checklist-checkbox"></div>
+                            <span style="font-size: var(--small-size);">6. 最喜欢的歌/歌手</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="checklist-item" onclick="toggleChecklist(this)">
+                            <div class="checklist-checkbox"></div>
+                            <span style="font-size: var(--small-size);">7. 最喜欢的电影/动画</span>
+                        </div>
+                        <div class="checklist-item" onclick="toggleChecklist(this)">
+                            <div class="checklist-checkbox"></div>
+                            <span style="font-size: var(--small-size);">8. 最喜欢的书/漫画</span>
+                        </div>
+                        <div class="checklist-item" onclick="toggleChecklist(this)">
+                            <div class="checklist-checkbox"></div>
+                            <span style="font-size: var(--small-size);">9. 荣誉和证书</span>
+                        </div>
+                        <div class="checklist-item" onclick="toggleChecklist(this)">
+                            <div class="checklist-checkbox"></div>
+                            <span style="font-size: var(--small-size);">10. 我的梦想</span>
+                        </div>
+                        <div class="checklist-item" onclick="toggleChecklist(this)">
+                            <div class="checklist-checkbox"></div>
+                            <span style="font-size: var(--small-size);">11. 我的作品展示</span>
+                        </div>
+                        <div class="checklist-item" onclick="toggleChecklist(this)">
+                            <div class="checklist-checkbox"></div>
+                            <span style="font-size: var(--small-size);">12. 想要的图片（emoji占位）</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card reveal" style="margin-top: 0.5rem; background: linear-gradient(135deg, #f8f5ff 0%, #f3e8ff 100%); border-left: 3px solid var(--primary);">
+                    <p style="font-size: var(--small-size); margin: 0; text-align: center;">📝 <strong>现在就开始写！</strong>拿出纸或打开记事本，写下至少8条内容。</p>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-11">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        教师先展示自己的12条内容清单作为示例。巡视检查每位学生的清单进度，确保大部分学生写了8条以上才能进入下一步。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 13: 教师内容清单示例 -->
+    <section class="slide slide-13" data-slide="13">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-2">示例</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-primary">教师示例</span>
+                </div>
+                <h2 class="reveal">李老师的内容清单</h2>
+                <p class="subtitle reveal">12条真实信息，每一条都是"真实的我"</p>
+
+                <div class="card reveal">
+                    <div class="two-column">
+                        <div>
+                            <ol class="numbered-list">
+                                <li><strong>名字：</strong>李老师 / Mr. Li</li>
+                                <li><strong>一句话：</strong>相信AI能改变教育的编程老师</li>
+                                <li><strong>出生/星座：</strong>1990 / 天秤座 ♎</li>
+                                <li><strong>擅长：</strong>写代码、讲课、做饭</li>
+                                <li><strong>好友：</strong>小李（小学认识20年+）</li>
+                                <li><strong>歌：</strong>《晴天》周杰伦 🎵</li>
+                            </ol>
+                        </div>
+                        <div>
+                            <ol class="numbered-list" style="counter-reset: item 6;">
+                                <li><strong>电影：</strong>《星际穿越》🎬</li>
+                                <li><strong>书：</strong>《小王子》📖</li>
+                                <li><strong>荣誉：</strong>编程一等奖、优秀教师</li>
+                                <li><strong>梦想：</strong>让每个孩子用AI创造作品</li>
+                                <li><strong>作品：</strong>穹狼科创网站、课程体系</li>
+                                <li><strong>图片：</strong>emoji占位，课后换照片</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card reveal" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
+                    <p style="font-size: var(--body-size); margin: 0; text-align: center;">
+                        💡 <strong>关键：</strong>AI绝对编不出"最好的朋友是小李，认识了20多年"这种细节！
+                    </p>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-12">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        这是给学生看的示例，越具体越好。提醒学生写真实的内容，不要写"好学生"这种笼统的话。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 14: 进度检查点 -->
+    <section class="slide slide-14" data-slide="14">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-2">进度</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-gold">诊断点</span>
+                    <span class="badge badge-rose">进度同步</span>
+                </div>
+                <h2 class="reveal">内容清单进度检查</h2>
+
+                <div class="speech-bubble teacher reveal">
+                    <p style="font-size: var(--body-size); color: var(--text-dark); margin: 0;">
+                        <strong>老师：</strong>写好8条以上的举手！我来走一圈看看——谁写了8条以上？谁只写了两三条？
+                    </p>
+                </div>
+
+                <div class="scene-container reveal" style="margin-top: 0.8rem;">
+                    <div class="scene-card scene-a">
+                        <h4>✅ 状态A：写了8条以上</h4>
+                        <p>内容够丰富了！有些同学写了10条以上，非常棒。</p>
+                    </div>
+                    <div class="scene-card scene-b">
+                        <h4>⚠️ 状态B：只写了3-4条</h4>
+                        <p>看看问题清单，一条条往下写。真实就好，不用想太多。</p>
+                    </div>
+                </div>
+
+                <div class="scene-container reveal" style="margin-top: 0.5rem;">
+                    <div class="scene-card scene-c">
+                        <h4>✏️ 状态C：内容太简略</h4>
+                        <p>"打游戏"→具体点：打什么游戏？段位多少？</p>
+                    </div>
+                    <div class="card" style="background: linear-gradient(135deg, #f8f5ff 0%, #f3e8ff 100%);">
+                        <p style="font-size: var(--small-size); margin: 0; text-align: center;">
+                            <strong>诊断点：</strong>谁写了8条以上？谁只写了两三条？内容是否足够具体？
+                        </p>
+                    </div>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-13">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        这是课堂实时诊断点，根据学生反馈调整节奏。大部分学生完成8条后再进入下一步。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 15: 创建智能体 -->
+    <section class="slide slide-15" data-slide="15">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-3">智能体</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-sage">分段二 15分钟</span>
+                </div>
+                <h2 class="reveal">创建"个人主页设计师"智能体</h2>
+
+                <div class="speech-bubble teacher reveal">
+                    <p style="font-size: var(--body-size); color: var(--text-dark); margin: 0;">
+                        <strong>老师：</strong>就像在扣子里创建智能体一样！给AI设定角色和规则，它就更懂你的需求。点击复制系统提示词：
+                    </p>
+                </div>
+
+                <div class="code-block-wrapper reveal">
+                    <div class="code-block">你是一个专业的个人主页设计师。请遵循以下规则：
+- 所有文字必须用中文
+- 页面风格：现代简约，清新活泼
+- 配色不超过三种主色
+- 每个板块之间有清晰的分隔
+- 多使用 emoji 作为图标装饰
+- 所有内容放在一个 HTML 文件中（内联 CSS 和 JS）
+- 页面要适合在电脑浏览器中展示
+- 页面需要有流畅的滚动体验</div>
+                    <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-14">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        演示在Trae中创建自定义智能体的完整流程：1)找到"创建新智能体"按钮；2)起名字；3)粘贴系统提示词；4)保存。误概念M4：强调提示词越清楚，效果越稳定。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 16: 风格选择 -->
+    <section class="slide slide-16" data-slide="16">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-3">风格</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-gold">选择风格</span>
+                </div>
+                <h2 class="reveal">你想做什么风格的主页？</h2>
+                <p class="subtitle reveal">点击选择你喜欢的风格</p>
+
+                <div class="grid-2 reveal">
+                    <div class="style-option" onclick="selectStyle(this)">
+                        <div class="style-emoji">🌸</div>
+                        <div class="style-name">可爱风</div>
+                        <div class="style-desc">粉色系、圆角卡片、可爱 emoji</div>
+                    </div>
+                    <div class="style-option" onclick="selectStyle(this)">
+                        <div class="style-emoji">🚀</div>
+                        <div class="style-name">科技风</div>
+                        <div class="style-desc">深色背景、霓虹灯效果、代码感</div>
+                    </div>
+                    <div class="style-option" onclick="selectStyle(this)">
+                        <div class="style-emoji">🌙</div>
+                        <div class="style-name">暗黑风</div>
+                        <div class="style-desc">黑色背景、渐变色文字、发光效果</div>
+                    </div>
+                    <div class="style-option" onclick="selectStyle(this)">
+                        <div class="style-emoji">🌈</div>
+                        <div class="style-name">彩虹风</div>
+                        <div class="style-desc">多彩渐变、活泼动画、大量 emoji</div>
+                    </div>
+                </div>
+
+                <div class="card reveal" style="margin-top: 0.5rem; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
+                    <p style="font-size: var(--small-size); margin: 0; text-align: center;">
+                        💡 <strong>提示：</strong>把风格关键词加到提示词里，但保留"单文件HTML、内联CSS"等技术规则
+                    </p>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-15">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        展示四种风格的对比示例，让学生直观感受。鼓励学生根据个人喜好选择，但提醒技术规则必须保留。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 17: 生成主页 -->
+    <section class="slide slide-17" data-slide="17">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-3">生成</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-sage">分段三 20分钟</span>
+                </div>
+                <h2 class="reveal">用智能体生成主页</h2>
+
+                <div class="speech-bubble teacher reveal">
+                    <p style="font-size: var(--body-size); color: var(--text-dark); margin: 0;">
+                        <strong>老师：</strong>把你的内容清单整理成结构化需求，发给智能体。点击复制示例提示词：
+                    </p>
+                </div>
+
+                <div class="code-block-wrapper reveal">
+                    <div class="code-block">请帮我创建一个 index.html 个人主页，包含以下板块：
+
+1. 顶部大标题区：名字是[你的名字]，一句话介绍是[你的介绍]
+2. 关于我：星座[你的星座]，最擅长[你的三件事]
+3. 我的好友：[好友名字和原因]
+4. 我的最爱：歌[你的歌]、电影[你的电影]、书[你的书]
+5. 荣誉成就：[你的荣誉]
+6. 我的梦想：[你的梦想]
+
+每个板块用独立卡片，标题前加 emoji 图标。</div>
+                    <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                </div>
+
+                <div class="card reveal" style="margin-top: 0.5rem; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px dashed var(--accent-gold);">
+                    <p style="font-size: var(--small-size); margin: 0; text-align: center;">
+                        ⚠️ <strong>重要：</strong>生成后检查哪些是AI编的假内容，用Solo Coder逐块替换！
+                    </p>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-16">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        误概念M3：强调占位内容必须替换成真实信息。演示完整流程：内容清单→结构化需求→智能体生成→逐块检查→Solo Coder替换。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 18: 替换内容 -->
+    <section class="slide slide-18" data-slide="18">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-3">替换</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-rose">内容替换</span>
+                </div>
+                <h2 class="reveal">替换AI编的假内容</h2>
+
+                <div class="two-column reveal">
+                    <div class="column">
+                        <div class="card">
+                            <div class="card-title">❌ AI编的内容</div>
+                            <p style="font-size: var(--small-size);">"爱好：画画、弹钢琴"</p>
+                            <p style="font-size: var(--small-size);">"最好的朋友：小王"</p>
+                            <p style="font-size: var(--small-size);">"最喜欢的歌：《明天会更好》"</p>
+                        </div>
+
+                        <div class="code-block-wrapper">
+                            <div class="code-block">把这段文字改成："我的真实爱好是..."</div>
+                            <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="card">
+                            <div class="card-title">✅ 替换后的内容</div>
+                            <p style="font-size: var(--small-size);">"爱好：乐高、编程、篮球"</p>
+                            <p style="font-size: var(--small-size);">"最好的朋友：小李（小学认识至今）"</p>
+                            <p style="font-size: var(--small-size);">"最喜欢的歌：《晴天》- 周杰伦"</p>
+                        </div>
+
+                        <div class="tip-box">
+                            <h4>💡 使用Solo Coder</h4>
+                            <p>1. 点击"Solo Coder"按钮</p>
+                            <p>2. 点击要改的文字</p>
+                            <p>3. 输入新内容，Accept</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-17">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        提醒学生使用元素选择精确定位要改的内容。快学生可以加更多板块，慢学生确保至少替换3处真实内容。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 19: 更多提示词 -->
+    <section class="slide slide-19" data-slide="19">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-3">提示词</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-lavender">AI助教</span>
+                </div>
+                <h2 class="reveal">更多可用提示词</h2>
+
+                <div class="grid-2 reveal">
+                    <div>
+                        <div class="code-block-wrapper">
+                            <div class="code-block" style="max-height: 100px;">页面上[具体位置]写的是"[AI编的假内容]"，请改成"[你的真实内容]"</div>
+                            <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        </div>
+                        <p style="font-size: var(--small-size); color: var(--text-muted);">学生保底提示词：替换占位内容</p>
+                    </div>
+                    <div>
+                        <div class="code-block-wrapper">
+                            <div class="code-block" style="max-height: 100px;">给页面加一个暗黑模式切换按钮：右上角放月亮/太阳 emoji，点击切换亮色/暗色主题</div>
+                            <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        </div>
+                        <p style="font-size: var(--small-size); color: var(--text-muted);">进阶提示词（快学生挑战）</p>
+                    </div>
+                </div>
+
+                <div class="code-block-wrapper reveal">
+                    <div class="code-block" style="max-height: 80px;">给页面加滚动动画效果：每个板块卡片滚动到可视区域时从下方淡入滑出，持续0.5秒</div>
+                    <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                </div>
+                <p style="font-size: var(--small-size); color: var(--text-muted); margin-top: 0.3rem;">进阶提示词（留给下节课或快学生）</p>
+
+                <div class="teacher-content" id="teacherContent-18">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        这些是备用提示词。保底提示词给遇到困难的学生，进阶提示词给进度快的学生。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 20: 进度检查 - 内容真实性 -->
+    <section class="slide slide-20" data-slide="20">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-3">进度</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-gold">诊断点</span>
+                    <span class="badge badge-rose">内容真实性</span>
+                </div>
+                <h2 class="reveal">内容真实性检查</h2>
+
+                <div class="speech-bubble teacher reveal">
+                    <p style="font-size: var(--body-size); color: var(--text-dark); margin: 0;">
+                        <strong>老师：</strong>在浏览器里看到自己主页的举手！我来问一个关键问题——
+                    </p>
+                </div>
+
+                <div class="card reveal" style="background: linear-gradient(135deg, #f8f5ff 0%, #f3e8ff 100%); border: 2px solid var(--primary);">
+                    <h3 style="text-align: center; color: var(--primary); margin-bottom: 0.5rem;">🔍 关键问题</h3>
+                    <p style="font-size: var(--body-size); text-align: center; margin: 0;">
+                        你的页面上，有没有AI编的假信息还没改过来的？
+                    </p>
+                </div>
+
+                <div class="scene-container reveal" style="margin-top: 0.8rem;">
+                    <div class="scene-card scene-a">
+                        <h4>✅ "都改了/检查过了"</h4>
+                        <p>逐条对照内容清单，确认每一条都是真的。</p>
+                    </div>
+                    <div class="scene-card scene-b">
+                        <h4>⚠️ "有几处还没改"</h4>
+                        <p>没关系，现在改。最终发布时每个字都得是真的你。</p>
+                    </div>
+                </div>
+
+                <div class="card reveal" style="margin-top: 0.5rem; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        <strong>诊断点：</strong>检测学生是否有"内容真实性审查"的意识
+                    </p>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-19">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        这是关键诊断点！如果学生承认直接用了AI编的内容，要追问"AI说你喜欢画画，你真的喜欢吗？"引出真实性的重要性。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 21: 视觉调整 -->
+    <section class="slide slide-21" data-slide="21">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-4">美化</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-sage">分段四 15分钟</span>
+                </div>
+                <h2 class="reveal">第一轮视觉调整</h2>
+
+                <div class="speech-bubble teacher reveal">
+                    <p style="font-size: var(--body-size); color: var(--text-dark); margin: 0;">
+                        <strong>老师：</strong>内容填好了，现在让它更好看！点击复制修改指令：
+                    </p>
+                </div>
+
+                <div class="grid-2 reveal">
+                    <div>
+                        <div class="code-block-wrapper">
+                            <div class="code-block" style="max-height: 80px;">把背景改成从深蓝到紫色的渐变，卡片用半透明白色背景（毛玻璃效果）</div>
+                            <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        </div>
+                        <div class="code-block-wrapper">
+                            <div class="code-block" style="max-height: 80px;">把顶部名字区域改大，加文字发光效果</div>
+                            <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="code-block-wrapper">
+                            <div class="code-block" style="max-height: 80px;">给卡片加悬停放大效果（鼠标移上去轻微放大1.02倍）</div>
+                            <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        </div>
+                        <div class="code-block-wrapper">
+                            <div class="code-block" style="max-height: 80px;">把板块标题的emoji放大一些，更显眼</div>
+                            <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card reveal" style="margin-top: 0.5rem; background: linear-gradient(135deg, #f0f8f0 0%, #e8f5e8 100%); border-left: 3px solid var(--accent-sage);">
+                    <p style="font-size: var(--small-size); margin: 0; text-align: center;">
+                        🎯 <strong>目标：</strong>完成至少3轮视觉修改，每次只改一个方面！
+                    </p>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-20">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        误概念M5：强调emoji和视觉元素让页面更生动。展示纯文字版vs装饰版的对比，差距一目了然。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 22: 第三幕反思 -->
+    <section class="slide slide-22" data-slide="22">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-4">互评</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-lavender">第三幕 Contemplate</span>
+                    <span class="badge badge-gold">10分钟</span>
+                </div>
+                <h2 class="reveal">同桌互看 + 收集建议</h2>
+
+                <div class="speech-bubble teacher reveal">
+                    <p style="font-size: var(--body-size); color: var(--text-dark); margin: 0;">
+                        <strong>老师：</strong>请你和旁边的同学互相看对方的个人主页。看完后，每人给对方写<strong>两条建议</strong>：
+                    </p>
+                </div>
+
+                <div class="grid-2 reveal" style="margin-top: 0.8rem;">
+                    <div class="card" style="border-top: 3px solid var(--accent-gold);">
+                        <div class="card-title">📝 内容建议</div>
+                        <ul class="feature-list">
+                            <li><span class="icon">•</span>内容上还可以加什么？</li>
+                            <li><span class="icon">•</span>哪里写得不够具体？</li>
+                            <li><span class="icon">•</span>哪条信息特别有趣？</li>
+                        </ul>
+                    </div>
+                    <div class="card" style="border-top: 3px solid var(--primary);">
+                        <div class="card-title">🎨 设计建议</div>
+                        <ul class="feature-list">
+                            <li><span class="icon">•</span>视觉上哪里可以更好？</li>
+                            <li><span class="icon">•</span>颜色搭不搭？</li>
+                            <li><span class="icon">•</span>哪个板块看着不舒服？</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="challenge-card reveal" style="margin-top: 0.8rem;">
+                    <h4>⏱️ 时间安排</h4>
+                    <p style="font-size: var(--small-size);">互看主页：3分钟 | 写建议：2分钟 | 交换建议：2分钟</p>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-21">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        巡视指导学生给出具体建议，避免"挺好的""再好看一点"等模糊反馈。引导学生说具体哪个板块、哪个方面。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 23: 建议分享 -->
+    <section class="slide slide-23" data-slide="23">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-4">分享</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-gold">建议分享</span>
+                </div>
+                <h2 class="reveal">收到了什么好建议？</h2>
+
+                <div class="speech-bubble teacher reveal">
+                    <p style="font-size: var(--body-size); color: var(--text-dark); margin: 0;">
+                        <strong>老师：</strong>谁收到了一个特别好的建议，愿意分享？
+                    </p>
+                </div>
+
+                <div class="scene-container reveal" style="margin-top: 0.8rem;">
+                    <div class="scene-card scene-a">
+                        <h4>✅ 具体建议</h4>
+                        <p>"你可以在'我的梦想'板块加一段解释"</p>
+                        <p>"你的卡片间距太小了"</p>
+                        <p>→ 可以直接交给AI修改！</p>
+                    </div>
+                    <div class="scene-card scene-c">
+                        <h4>❌ 模糊建议</h4>
+                        <p>"挺好的"</p>
+                        <p>"再好看一点"</p>
+                        <p>→ 试着说：哪个板块？哪方面？</p>
+                    </div>
+                </div>
+
+                <div class="card reveal" style="margin-top: 0.8rem; background: linear-gradient(135deg, #f8f5ff 0%, #f3e8ff 100%);">
+                    <p style="font-size: var(--body-size); margin: 0; text-align: center;">
+                        💡 <strong>记住：</strong>把同桌给你的建议记好——下节课第一件事就是按建议优化！
+                    </p>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-22">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        检测学生能否给出具体的、有建设性的反馈。拍照发群：拍2-3位学生主页截图，配文发家长群。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 24: 第四幕总结 -->
+    <section class="slide slide-24" data-slide="24">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-4">总结</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-lavender">第四幕 Continue</span>
+                    <span class="badge badge-gold">5分钟</span>
+                </div>
+                <h2 class="reveal">今日核心</h2>
+
+                <div class="card reveal" style="background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%); border: 2px solid #e53e3e;">
+                    <p style="text-align: center; font-size: clamp(1.1rem, 2.5vw, 1.4rem); font-weight: 900; margin: 0; line-height: 1.5; color: #c53030;">
+                        ❤️ "好作品的核心是内容，不是技术。" ❤️
+                    </p>
+                    <p style="text-align: center; font-size: var(--body-size); color: #742a2a; margin-top: 0.4rem;">
+                        AI可以帮你做出炫酷的页面，但里面放什么——只有你自己知道。
+                    </p>
+                </div>
+
+                <div class="grid-2 reveal" style="margin-top: 0.8rem;">
+                    <div class="card">
+                        <div class="card-title">📝 核心概念</div>
+                        <ul class="feature-list">
+                            <li><span class="icon">✓</span>内容先行：先想好展示什么</li>
+                            <li><span class="icon">✓</span>板块化设计：分区域展示</li>
+                            <li><span class="icon">✓</span>自定义智能体：设定角色规则</li>
+                            <li><span class="icon">✓</span>真实内容：占位信息要替换</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">🚀 下节课预告</div>
+                        <ul class="feature-list">
+                            <li><span class="icon">✨</span>设计升级：按建议优化</li>
+                            <li><span class="icon">✨</span>交互效果：滚动动画</li>
+                            <li><span class="icon">✨</span>正式路演：3分钟发布</li>
+                            <li><span class="icon">✨</span>作品上线：真的发布！</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-23">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        拍照发群："第四节课，同学们开始制作自己的个人主页！真实的爱好、真实的梦想，每一个字都是他们自己的故事。下节课继续打磨，敬请期待最终发布！"
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 25: 课后挑战 -->
+    <section class="slide slide-25" data-slide="25">
+        <div class="slide-content">
+            <div class="main-card">
+                <div class="book-spine">
+                    <div class="spine-section spine-4">挑战</div>
+                </div>
+                <div class="badge-container reveal">
+                    <span class="badge badge-rose">课后挑战</span>
+                </div>
+                <h2 class="reveal">本周5分钟挑战</h2>
+
+                <div class="card reveal" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px dashed var(--accent-gold);">
+                    <div class="card-title">🎯 "我的超级内容清单"</div>
+                    <ol class="numbered-list">
+                        <li>把内容清单从8条扩充到<strong>15条以上</strong></li>
+                        <li>参考方向：最喜欢的食物、去过最远的地方、养的宠物、最想学的技能</li>
+                        <li>每条写<strong>具体细节</strong>——不是"喜欢吃面"，是"最喜欢兰州拉面，加辣加蛋"</li>
+                        <li>问家人："你觉得我有什么特别的地方？"</li>
+                        <li>如果有照片，让爸妈发给你，下节课用</li>
+                    </ol>
+                </div>
+
+                <div class="grid-2 reveal" style="margin-top: 0.8rem;">
+                    <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #e8f8e8 100%); border-left: 3px solid #22c55e;">
+                        <div class="card-title">✅ 基础</div>
+                        <p style="font-size: var(--small-size);">内容清单达到12条以上</p>
+                    </div>
+                    <div class="card" style="background: linear-gradient(135deg, #f0f8f0 0%, #e8f5e8 100%); border-left: 3px solid var(--accent-sage);">
+                        <div class="card-title">🏆 挑战</div>
+                        <p style="font-size: var(--small-size);">收集了家人评价并加入清单</p>
+                    </div>
+                </div>
+
+                <div class="teacher-content" id="teacherContent-24">
+                    <div class="teacher-label">👨‍🏫 教师提示</div>
+                    <p style="font-size: var(--small-size); margin: 0;">
+                        下节课分享：选2-3位同学展示扩充后的内容清单。鼓励学生丰富内容，下节课路演时更有东西可说。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Keyboard Hint -->
+    <div class="keyboard-hint">← → / 滚轮 / 上下滑动 切换页面</div>
+
+    <script>
+        // ===========================================
+        // SLIDE PRESENTATION CONTROLLER
+        // ===========================================
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.currentSlide = 0;
+                this.isScrolling = false;
+                this.scrollTimeout = null;
+                this.setupIntersectionObserver();
+                this.setupKeyboardNav();
+                this.setupWheelNav();
+                this.setupTouchNav();
+                this.setupNavDots();
+                this.updateProgress();
+            }
+
+            setupWheelNav() {
+                let wheelTimeout = null;
+                let accumulatedDelta = 0;
+                const threshold = 50;
+
+                window.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+
+                    if (this.isScrolling) return;
+
+                    accumulatedDelta += e.deltaY;
+
+                    if (wheelTimeout) clearTimeout(wheelTimeout);
+
+                    wheelTimeout = setTimeout(() => {
+                        if (Math.abs(accumulatedDelta) > threshold) {
+                            if (accumulatedDelta > 0) {
+                                this.nextSlide();
+                            } else {
+                                this.prevSlide();
+                            }
+                        }
+                        accumulatedDelta = 0;
+                    }, 50);
+                }, { passive: false });
+            }
+
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            this.currentSlide = Array.from(this.slides).indexOf(entry.target);
+                            this.updateProgress();
+                            this.updateNavDots();
+                        }
+                    });
+                }, { threshold: 0.5 });
+
+                this.slides.forEach(slide => observer.observe(slide));
+            }
+
+            setupKeyboardNav() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowRight' || e.key === ' ') {
+                        e.preventDefault();
+                        this.nextSlide();
+                    } else if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        this.prevSlide();
+                    }
+                });
+            }
+
+            setupTouchNav() {
+                let touchStartY = 0;
+                let touchEndY = 0;
+                const minSwipeDistance = 50;
+
+                document.addEventListener('touchstart', (e) => {
+                    touchStartY = e.changedTouches[0].screenY;
+                }, { passive: true });
+
+                document.addEventListener('touchend', (e) => {
+                    touchEndY = e.changedTouches[0].screenY;
+                    const swipeDistance = touchEndY - touchStartY;
+
+                    if (Math.abs(swipeDistance) > minSwipeDistance) {
+                        if (swipeDistance < 0) {
+                            this.nextSlide();
+                        } else {
+                            this.prevSlide();
+                        }
+                    }
+                }, { passive: true });
+            }
+
+            setupNavDots() {
+                this.refreshNavDots();
+            }
+
+            refreshNavDots() {
+                const navDots = document.getElementById('navDots');
+                if (!navDots) return;
+                navDots.innerHTML = '';
+
+                // Only create dots for visible slides
+                this.slides.forEach((slide, index) => {
+                    const style = window.getComputedStyle(slide);
+                    if (style.display !== 'none') {
+                        const dot = document.createElement('div');
+                        dot.className = 'nav-dot' + (index === this.currentSlide ? ' active' : '');
+                        dot.onclick = () => this.goToSlide(index);
+                        navDots.appendChild(dot);
+                    }
+                });
+            }
+
+            updateNavDots() {
+                const dots = document.querySelectorAll('.nav-dot');
+                let visibleIndex = 0;
+
+                this.slides.forEach((slide, index) => {
+                    const style = window.getComputedStyle(slide);
+                    if (style.display !== 'none') {
+                        if (dots[visibleIndex]) {
+                            dots[visibleIndex].classList.toggle('active', index === this.currentSlide);
+                        }
+                        visibleIndex++;
+                    }
+                });
+            }
+
+            updateProgress() {
+                const progress = ((this.currentSlide + 1) / this.slides.length) * 100;
+                document.getElementById('progressBar').style.width = progress + '%';
+                document.getElementById('pageNumber').textContent = (this.currentSlide + 1) + ' / ' + this.slides.length;
+            }
+
+            nextSlide() {
+                // Find next visible slide
+                let nextIndex = this.currentSlide + 1;
+                while (nextIndex < this.slides.length) {
+                    const slide = this.slides[nextIndex];
+                    const style = window.getComputedStyle(slide);
+                    if (style.display !== 'none') {
+                        break;
+                    }
+                    nextIndex++;
+                }
+
+                if (this.isScrolling || nextIndex >= this.slides.length) return;
+                this.isScrolling = true;
+                this.slides[nextIndex].scrollIntoView({ behavior: 'smooth' });
+                setTimeout(() => { this.isScrolling = false; }, 800);
+            }
+
+            prevSlide() {
+                // Find previous visible slide
+                let prevIndex = this.currentSlide - 1;
+                while (prevIndex >= 0) {
+                    const slide = this.slides[prevIndex];
+                    const style = window.getComputedStyle(slide);
+                    if (style.display !== 'none') {
+                        break;
+                    }
+                    prevIndex--;
+                }
+
+                if (this.isScrolling || prevIndex < 0) return;
+                this.isScrolling = true;
+                this.slides[prevIndex].scrollIntoView({ behavior: 'smooth' });
+                setTimeout(() => { this.isScrolling = false; }, 800);
+            }
+
+            goToSlide(index) {
+                const slide = this.slides[index];
+                const style = window.getComputedStyle(slide);
+
+                if (this.isScrolling || index === this.currentSlide || style.display === 'none') return;
+                this.isScrolling = true;
+                slide.scrollIntoView({ behavior: 'smooth' });
+                setTimeout(() => { this.isScrolling = false; }, 800);
+            }
+        }
+
+        // Initialize
+        const presentation = new SlidePresentation();
+
+        // ===========================================
+        // TEACHER MODE
+        // ===========================================
+        let teacherModeActive = false;
+
+        function toggleTeacherMode() {
+            teacherModeActive = !teacherModeActive;
+            const btn = document.getElementById('teacherModeBtn');
+
+            if (teacherModeActive) {
+                btn.textContent = '👨‍🏫 退出教师模式';
+                btn.style.background = '#22c55e';
+                document.body.classList.add('teacher-mode');
+                document.querySelectorAll('.teacher-content').forEach(el => {
+                    el.classList.add('show');
+                });
+            } else {
+                btn.textContent = '👨‍🏫 教师模式';
+                btn.style.background = 'var(--primary)';
+                document.body.classList.remove('teacher-mode');
+                document.querySelectorAll('.teacher-content').forEach(el => {
+                    el.classList.remove('show');
+                });
+            }
+
+            // Refresh navigation dots after mode change
+            if (presentation) {
+                setTimeout(() => {
+                    presentation.refreshNavDots();
+                    presentation.updateNavDots();
+                }, 100);
+            }
+        }
+
+        // ===========================================
+        // COPY CODE
+        // ===========================================
+        function copyCode(btn) {
+            const codeBlock = btn.previousElementSibling;
+            const text = codeBlock.textContent;
+
+            navigator.clipboard.writeText(text).then(() => {
+                btn.textContent = '已复制!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '复制';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // ===========================================
+        // QUIZ
+        // ===========================================
+        function checkAnswer(element, isCorrect) {
+            const parent = element.parentElement;
+            const options = parent.querySelectorAll('.quiz-option');
+            const feedbackId = 'quizFeedback-' + parent.closest('.slide').dataset.slide;
+            const feedback = document.getElementById(feedbackId);
+
+            options.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+            });
+
+            if (isCorrect) {
+                element.classList.add('correct');
+                feedback.textContent = '✅ 正确！内容才是个人主页的核心，技术是工具。';
+                feedback.className = 'quiz-feedback correct show';
+            } else {
+                element.classList.add('wrong');
+                parent.querySelector('.quiz-option:nth-child(2)').classList.add('correct');
+                feedback.textContent = '❌ 再想想。好看的设计是加分项，但"你是谁"才是最重要的！';
+                feedback.className = 'quiz-feedback wrong show';
+            }
+        }
+
+        // ===========================================
+        // FLIP CARD
+        // ===========================================
+        function flipCard(element) {
+            element.classList.toggle('flipped');
+        }
+
+        // ===========================================
+        // CHECKLIST
+        // ===========================================
+        function toggleChecklist(element) {
+            element.classList.toggle('checked');
+            const checkbox = element.querySelector('.checklist-checkbox');
+            if (element.classList.contains('checked')) {
+                checkbox.textContent = '✓';
+            } else {
+                checkbox.textContent = '';
+            }
+        }
+
+        // ===========================================
+        // STYLE SELECTOR
+        // ===========================================
+        function selectStyle(element) {
+            document.querySelectorAll('.style-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            element.classList.add('selected');
+        }
+
+        // ===========================================
+        // FAQ
+        // ===========================================
+        function toggleFaq(element) {
+            const faqItem = element.parentElement;
+            faqItem.classList.toggle('open');
+            const arrow = element.querySelector('span:last-child');
+            arrow.textContent = faqItem.classList.contains('open') ? '▲' : '▼';
+        }
+    </script>
+</body>
+</html>
