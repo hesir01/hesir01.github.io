@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌟 星光跑酷 - Starry Run</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 600px;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            perspective: 1000px;
+            background: linear-gradient(180deg, #0a0015 0%, #1a0a2e 50%, #0f0520 100%);
+        }
+
+        .horizon-glow {
+            position: absolute;
+            bottom: 30%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200%;
+            height: 200px;
+            background: radial-gradient(ellipse at center, rgba(138, 43, 226, 0.4) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .sky-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60%;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .stars-container {
+            position: absolute;
+            width: 200%;
+            height: 100%;
+            animation: starsMove 0.5s linear infinite;
+        }
+
+        @keyframes starsMove {
+            from { transform: translateY(0); }
+            to { transform: translateY(50px); }
+        }
+
+        .star {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle 1.5s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        .moving-stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+        }
+
+        .moving-star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #fff;
+            animation: shootingStar 0.8s linear infinite;
+        }
+
+        @keyframes shootingStar {
+            0% { transform: translateY(0) translateX(0); opacity: 1; }
+            100% { transform: translateY(200px) translateX(100px); opacity: 0; }
+        }
+
+        .road-container {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 400px;
+            height: 100%;
+            transform: translateX(-50%) rotateX(55deg);
+            transform-origin: 50% 100%;
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        .road {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 200%;
+            background: 
+                linear-gradient(90deg, 
+                    transparent 0%, 
+                    rgba(0,255,255,0.1) 20%,
+                    rgba(0,255,255,0.1) 80%,
+                    transparent 100%),
+                linear-gradient(180deg, 
+                    #0a0a15 0%, 
+                    #151528 50%,
+                    #1a1a30 100%);
+            animation: roadMove 0.3s linear infinite;
+        }
+
+        @keyframes roadMove {
+            from { transform: translateY(0); }
+            to { transform: translateY(-50%); }
+        }
+
+        .road-border {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .road-border::before,
+        .road-border::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 6px;
+            height: 200%;
+            animation: borderGlow 0.3s linear infinite;
+        }
+
+        .road-border::before {
+            left: 0;
+            background: linear-gradient(180deg, #00ffff, #ff00ff, #00ffff);
+            box-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff;
+        }
+
+        .road-border::after {
+            right: 0;
+            background: linear-gradient(180deg, #ff00ff, #00ffff, #ff00ff);
+            box-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff;
+        }
+
+        @keyframes borderGlow {
+            from { background-position: 0 0; }
+            to { background-position: 0 100px; }
+        }
+
+        .center-line {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 4px;
+            height: 200%;
+            transform: translateX(-50%);
+            background: linear-gradient(180deg, 
+                transparent 0%,
+                #ffff00 10%,
+                #ffff00 90%,
+                transparent 100%);
+            box-shadow: 0 0 10px #ffff00;
+            animation: roadMove 0.3s linear infinite;
+        }
+
+        .lane-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 200%;
+            animation: roadMove 0.3s linear infinite;
+        }
+
+        .lane-line {
+            position: absolute;
+            top: 0;
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(180deg, 
+                transparent 0%,
+                rgba(255,255,255,0.3) 20%,
+                rgba(255,255,255,0.3) 80%,
+                transparent 100%);
+        }
+
+        .lane-line:nth-child(1) { left: 33.33%; }
+        .lane-line:nth-child(2) { left: 66.66%; }
+
+        .grid-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 200%;
+            animation: roadMove 0.3s linear infinite;
+            background: 
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 49px,
+                    rgba(0,255,255,0.05) 49px,
+                    rgba(0,255,255,0.05) 50px
+                );
+        }
+
+        .speed-lines-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 15;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .speed-lines-layer.active {
+            opacity: 1;
+        }
+
+        .speed-line {
+            position: absolute;
+            width: 2px;
+            height: 80px;
+            background: linear-gradient(180deg, transparent, rgba(255,255,255,0.8), transparent);
+            animation: speedLine 0.2s linear infinite;
+        }
+
+        @keyframes speedLine {
+            from { transform: translateY(-80px); }
+            to { transform: translateY(400px); }
+        }
+
+        .player {
+            position: absolute;
+            bottom: 25%;
+            left: 50%;
+            width: 40px;
+            height: 60px;
+            transform: translateX(-50%);
+            z-index: 20;
+            transition: left 0.1s ease-out;
+        }
+
+        .player-body {
+            width: 40px;
+            height: 60px;
+            position: relative;
+            animation: playerRun 0.12s ease-in-out infinite;
+        }
+
+        .player-head {
+            width: 24px;
+            height: 24px;
+            background: radial-gradient(circle at 40% 40%, #ffdbac, #f0c090);
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 10px rgba(255,255,255,0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .player.jumping .player-head {
+            transform: translateX(-50%) rotate(-25deg) translateY(-5px);
+        }
+
+        .player-eyes {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 14px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .player-eye {
+            width: 4px;
+            height: 4px;
+            background: #333;
+            border-radius: 50%;
+        }
+
+        .player-body-torso {
+            width: 20px;
+            height: 22px;
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            border-radius: 8px 8px 4px 4px;
+            position: absolute;
+            top: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 15px rgba(0,255,136,0.5);
+        }
+
+        .player-arm {
+            width: 6px;
+            height: 18px;
+            background: linear-gradient(135deg, #ffdbac, #f0c090);
+            position: absolute;
+            top: 24px;
+            border-radius: 3px;
+            transform-origin: top center;
+        }
+
+        .player-arm.left {
+            left: 2px;
+            animation: armSwingLeft 0.12s ease-in-out infinite;
+        }
+
+        .player-arm.right {
+            right: 2px;
+            animation: armSwingRight 0.12s ease-in-out infinite;
+        }
+
+        .player-leg {
+            width: 8px;
+            height: 16px;
+            background: linear-gradient(135deg, #334455, #223344);
+            position: absolute;
+            top: 42px;
+            border-radius: 3px;
+            transform-origin: top center;
+        }
+
+        .player-leg.left {
+            left: 8px;
+            animation: legSwingLeft 0.12s ease-in-out infinite;
+        }
+
+        .player-leg.right {
+            right: 8px;
+            animation: legSwingRight 0.12s ease-in-out infinite;
+        }
+
+        @keyframes armSwingLeft {
+            0%, 100% { transform: rotate(20deg); }
+            50% { transform: rotate(-20deg); }
+        }
+
+        @keyframes armSwingRight {
+            0%, 100% { transform: rotate(-20deg); }
+            50% { transform: rotate(20deg); }
+        }
+
+        @keyframes legSwingLeft {
+            0%, 100% { transform: rotate(-25deg); }
+            50% { transform: rotate(25deg); }
+        }
+
+        @keyframes legSwingRight {
+            0%, 100% { transform: rotate(25deg); }
+            50% { transform: rotate(-25deg); }
+        }
+
+        @keyframes playerRun {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+
+        .player.powerup .player-body {
+            animation: powerupAnim 0.3s ease-out;
+        }
+
+        @keyframes powerupAnim {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.4); filter: brightness(1.5); }
+            100% { transform: scale(1); }
+        }
+
+        .player.jumping .player-body {
+            animation: playerJumpAnim 0.5s ease-out;
+        }
+
+        @keyframes playerJumpAnim {
+            0% { transform: translateY(0) rotate(0deg); }
+            20% { transform: translateY(-40px) rotate(-10deg); }
+            40% { transform: translateY(-80px) rotate(-15deg); }
+            60% { transform: translateY(-50px) rotate(-10deg); }
+            80% { transform: translateY(-20px) rotate(-5deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+
+        .player-shadow {
+            position: absolute;
+            bottom: 22%;
+            left: 50%;
+            width: 40px;
+            height: 10px;
+            background: radial-gradient(ellipse, rgba(0,0,0,0.5), transparent);
+            transform: translateX(-50%);
+            z-index: 5;
+            animation: shadowPulse 0.12s ease-in-out infinite;
+        }
+
+        .player-shadow.jumping {
+            animation: shadowJump 0.5s ease-out;
+        }
+
+        @keyframes shadowPulse {
+            0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.5; }
+            50% { transform: translateX(-50%) scale(0.9); opacity: 0.3; }
+        }
+
+        @keyframes shadowJump {
+            0% { transform: translateX(-50%) scale(1); opacity: 0.5; }
+            30% { transform: translateX(-50%) scale(0.3); opacity: 0.2; }
+            60% { transform: translateX(-50%) scale(0.3); opacity: 0.2; }
+            100% { transform: translateX(-50%) scale(1); opacity: 0.5; }
+        }
+
+        .player-trail {
+            position: absolute;
+            bottom: 25%;
+            width: 40px;
+            height: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 19;
+            opacity: 0;
+            transition: opacity 0.1s;
+        }
+
+        .player-trail .player-body {
+            opacity: 0.4;
+        }
+
+        .player-trail.active {
+            opacity: 0.3;
+        }
+
+        .player-trail .player-body {
+            background: radial-gradient(circle, rgba(0,255,136,0.5), transparent);
+            animation: none;
+        }
+
+        .obstacle {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 50px;
+            height: 50px;
+            transform-origin: bottom center;
+            z-index: 15;
+            transition: transform 0.1s;
+        }
+
+        .obstacle-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        .obstacle-cube {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #ff4466, #cc1144, #aa0033);
+            box-shadow: 
+                -4px -4px 0 #880022,
+                0 0 15px rgba(255,68,102,0.5),
+                inset 4px 4px 10px rgba(255,255,255,0.2);
+            animation: obstacleFloat 0.3s ease-in-out infinite;
+        }
+
+        .obstacle-tall {
+            width: 50px;
+            height: 80px;
+            background: linear-gradient(135deg, #4466ff, #1144cc, #0033aa);
+            box-shadow: 
+                -4px -4px 0 #002288,
+                0 0 15px rgba(68,102,255,0.5),
+                inset 4px 4px 10px rgba(255,255,255,0.2);
+            animation: obstacleFloat 0.3s ease-in-out infinite;
+        }
+
+        @keyframes obstacleFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        .star-item {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            z-index: 15;
+            font-size: 40px;
+            animation: starSpin 0.6s linear infinite, starFloat 0.5s ease-in-out infinite;
+            filter: drop-shadow(0 0 15px #ffd700) drop-shadow(0 0 30px #ffaa00);
+            transform-origin: center center;
+            transition: transform 0.1s;
+        }
+
+        .star-item-inner {
+            transform: translateX(-50%);
+            font-size: 40px;
+        }
+
+        @keyframes starSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes starFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-5px) rotate(180deg); }
+        }
+
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            z-index: 50;
+            border-radius: 50%;
+        }
+
+        @keyframes particleBurst {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        .screen-flash {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,0,0,0.3);
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0;
+            animation: flash 0.2s ease-out;
+        }
+
+        @keyframes flash {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .score-display {
+            font-size: 28px;
+            color: #ffff00;
+            text-shadow: 
+                0 0 10px #ffff00,
+                0 0 20px #ff8800,
+                2px 2px 0 #000;
+            font-weight: 900;
+            font-family: 'Courier New', monospace;
+        }
+
+        .lives-display {
+            display: flex;
+            gap: 5px;
+        }
+
+        .heart {
+            font-size: 28px;
+            filter: drop-shadow(0 0 5px #ff0000);
+            animation: heartBeat 0.6s ease-in-out infinite;
+        }
+
+        .heart:nth-child(2) { animation-delay: 0.2s; }
+        .heart:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .menu-screen, .gameover-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 0, 15, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            backdrop-filter: blur(15px);
+        }
+
+        .menu-screen.hidden, .gameover-screen.hidden {
+            display: none;
+        }
+
+        .game-title {
+            font-size: 56px;
+            font-weight: 900;
+            background: linear-gradient(90deg, #00ffff, #ff00ff, #ffff00, #00ff00);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: titleRainbow 2s linear infinite;
+            text-shadow: 0 0 50px rgba(0,255,255,0.5);
+            margin-bottom: 10px;
+            letter-spacing: 4px;
+        }
+
+        @keyframes titleRainbow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 300% 50%; }
+        }
+
+        .game-subtitle {
+            color: rgba(255,255,255,0.7);
+            font-size: 16px;
+            margin-bottom: 50px;
+            letter-spacing: 8px;
+        }
+
+        .menu-btn {
+            padding: 18px 60px;
+            font-size: 22px;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #00ffff, #00cc88);
+            color: #000;
+            box-shadow: 
+                0 0 30px rgba(0, 255, 255, 0.6),
+                0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            margin: 10px;
+            letter-spacing: 2px;
+        }
+
+        .menu-btn:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 
+                0 0 50px rgba(0, 255, 255, 0.9),
+                0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .menu-btn:active {
+            transform: scale(0.95);
+        }
+
+        .game-over-title {
+            font-size: 48px;
+            font-weight: 900;
+            color: #ff4466;
+            text-shadow: 
+                0 0 30px #ff4466,
+                0 0 60px #ff0044;
+            margin-bottom: 30px;
+            animation: gameOverPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes gameOverPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .final-score {
+            font-size: 36px;
+            color: #ffff00;
+            text-shadow: 0 0 20px #ffff00;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .high-score {
+            font-size: 20px;
+            color: #00ff88;
+            margin-bottom: 40px;
+            text-shadow: 0 0 10px #00ff88;
+        }
+
+        .controls-hint {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+            z-index: 50;
+            background: rgba(0,0,0,0.5);
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .blur-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 8;
+            background: radial-gradient(ellipse at bottom, transparent 30%, rgba(0,0,0,0.3) 100%);
+        }
+
+        .fog-layer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 30%;
+            background: linear-gradient(180deg, transparent, rgba(138,43,226,0.2));
+            pointer-events: none;
+            z-index: 9;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <div class="sky-layer">
+            <div class="stars-container" id="starsContainer"></div>
+        </div>
+        
+        <div class="moving-stars" id="movingStars"></div>
+        
+        <div class="horizon-glow"></div>
+        
+        <div class="road-container">
+            <div class="road" id="road">
+                <div class="grid-lines"></div>
+                <div class="lane-lines">
+                    <div class="lane-line"></div>
+                    <div class="lane-line"></div>
+                </div>
+                <div class="center-line"></div>
+            </div>
+            <div class="road-border"></div>
+        </div>
+
+        <div class="blur-overlay"></div>
+        <div class="fog-layer"></div>
+
+        <div class="speed-lines-layer" id="speedLines"></div>
+
+        <div class="player-trail" id="playerTrail">
+            <div class="player-body">
+                <div class="player-head">
+                    <div class="player-eyes">
+                        <div class="player-eye"></div>
+                        <div class="player-eye"></div>
+                    </div>
+                </div>
+                <div class="player-body-torso"></div>
+                <div class="player-arm left"></div>
+                <div class="player-arm right"></div>
+                <div class="player-leg left"></div>
+                <div class="player-leg right"></div>
+            </div>
+        </div>
+
+        <div class="player" id="player">
+            <div class="player-body">
+                <div class="player-head">
+                    <div class="player-eyes">
+                        <div class="player-eye"></div>
+                        <div class="player-eye"></div>
+                    </div>
+                </div>
+                <div class="player-body-torso"></div>
+                <div class="player-arm left"></div>
+                <div class="player-arm right"></div>
+                <div class="player-leg left"></div>
+                <div class="player-leg right"></div>
+            </div>
+        </div>
+
+        <div class="player-shadow" id="playerShadow"></div>
+
+        <div class="ui-overlay" id="uiOverlay">
+            <div class="score-display">⭐ <span id="score">0</span></div>
+            <div class="lives-display" id="lives">
+                <span class="heart">❤️</span>
+                <span class="heart">❤️</span>
+                <span class="heart">❤️</span>
+            </div>
+        </div>
+
+        <div class="controls-hint" id="controlsHint" style="display: none;">
+            ← → 或 A/D 移动 | 空格 跳跃
+        </div>
+
+        <div class="menu-screen" id="menuScreen">
+            <div class="game-title">🌟 星光跑酷</div>
+            <div class="game-subtitle">STARRT RUN</div>
+            <button class="menu-btn" id="startBtn">🚀 开始游戏</button>
+            <div style="margin-top: 40px; color: rgba(255,255,255,0.6); font-size: 14px;">
+                最高分: <span id="menuHighScore" style="color: #ffff00;">0</span>
+            </div>
+        </div>
+
+        <div class="gameover-screen hidden" id="gameoverScreen">
+            <div class="game-over-title">💀 游戏结束</div>
+            <div class="final-score">得分: <span id="finalScore">0</span></div>
+            <div class="high-score">最高分: <span id="highScore">0</span></div>
+            <button class="menu-btn" id="restartBtn">🔄 再玩一次</button>
+            <button class="menu-btn" id="menuBtn">🏠 返回菜单</button>
+        </div>
+    </div>
+
+    <script>
+        const gameContainer = document.getElementById('gameContainer');
+        const player = document.getElementById('player');
+        const playerTrail = document.getElementById('playerTrail');
+        const scoreDisplay = document.getElementById('score');
+        const livesDisplay = document.getElementById('lives');
+        const menuScreen = document.getElementById('menuScreen');
+        const gameoverScreen = document.getElementById('gameoverScreen');
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const menuBtn = document.getElementById('menuBtn');
+        const starsContainer = document.getElementById('starsContainer');
+        const movingStars = document.getElementById('movingStars');
+        const speedLines = document.getElementById('speedLines');
+        const controlsHint = document.getElementById('controlsHint');
+        const road = document.getElementById('road');
+
+        let gameRunning = false;
+        let score = 0;
+        let lives = 3;
+        let playerLane = 1;
+        let isJumping = false;
+        let baseSpeed = 0.5;
+        let currentSpeed = 0.3;
+        let obstacles = [];
+        let stars = [];
+        let animationId = null;
+        let highScore = localStorage.getItem('starryRunHighScore') || 0;
+        let lastTime = 0;
+
+        document.getElementById('menuHighScore').textContent = highScore;
+
+        function createStaticStars() {
+            for (let i = 0; i < 80; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = star.style.height = (Math.random() * 2 + 1) + 'px';
+                star.style.animationDelay = Math.random() * 1.5 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        function createMovingStars() {
+            for (let i = 0; i < 10; i++) {
+                const star = document.createElement('div');
+                star.className = 'moving-star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 30 + '%';
+                star.style.animationDelay = Math.random() * 0.8 + 's';
+                star.style.animationDuration = (0.5 + Math.random() * 0.5) + 's';
+                movingStars.appendChild(star);
+            }
+        }
+
+        function createSpeedLines() {
+            for (let i = 0; i < 15; i++) {
+                const line = document.createElement('div');
+                line.className = 'speed-line';
+                line.style.left = (10 + Math.random() * 80) + '%';
+                line.style.animationDelay = Math.random() * 0.2 + 's';
+                speedLines.appendChild(line);
+            }
+        }
+
+        function createObstacle(lane) {
+            const obstacle = document.createElement('div');
+            obstacle.className = 'obstacle';
+            
+            const isTall = Math.random() > 0.6;
+            obstacle.innerHTML = `<div class="obstacle-inner"><div class="obstacle-${isTall ? 'tall' : 'cube'}"></div></div>`;
+            
+            const lanePositions = [-110, 0, 110];
+            obstacle.style.left = `calc(50% + ${lanePositions[lane]}px - 25px)`;
+            obstacle.style.bottom = '100%';
+            obstacle.style.transform = 'translateX(-50%) scale(0.1)';
+            obstacle.style.opacity = '0';
+            obstacle.style.zIndex = '100';
+            obstacle.dataset.lane = lane;
+            obstacle.dataset.isTall = isTall;
+            obstacle.dataset.z = 0;
+            
+            gameContainer.appendChild(obstacle);
+            obstacles.push(obstacle);
+        }
+
+        function createStarItem(lane) {
+            const starItem = document.createElement('div');
+            starItem.className = 'star-item';
+            starItem.innerHTML = '<div class="star-item-inner">⭐</div>';
+            
+            const lanePositions = [-110, 0, 110];
+            starItem.style.left = `calc(50% + ${lanePositions[lane]}px)`;
+            starItem.style.bottom = '100%';
+            starItem.style.transform = 'translateX(-50%) scale(0.1)';
+            starItem.style.opacity = '0';
+            starItem.style.zIndex = '100';
+            starItem.dataset.lane = lane;
+            starItem.dataset.z = 0;
+            
+            gameContainer.appendChild(starItem);
+            stars.push(starItem);
+        }
+
+        function createParticles(x, y, color = '#ffd700') {
+            for (let i = 0; i < 12; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                particle.style.width = '8px';
+                particle.style.height = '8px';
+                particle.style.background = color;
+                particle.style.boxShadow = `0 0 10px ${color}`;
+                particle.style.animation = 'particleBurst 0.4s ease-out forwards';
+                particle.style.transform = `translate(${(Math.random() - 0.5) * 80}px, ${(Math.random() - 0.5) * 80}px)`;
+                gameContainer.appendChild(particle);
+                setTimeout(() => particle.remove(), 400);
+            }
+        }
+
+        function updatePlayerPosition() {
+            const positions = [-110, 0, 110];
+            player.style.left = `calc(50% + ${positions[playerLane]}px - 20px)`;
+            playerTrail.style.left = `calc(50% + ${positions[playerLane]}px - 20px)`;
+            const shadow = document.getElementById('playerShadow');
+            if (shadow) shadow.style.left = `calc(50% + ${positions[playerLane]}px - 20px)`;
+        }
+
+        function jump() {
+            if (isJumping) return;
+            isJumping = true;
+            player.classList.add('jumping');
+            playerTrail.classList.add('jumping');
+            const shadow = document.getElementById('playerShadow');
+            if (shadow) shadow.classList.add('jumping');
+            setTimeout(() => {
+                player.classList.remove('jumping');
+                playerTrail.classList.remove('jumping');
+                if (shadow) shadow.classList.remove('jumping');
+                isJumping = false;
+            }, 500);
+        }
+
+        function moveLeft() {
+            if (playerLane > 0) {
+                playerLane--;
+                updatePlayerPosition();
+                playerTrail.style.opacity = '0.5';
+                setTimeout(() => playerTrail.style.opacity = '0', 100);
+            }
+        }
+
+        function moveRight() {
+            if (playerLane < 2) {
+                playerLane++;
+                updatePlayerPosition();
+                playerTrail.style.opacity = '0.5';
+                setTimeout(() => playerTrail.style.opacity = '0', 100);
+            }
+        }
+
+        function checkCollision(obstacle, z, playerZ) {
+            const laneMatch = parseInt(obstacle.dataset.lane) === playerLane;
+            const collisionRange = 3;
+            
+            if (laneMatch) {
+                const zDiff = Math.abs(z - playerZ);
+                if (obstacle.dataset.isTall === 'true') {
+                    if (!isJumping && zDiff < collisionRange + 8) {
+                        return true;
+                    }
+                    if (isJumping && zDiff < collisionRange + 3) {
+                        return true;
+                    }
+                } else {
+                    if (!isJumping && zDiff < collisionRange) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function checkStarCollision(starItem, z, playerZ) {
+            const laneMatch = parseInt(starItem.dataset.lane) === playerLane;
+            const zDiff = Math.abs(z - playerZ);
+            
+            if (laneMatch && zDiff < 3) {
+                return true;
+            }
+            return false;
+        }
+
+        function hitObstacle() {
+            lives--;
+            updateLivesDisplay();
+            const playerRect = player.getBoundingClientRect();
+            createParticles(playerRect.left + 25, playerRect.top + 25, '#ff4466');
+            
+            const flash = document.createElement('div');
+            flash.className = 'screen-flash';
+            gameContainer.appendChild(flash);
+            setTimeout(() => flash.remove(), 200);
+            
+            if (lives <= 0) {
+                gameOver();
+            }
+        }
+
+        function collectStar(starItem) {
+            score += 10;
+            scoreDisplay.textContent = score;
+            const starRect = starItem.getBoundingClientRect();
+            createParticles(starRect.left + 20, starRect.top + 20);
+            starItem.remove();
+            stars = stars.filter(s => s !== starItem);
+            
+            player.classList.add('powerup');
+            setTimeout(() => player.classList.remove('powerup'), 300);
+        }
+
+        function updateLivesDisplay() {
+            let hearts = '';
+            for (let i = 0; i < 3; i++) {
+                hearts += i < lives ? '<span class="heart">❤️</span>' : '<span class="heart">🖤</span>';
+            }
+            livesDisplay.innerHTML = hearts;
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            cancelAnimationFrame(animationId);
+            road.style.animationPlayState = 'paused';
+            speedLines.classList.remove('active');
+            
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('starryRunHighScore', highScore);
+            }
+            
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('highScore').textContent = highScore;
+            gameoverScreen.classList.remove('hidden');
+            controlsHint.style.display = 'none';
+        }
+
+        let lastObstacleTime = 0;
+        let lastStarTime = 0;
+
+        function gameLoop(timestamp) {
+            if (!gameRunning) return;
+
+            if (!lastTime) lastTime = timestamp;
+            const delta = timestamp - lastTime;
+            lastTime = timestamp;
+
+            score++;
+            scoreDisplay.textContent = score;
+
+            currentSpeed = baseSpeed - Math.min(score / 2000, 0.15);
+            road.style.animationDuration = currentSpeed + 's';
+            
+            if (score > 500) {
+                speedLines.classList.add('active');
+            }
+
+            const obstacleInterval = Math.max(1200, 3000 - score / 3);
+            const starInterval = Math.max(800, 2500 - score / 4);
+
+            if (timestamp - lastObstacleTime > obstacleInterval) {
+                const lane = Math.floor(Math.random() * 3);
+                createObstacle(lane);
+                lastObstacleTime = timestamp;
+            }
+
+            if (timestamp - lastStarTime > starInterval) {
+                const lane = Math.floor(Math.random() * 3);
+                createStarItem(lane);
+                lastStarTime = timestamp;
+            }
+
+            const moveSpeed = 2 + score / 500;
+            const spawnDistance = 80;
+            const startZ = 0;
+            const endZ = spawnDistance;
+
+            obstacles.forEach((obstacle, index) => {
+                let z = parseFloat(obstacle.dataset.z) || 0;
+                z += moveSpeed * 0.5;
+                
+                let progress = z / spawnDistance;
+                let scale = 0.1 + Math.min(progress, 1) * 0.9;
+                let opacity = Math.min(progress * 3, 1);
+                let bottomPercent = 100 - Math.min(progress, 1) * 70;
+                
+                if (progress > 1) {
+                    bottomPercent = 30 - (progress - 1) * 30;
+                    scale = 1 - (progress - 1) * 0.3;
+                    opacity = Math.max(1 - (progress - 1) * 2, 0);
+                }
+                
+                obstacle.dataset.z = z;
+                obstacle.style.transform = `translateX(-50%) scale(${scale})`;
+                obstacle.style.opacity = opacity;
+                obstacle.style.bottom = bottomPercent + '%';
+                obstacle.style.zIndex = Math.floor(progress * 100);
+
+                const playerZ = spawnDistance;
+                if (checkCollision(obstacle, z, playerZ)) {
+                    hitObstacle();
+                    obstacle.remove();
+                    obstacles.splice(index, 1);
+                } else if (progress > 2 || bottomPercent < -30) {
+                    obstacle.remove();
+                    obstacles.splice(index, 1);
+                }
+            });
+
+            stars.forEach((starItem, index) => {
+                let z = parseFloat(starItem.dataset.z) || 0;
+                z += moveSpeed * 0.5;
+                
+                let progress = z / spawnDistance;
+                let scale = 0.1 + Math.min(progress, 1) * 0.9;
+                let opacity = Math.min(progress * 3, 1);
+                let bottomPercent = 100 - Math.min(progress, 1) * 70;
+                
+                if (progress > 1) {
+                    bottomPercent = 30 - (progress - 1) * 30;
+                    scale = 1 - (progress - 1) * 0.3;
+                    opacity = Math.max(1 - (progress - 1) * 2, 0);
+                }
+                
+                starItem.dataset.z = z;
+                starItem.style.transform = `translateX(-50%) scale(${scale})`;
+                starItem.style.opacity = opacity;
+                starItem.style.bottom = bottomPercent + '%';
+                starItem.style.zIndex = Math.floor(progress * 100);
+
+                const playerZ = spawnDistance;
+                if (checkStarCollision(starItem, z, playerZ)) {
+                    collectStar(starItem);
+                } else if (progress > 2 || bottomPercent < -30) {
+                    starItem.remove();
+                    stars.splice(index, 1);
+                }
+            });
+
+            if (lives > 0) {
+                animationId = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        function startGame() {
+            score = 0;
+            lives = 3;
+            playerLane = 1;
+            currentSpeed = baseSpeed;
+            isJumping = false;
+            lastObstacleTime = 0;
+            lastStarTime = 0;
+            lastTime = 0;
+            
+            scoreDisplay.textContent = '0';
+            updateLivesDisplay();
+            updatePlayerPosition();
+            
+            obstacles.forEach(o => o.remove());
+            stars.forEach(s => s.remove());
+            obstacles = [];
+            stars = [];
+            
+            road.style.animationPlayState = 'running';
+            
+            menuScreen.classList.add('hidden');
+            gameoverScreen.classList.add('hidden');
+            controlsHint.style.display = 'block';
+            
+            gameRunning = true;
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function showMenu() {
+            gameoverScreen.classList.add('hidden');
+            menuScreen.classList.remove('hidden');
+            document.getElementById('menuHighScore').textContent = highScore;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning && (e.key === 'Enter' || e.key === ' ')) {
+                if (!menuScreen.classList.contains('hidden')) {
+                    startGame();
+                } else if (!gameoverScreen.classList.contains('hidden')) {
+                    startGame();
+                }
+                return;
+            }
+            
+            if (!gameRunning) return;
+            
+            switch(e.key) {
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    moveLeft();
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    moveRight();
+                    break;
+                case ' ':
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    jump();
+                    e.preventDefault();
+                    break;
+            }
+        });
+
+        let touchStartX = 0;
+        gameContainer.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+
+        gameContainer.addEventListener('touchend', (e) => {
+            if (!gameRunning) return;
+            
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchEndX - touchStartX;
+            
+            if (Math.abs(diff) > 30) {
+                if (diff > 0) {
+                    moveRight();
+                } else {
+                    moveLeft();
+                }
+            } else {
+                jump();
+            }
+        });
+
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', startGame);
+        menuBtn.addEventListener('click', showMenu);
+
+        createStaticStars();
+        createMovingStars();
+        createSpeedLines();
+    </script>
+</body>
+</html>

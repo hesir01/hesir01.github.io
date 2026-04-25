@@ -1,0 +1,2141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>刘致远 - 个人简历</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00f0ff;
+            --secondary: #ff00aa;
+            --dark: #0a0a1a;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: var(--dark);
+            color: #ffffff;
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 26, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            z-index: 1000;
+            border-bottom: 2px solid var(--primary);
+            box-shadow: 0 5px 20px rgba(0, 240, 255, 0.2);
+        }
+
+        .navbar-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            font-size: 1.5em;
+            font-weight: bold;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .navbar-menu {
+            display: flex;
+            gap: 20px;
+            list-style: none;
+        }
+
+        .navbar-menu a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 0.95em;
+            padding: 8px 15px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .navbar-menu a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .navbar-menu a:hover::before {
+            left: 0;
+        }
+
+        .navbar-menu a:hover {
+            color: var(--dark);
+            transform: translateY(-2px);
+        }
+
+        .theme-toggle {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary);
+            color: var(--dark);
+            transform: scale(1.1);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--primary);
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+
+        section {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.05) 0%, rgba(255, 0, 170, 0.05) 100%);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        section:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 80px 40px;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.1) 0%, rgba(255, 0, 170, 0.1) 100%);
+        }
+
+        .avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            margin: 0 auto 30px;
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 40px rgba(0, 240, 255, 0.4); }
+            50% { box-shadow: 0 0 60px rgba(255, 0, 170, 0.6); }
+        }
+
+        .hero h1 {
+            font-size: 3em;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            text-shadow: 0 0 30px rgba(0, 240, 255, 0.5);
+        }
+
+        .hero .tagline {
+            font-size: 1.3em;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .hero .subtitle {
+            font-size: 1.1em;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: var(--primary);
+        }
+
+        .section-title span {
+            font-size: 1.5em;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 3px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .info-item:hover {
+            background: rgba(0, 240, 255, 0.1);
+            transform: translateX(10px);
+        }
+
+        .info-item .label {
+            font-size: 0.9em;
+            color: var(--secondary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-item .value {
+            font-size: 1.1em;
+            color: #ffffff;
+        }
+
+        .skills-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .skill-badge {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(255, 0, 170, 0.2));
+            border: 1px solid var(--primary);
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            cursor: default;
+        }
+
+        .skill-badge:hover {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.4), rgba(255, 0, 170, 0.4));
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+        }
+
+        .friends-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .friend-tag {
+            background: rgba(255, 0, 170, 0.2);
+            border: 1px solid var(--secondary);
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .friend-tag:hover {
+            background: rgba(255, 0, 170, 0.4);
+            transform: translateY(-3px);
+        }
+
+        .favorites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .favorite-card {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 0, 170, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .favorite-card:hover {
+            border-color: var(--secondary);
+            box-shadow: 0 0 25px rgba(255, 0, 170, 0.3);
+        }
+
+        .favorite-card .icon {
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+
+        .favorite-card .title {
+            font-size: 0.9em;
+            color: var(--secondary);
+            margin-bottom: 10px;
+        }
+
+        .favorite-card .content {
+            font-size: 1.2em;
+            color: #ffffff;
+        }
+
+        .achievements-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .achievement {
+            background: linear-gradient(90deg, rgba(0, 240, 255, 0.1), transparent);
+            padding: 20px 25px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .achievement:hover {
+            background: linear-gradient(90deg, rgba(0, 240, 255, 0.2), transparent);
+            transform: translateX(10px);
+        }
+
+        .achievement .rank {
+            font-size: 2em;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .achievement .trophy {
+            font-size: 2.5em;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .achievement .details {
+            flex: 1;
+        }
+
+        .achievement .award-name {
+            font-size: 1.2em;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .achievement .award-level {
+            font-size: 0.95em;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9em;
+        }
+
+        .footer .heart {
+            color: var(--secondary);
+            animation: heartbeat 1.5s infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .level-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 240, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .stars {
+            color: var(--primary);
+            letter-spacing: 2px;
+        }
+
+        .divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), var(--secondary), transparent);
+            margin: 10px 0 30px;
+            border-radius: 2px;
+        }
+
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .typing-text {
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 3px solid var(--primary);
+            animation: typing 3s steps(30) forwards, blink 0.8s infinite;
+            width: 0;
+            display: inline-block;
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink {
+            50% { border-color: transparent; }
+        }
+
+        .skill-progress {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .skill-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            width: 0;
+            transition: width 1.5s ease-out;
+            position: relative;
+        }
+
+        .skill-progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .glow-text {
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 5px var(--primary), 0 0 10px var(--primary), 0 0 15px var(--primary);
+            }
+            to {
+                text-shadow: 0 0 10px var(--secondary), 0 0 20px var(--secondary), 0 0 30px var(--secondary);
+            }
+        }
+
+        .rotate-icon {
+            display: inline-block;
+            animation: rotate 4s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .bounce-in {
+            animation: bounceIn 0.8s ease-out forwards;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .float-particle {
+            position: fixed;
+            pointer-events: none;
+            animation: floatUp 4s ease-in-out infinite;
+            opacity: 0.6;
+            z-index: 0;
+        }
+
+        @keyframes floatUp {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.6;
+            }
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+                opacity: 1;
+            }
+        }
+
+        .emoji-trail {
+            position: fixed;
+            pointer-events: none;
+            font-size: 20px;
+            z-index: 9998;
+            animation: emojiTrail 1s ease-out forwards;
+        }
+
+        @keyframes emojiTrail {
+            0% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.5) translateY(-50px);
+            }
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--dark);
+            border: none;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+        }
+
+        .back-to-top.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.6);
+        }
+
+        /* 页面加载动画 */
+        .loader-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .loader-container.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader {
+            text-align: center;
+        }
+
+        .loader-icon {
+            font-size: 60px;
+            animation: bounce 2s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        .loader-text {
+            font-size: 1.2em;
+            color: var(--primary);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-20px);
+            }
+            60% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .cursor-glow {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(0, 240, 255, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.3s ease;
+        }
+
+        .contact-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .contact-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .contact-item:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .contact-item .icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+
+        .contact-item .label {
+            font-size: 0.9em;
+            color: var(--secondary);
+            margin-bottom: 5px;
+        }
+
+        .contact-item .value {
+            font-size: 1.1em;
+            color: #ffffff;
+        }
+
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        body.light-theme {
+            --dark: #f0f0f0;
+        }
+
+        body.light-theme .navbar {
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        body.light-theme section {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.08) 0%, rgba(255, 0, 170, 0.08) 100%);
+        }
+
+        body.light-theme .info-item,
+        body.light-theme .contact-item {
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        body.light-theme .favorite-card {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        body.light-theme .achievement {
+            background: linear-gradient(90deg, rgba(0, 240, 255, 0.15), transparent);
+        }
+
+        body.light-theme .back-to-top {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--dark);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+        }
+
+        body.light-theme .back-to-top:hover {
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.6);
+        }
+
+        body.light-theme .skill-badge {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.1), rgba(255, 0, 170, 0.1));
+            border: 1px solid rgba(0, 240, 255, 0.3);
+        }
+
+        body.light-theme .skill-badge:hover {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(255, 0, 170, 0.2));
+        }
+
+        body.light-theme .friend-tag {
+            background: rgba(255, 0, 170, 0.1);
+            border: 1px solid rgba(255, 0, 170, 0.3);
+        }
+
+        body.light-theme .friend-tag:hover {
+            background: rgba(255, 0, 170, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .navbar-menu {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(10, 10, 26, 0.98);
+                padding: 20px;
+                gap: 10px;
+            }
+
+            .navbar-menu.active {
+                display: flex;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .hero h1 {
+                font-size: 2em;
+            }
+
+            .hero .tagline {
+                font-size: 1em;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            section {
+                padding: 25px 20px;
+            }
+
+            .avatar {
+                width: 120px;
+                height: 120px;
+                font-size: 50px;
+            }
+
+            .section-title {
+                font-size: 1.4em;
+            }
+
+            .cursor-glow {
+                display: none;
+            }
+
+            #particles-canvas {
+                opacity: 0.5;
+            }
+
+            /* 优化移动设备上的布局 */
+            .skills-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .skill-badge {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .favorites-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-section {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .achievements-list {
+                gap: 10px;
+            }
+
+            .achievement {
+                flex-direction: column;
+                text-align: center;
+                padding: 15px;
+            }
+
+            .achievement .trophy {
+                margin-bottom: 10px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .friends-list {
+                justify-content: center;
+            }
+
+            /* 优化新添加部分的移动设备显示 */
+            #campus .favorites-grid,
+            #wishes .favorites-grid,
+            #projects .favorites-grid {
+                grid-template-columns: 1fr;
+            }
+
+            /* 优化移动设备上的导航栏 */
+            .navbar-menu {
+                gap: 8px;
+                max-height: 70vh;
+                overflow-y: auto;
+            }
+
+            .navbar-menu a {
+                font-size: 0.9em;
+                padding: 6px 12px;
+            }
+
+            /* 优化返回顶部按钮在移动设备上的位置 */
+            .back-to-top {
+                bottom: 20px;
+                right: 20px;
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+
+            /* 优化鼠标表情包拖尾在移动设备上的效果 */
+            .emoji-trail {
+                font-size: 16px;
+            }
+
+            /* 优化移动设备上的字体大小 */
+            .info-item .value {
+                font-size: 1em;
+            }
+
+            .skill-badge {
+                font-size: 1em;
+            }
+
+            .favorite-card .content {
+                font-size: 1.1em;
+            }
+
+            .contact-item .value {
+                font-size: 1em;
+            }
+
+            .stat-number {
+                font-size: 2.5em;
+            }
+
+            /* 优化移动设备上的触摸交互 */
+            .skill-badge, .achievement, .favorite-card, .contact-item {
+                cursor: pointer;
+                user-select: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 页面加载动画 -->
+    <div class="loader-container">
+        <div class="loader">
+            <div class="loader-icon">🎮</div>
+            <div class="loader-text">加载中...</div>
+        </div>
+    </div>
+    
+    <div class="cursor-glow"></div>
+    <canvas id="particles-canvas"></canvas>
+    <div class="bg-grid"></div>
+    
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-brand">🎮 刘致远</div>
+            <button class="mobile-menu-btn">☰</button>
+            <ul class="navbar-menu">
+                <li><a href="#about">关于我</a></li>
+                <li><a href="#skills">技能</a></li>
+                <li><a href="#favorites">爱好</a></li>
+                <li><a href="#friends">朋友</a></li>
+                <li><a href="#campus">校园生活</a></li>
+                <li><a href="#projects">项目经历</a></li>
+                <li><a href="#achievements">荣誉</a></li>
+                <li><a href="#wishes">我的愿望</a></li>
+                <li><a href="#games">趣味小游戏</a></li>
+                <li><a href="#contact">联系</a></li>
+            </ul>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button class="theme-toggle" id="theme-toggle">🌙</button>
+                <button class="theme-toggle" id="particles-toggle">✨</button>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container" style="margin-top: 80px;">
+        <section class="hero">
+            <div class="avatar">
+                <img src="sss.jpg" alt="刘致远" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+            </div>
+            <h1 class="glow-text">刘致远</h1>
+            <p class="tagline"><span class="typing-text">🚀 喜欢玩游戏我的世界</span></p>
+            <p class="subtitle">✨ 2013年 | 巨蟹座 | 游戏玩家</p>
+        </section>
+
+        <section id="about">
+            <h2 class="section-title"><span>👤</span> 关于我</h2>
+            <div class="divider"></div>
+            <div style="margin-bottom: 30px; line-height: 1.8;">
+                <p style="font-size: 1.1em; margin-bottom: 20px;">我是刘致远，一个热爱游戏的巨蟹座男孩，2013年出生。我性格开朗、乐观，喜欢结交朋友，对待事情充满热情和好奇心。我相信通过努力和坚持，可以在游戏和生活中不断成长。</p>
+                <p style="font-size: 1.1em;">我的价值观是：诚信、友善、团队合作。我认为在游戏中不仅要追求个人成就，更要学会与队友配合，共同创造美好的游戏体验。</p>
+            </div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="label">🎂 出生日期</div>
+                    <div class="value">2013年</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">⭐ 星座</div>
+                    <div class="value">巨蟹座 ♋</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">🏫 教育背景</div>
+                    <div class="value">初中在读</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">🎮 玩家类型</div>
+                    <div class="value">PVP爱好者</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">🎯 个人宣言</div>
+                    <div class="value">喜欢玩游戏我的世界</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">� 未来规划</div>
+                    <div class="value">成为专业游戏开发者</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="skills">
+            <h2 class="section-title"><span>⚡</span> 擅长技能</h2>
+            <div class="divider"></div>
+            <div class="skills-container">
+                <div class="skill-badge">
+                    <span>🎮</span>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 1.1em; font-weight: bold;">玩游戏</span>
+                        <span style="font-size: 0.85em; opacity: 0.8; margin-top: 5px;">精通Minecraft，擅长PVP、建筑和红石系统</span>
+                        <div class="level-indicator">
+                            <span>等级:</span>
+                            <span class="stars">⭐⭐⭐⭐⭐</span>
+                        </div>
+                    </div>
+                    <div class="skill-progress">
+                        <div class="skill-progress-bar" data-progress="95"></div>
+                    </div>
+                </div>
+                <div class="skill-badge">
+                    <span>🏀</span>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 1.1em; font-weight: bold;">打球</span>
+                        <span style="font-size: 0.85em; opacity: 0.8; margin-top: 5px;">热爱篮球，擅长投篮和团队配合</span>
+                        <div class="level-indicator">
+                            <span>等级:</span>
+                            <span class="stars">⭐⭐⭐⭐</span>
+                        </div>
+                    </div>
+                    <div class="skill-progress">
+                        <div class="skill-progress-bar" data-progress="80"></div>
+                    </div>
+                </div>
+                <div class="skill-badge">
+                    <span>⚔️</span>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 1.1em; font-weight: bold;">打PVP</span>
+                        <span style="font-size: 0.85em; opacity: 0.8; margin-top: 5px;">Minecraft PVP高手，擅长各种战斗技巧</span>
+                        <div class="level-indicator">
+                            <span>等级:</span>
+                            <span class="stars">⭐⭐⭐⭐⭐</span>
+                        </div>
+                    </div>
+                    <div class="skill-progress">
+                        <div class="skill-progress-bar" data-progress="90"></div>
+                    </div>
+                </div>
+                <div class="skill-badge">
+                    <span>💻</span>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 1.1em; font-weight: bold;">编程</span>
+                        <span style="font-size: 0.85em; opacity: 0.8; margin-top: 5px;">学习Python编程，参加过编程比赛</span>
+                        <div class="level-indicator">
+                            <span>等级:</span>
+                            <span class="stars">⭐⭐⭐</span>
+                        </div>
+                    </div>
+                    <div class="skill-progress">
+                        <div class="skill-progress-bar" data-progress="65"></div>
+                    </div>
+                </div>
+                <div class="skill-badge">
+                    <span>🎨</span>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 1.1em; font-weight: bold;">设计</span>
+                        <span style="font-size: 0.85em; opacity: 0.8; margin-top: 5px;">喜欢创意设计，擅长游戏皮肤和建筑设计</span>
+                        <div class="level-indicator">
+                            <span>等级:</span>
+                            <span class="stars">⭐⭐⭐⭐</span>
+                        </div>
+                    </div>
+                    <div class="skill-progress">
+                        <div class="skill-progress-bar" data-progress="75"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="favorites">
+            <h2 class="section-title"><span>💜</span> 兴趣爱好</h2>
+            <div class="divider"></div>
+            <div class="favorites-grid">
+                <div class="favorite-card">
+                    <div class="icon">🎬</div>
+                    <div class="title">最喜欢的动漫</div>
+                    <div class="content">JOJO的奇妙冒险</div>
+                    <div style="font-size: 0.85em; opacity: 0.7; margin-top: 10px;">最喜欢的角色是空条承太郎，喜欢他的冷静和强大</div>
+                </div>
+                <div class="favorite-card">
+                    <div class="icon">📚</div>
+                    <div class="title">最喜欢的书</div>
+                    <div class="content">JOJO的奇妙冒险漫画</div>
+                    <div style="font-size: 0.85em; opacity: 0.7; margin-top: 10px;">已经收集了全套漫画，经常反复阅读</div>
+                </div>
+                <div class="favorite-card">
+                    <div class="icon">🎵</div>
+                    <div class="title">最喜欢的音乐</div>
+                    <div class="content">电子音乐和游戏原声</div>
+                    <div style="font-size: 0.85em; opacity: 0.7; margin-top: 10px;">喜欢听Minecraft的背景音乐，能让我放松心情</div>
+                </div>
+                <div class="favorite-card">
+                    <div class="icon">🎯</div>
+                    <div class="title">游戏偏好</div>
+                    <div class="content">我的世界 · PVP竞技</div>
+                    <div style="font-size: 0.85em; opacity: 0.7; margin-top: 10px;">每周都会和朋友们一起玩，享受团队合作的乐趣</div>
+                </div>
+                <div class="favorite-card">
+                    <div class="icon">🏀</div>
+                    <div class="title">运动爱好</div>
+                    <div class="content">篮球</div>
+                    <div style="font-size: 0.85em; opacity: 0.7; margin-top: 10px;">每天放学后都会和同学一起打篮球，是班级篮球队的主力</div>
+                </div>
+                <div class="favorite-card">
+                    <div class="icon">🎨</div>
+                    <div class="title">创意爱好</div>
+                    <div class="content">绘画和设计</div>
+                    <div style="font-size: 0.85em; opacity: 0.7; margin-top: 10px;">喜欢画游戏角色和设计游戏皮肤，曾经为朋友设计过专属皮肤</div>
+                </div>
+                <div class="favorite-card">
+                    <div class="icon">🚴</div>
+                    <div class="title">户外活动</div>
+                    <div class="content">骑行和探险</div>
+                    <div style="font-size: 0.85em; opacity: 0.7; margin-top: 10px;">周末喜欢和家人一起骑行，探索城市周边的风景</div>
+                </div>
+                <div class="favorite-card">
+                    <div class="icon">🍳</div>
+                    <div class="title">生活技能</div>
+                    <div class="content">烹饪</div>
+                    <div style="font-size: 0.85em; opacity: 0.7; margin-top: 10px;">喜欢尝试做各种美食，最拿手的是煎蛋和炒面</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="friends">
+            <h2 class="section-title"><span>🤝</span> 最好的朋友</h2>
+            <div class="divider"></div>
+            <div class="friends-list">
+                <div class="friend-tag">🌟 lym</div>
+                <div class="friend-tag">🌟 zbq</div>
+                <div class="friend-tag">🌟 hhr</div>
+                <div class="friend-tag">🌟 hqz</div>
+                <div class="friend-tag">🌟 gst</div>
+            </div>
+        </section>
+
+        <section id="campus">
+            <h2 class="section-title"><span>🏫</span> 校园生活</h2>
+            <div class="divider"></div>
+            <div class="favorites-grid">
+                <div class="favorite-card">
+                    <div class="icon">📚</div>
+                    <div class="title">学习生活</div>
+                    <div class="content">喜欢数学和计算机科学，成绩优异</div>
+                    <div style="font-size: 0.85em; opacity: 0.7; margin-top: 10px;">在班级中担任数学科代表，帮助同学解决学习问题</div>
+                </div>
+                <div class="favorite-card">
+                    <div class="icon">🏀</div>
+                    <div class="title">体育活动</div>
+                    <div class="content">班级篮球队主力，参加学校篮球比赛</div>
+                    <div style="font-size: 0.85em; opacity: 0.7; margin-top: 10px;">带领班级篮球队获得年级第三名的好成绩</div>
+                </div>
+                <div class="favorite-card">
+                    <div class="icon">🎭</div>
+                    <div class="title">社团活动</div>
+                    <div class="content">参加学校编程社团和动漫社</div>
+                    <div style="font-size: 0.85em; opacity: 0.7; margin-top: 10px;">在编程社团中学习Python和网页设计</div>
+                </div>
+                <div class="favorite-card">
+                    <div class="icon">🤝</div>
+                    <div class="title">同学关系</div>
+                    <div class="content">和同学们相处融洽，乐于助人</div>
+                    <div style="font-size: 0.85em; opacity: 0.7; margin-top: 10px;">经常组织班级活动，增强班级凝聚力</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects">
+            <h2 class="section-title"><span>📁</span> 项目经历</h2>
+            <div class="divider"></div>
+            <div class="favorites-grid">
+                <div class="favorite-card">
+                    <div class="icon">🏰</div>
+                    <div class="title">Minecraft城堡建筑</div>
+                    <div class="content">中世纪风格大型城堡</div>
+                    <div style="font-size: 0.85em; opacity: 0.7; margin-top: 10px;">耗时2周建造，包含完整的防御系统、护城河和内部结构</div>
+                </div>
+                <div class="favorite-card">
+                    <div class="icon">🔮</div>
+                    <div class="title">红石自动农场</div>
+                    <div class="content">全自动小麦种植系统</div>
+                    <div style="font-size: 0.85em; opacity: 0.7; margin-top: 10px;">设计并实现了红石电路控制的自动种植、收割和收集系统</div>
+                </div>
+                <div class="favorite-card">
+                    <div class="icon">💻</div>
+                    <div class="title">Python小游戏</div>
+                    <div class="content">猜数字游戏</div>
+                    <div style="font-size: 0.85em; opacity: 0.7; margin-top: 10px;">使用Python开发的交互式猜数字游戏，包含难度选择和得分系统</div>
+                </div>
+                <div class="favorite-card">
+                    <div class="icon">🎨</div>
+                    <div class="title">游戏皮肤设计</div>
+                    <div class="content">Minecraft自定义皮肤</div>
+                    <div style="font-size: 0.85em; opacity: 0.7; margin-top: 10px;">为自己和朋友设计了多个个性化Minecraft皮肤</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="achievements">
+            <h2 class="section-title"><span>🏆</span> 荣誉证书</h2>
+            <div class="divider"></div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number" data-target="5">0</div>
+                    <div class="stat-label">获得奖项</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" data-target="5">0</div>
+                    <div class="stat-label">亲密好友</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" data-target="5">0</div>
+                    <div class="stat-label">核心技能</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" data-target="100">0</div>
+                    <div class="stat-label">游戏热情%</div>
+                </div>
+            </div>
+            
+            <h3 style="color: var(--primary); margin-top: 40px; margin-bottom: 20px; font-size: 1.4em;">🎮 游戏成就</h3>
+            <div class="achievements-list" style="margin-bottom: 40px;">
+                <div class="achievement">
+                    <div class="trophy">🏆</div>
+                    <div class="details">
+                        <div class="award-name">Minecraft服务器PVP比赛</div>
+                        <div class="award-level">冠军</div>
+                        <div style="font-size: 0.9em; opacity: 0.7; margin-top: 5px;">在服务器举办的PVP比赛中获得第一名，击败了30多名玩家</div>
+                    </div>
+                </div>
+                <div class="achievement">
+                    <div class="trophy">🏅</div>
+                    <div class="details">
+                        <div class="award-name">建筑大师挑战</div>
+                        <div class="award-level">优秀作品奖</div>
+                        <div style="font-size: 0.9em; opacity: 0.7; margin-top: 5px;">设计并建造了一个大型城堡，获得服务器最佳建筑奖</div>
+                    </div>
+                </div>
+                <div class="achievement">
+                    <div class="trophy">⚡</div>
+                    <div class="details">
+                        <div class="award-name">红石电路设计</div>
+                        <div class="award-level">创新奖</div>
+                        <div style="font-size: 0.9em; opacity: 0.7; margin-top: 5px;">设计了一个复杂的红石自动农场系统，提高了资源收集效率</div>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 style="color: var(--primary); margin-bottom: 20px; font-size: 1.4em;">📸 游戏作品展示</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 40px;">
+                <div class="favorite-card">
+                    <div class="icon">🏰</div>
+                    <div class="title">大型城堡建筑</div>
+                    <div class="content">耗时2周建造的中世纪风格城堡，包含完整的防御系统</div>
+                </div>
+                <div class="favorite-card">
+                    <div class="icon">🔮</div>
+                    <div class="title">红石自动农场</div>
+                    <div class="content">全自动小麦、胡萝卜种植和收割系统</div>
+                </div>
+                <div class="favorite-card">
+                    <div class="icon">⚔️</div>
+                    <div class="title">PVP竞技场</div>
+                    <div class="content">设计并建造的PVP对战场地，支持多种游戏模式</div>
+                </div>
+            </div>
+            
+            <h3 style="color: var(--primary); margin-bottom: 20px; font-size: 1.4em;">🎯 游戏经历</h3>
+            <div style="background: rgba(0, 0, 0, 0.3); padding: 25px; border-radius: 15px; margin-bottom: 20px;">
+                <p style="margin-bottom: 15px;"><strong>最难忘的游戏经历：</strong>有一次和朋友们一起玩Minecraft，我们组建了一个团队，在服务器中挑战末影龙。经过多次尝试，我们终于成功击败了末影龙，那一刻的成就感至今难忘。</p>
+                <p><strong>游戏心得：</strong>游戏不仅是娱乐，更是一种学习和成长的方式。通过游戏，我学会了团队合作、问题解决和创新思维。</p>
+            </div>
+            
+            <div class="achievements-list" style="margin-top: 30px;">
+                <div class="achievement">
+                    <div class="trophy">🥇</div>
+                    <div class="details">
+                        <div class="award-name">Python编程比赛</div>
+                        <div class="award-level">一等奖</div>
+                    </div>
+                </div>
+                <div class="achievement">
+                    <div class="trophy">🥈</div>
+                    <div class="details">
+                        <div class="award-name">Python编程比赛</div>
+                        <div class="award-level">二等奖</div>
+                    </div>
+                </div>
+                <div class="achievement">
+                    <div class="trophy">🥉</div>
+                    <div class="details">
+                        <div class="award-name">机器人大赛</div>
+                        <div class="award-level">三等奖</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="wishes">
+            <h2 class="section-title"><span>✨</span> 我的愿望</h2>
+            <div class="divider"></div>
+            <div class="favorites-grid">
+                <div class="favorite-card">
+                    <div class="icon">🎮</div>
+                    <div class="title">游戏愿望</div>
+                    <div class="content">成为Minecraft服务器的管理员</div>
+                    <div style="font-size: 0.85em; opacity: 0.7; margin-top: 10px;">希望能创建一个自己的游戏服务器，和朋友们一起玩</div>
+                </div>
+                <div class="favorite-card">
+                    <div class="icon">💻</div>
+                    <div class="title">学习愿望</div>
+                    <div class="content">成为一名优秀的游戏开发者</div>
+                    <div style="font-size: 0.85em; opacity: 0.7; margin-top: 10px;">学习编程和游戏设计，开发属于自己的游戏</div>
+                </div>
+                <div class="favorite-card">
+                    <div class="icon">🌍</div>
+                    <div class="title">生活愿望</div>
+                    <div class="content">环游世界</div>
+                    <div style="font-size: 0.85em; opacity: 0.7; margin-top: 10px;">希望能去不同的国家旅行，了解不同的文化</div>
+                </div>
+                <div class="favorite-card">
+                    <div class="icon">🏆</div>
+                    <div class="title">未来目标</div>
+                    <div class="content">参加全国编程比赛</div>
+                    <div style="font-size: 0.85em; opacity: 0.7; margin-top: 10px;">希望能在全国性的编程比赛中取得好成绩</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="games">
+            <h2 class="section-title"><span>🎮</span> 趣味小游戏</h2>
+            <div class="divider"></div>
+            
+            <div class="favorites-grid">
+                <!-- 猜数字游戏 -->
+                <div class="favorite-card">
+                    <div class="icon">🎯</div>
+                    <div class="title">猜数字游戏</div>
+                    <div class="content">猜1-100之间的数字</div>
+                    <div style="margin-top: 15px;">
+                        <input type="number" id="guess-input" placeholder="输入猜测的数字" style="width: 100%; padding: 10px; border: 1px solid var(--primary); border-radius: 10px; background: rgba(0, 0, 0, 0.3); color: #ffffff; font-size: 1em;">
+                        <button id="guess-button" style="width: 100%; margin-top: 10px; padding: 10px; border: none; border-radius: 10px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: var(--dark); font-size: 1em; font-weight: bold; cursor: pointer;">猜一猜</button>
+                        <div id="guess-result" style="margin-top: 10px; padding: 10px; border-radius: 10px; background: rgba(0, 0, 0, 0.3); min-height: 40px;"></div>
+                        <button id="reset-guess" style="width: 100%; margin-top: 10px; padding: 8px; border: 1px solid var(--primary); border-radius: 10px; background: transparent; color: var(--primary); font-size: 0.9em; cursor: pointer;">重新开始</button>
+                    </div>
+                </div>
+                
+                <!-- 石头剪刀布游戏 -->
+                <div class="favorite-card">
+                    <div class="icon">✊</div>
+                    <div class="title">石头剪刀布</div>
+                    <div class="content">与电脑对战</div>
+                    <div style="margin-top: 15px;">
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <button class="rps-btn" data-choice="rock" style="flex: 1; padding: 10px; border: 1px solid var(--primary); border-radius: 10px; background: rgba(0, 0, 0, 0.3); color: #ffffff; font-size: 1.5em; cursor: pointer;">✊</button>
+                            <button class="rps-btn" data-choice="paper" style="flex: 1; padding: 10px; border: 1px solid var(--primary); border-radius: 10px; background: rgba(0, 0, 0, 0.3); color: #ffffff; font-size: 1.5em; cursor: pointer;">✋</button>
+                            <button class="rps-btn" data-choice="scissors" style="flex: 1; padding: 10px; border: 1px solid var(--primary); border-radius: 10px; background: rgba(0, 0, 0, 0.3); color: #ffffff; font-size: 1.5em; cursor: pointer;">✌️</button>
+                        </div>
+                        <div id="rps-result" style="margin-top: 10px; padding: 10px; border-radius: 10px; background: rgba(0, 0, 0, 0.3); min-height: 40px;"></div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                            <div>玩家: <span id="player-score">0</span></div>
+                            <div>电脑: <span id="computer-score">0</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 反应测试游戏 -->
+                <div class="favorite-card">
+                    <div class="icon">⚡</div>
+                    <div class="title">反应测试</div>
+                    <div class="content">测试你的反应速度</div>
+                    <div style="margin-top: 15px;">
+                        <div id="reaction-target" style="width: 100%; height: 100px; border: 2px solid var(--primary); border-radius: 10px; background: rgba(0, 0, 0, 0.3); display: flex; justify-content: center; align-items: center; font-size: 1.2em; cursor: pointer; margin-bottom: 10px;">点击开始</div>
+                        <div id="reaction-result" style="margin-top: 10px; padding: 10px; border-radius: 10px; background: rgba(0, 0, 0, 0.3); min-height: 40px;"></div>
+                        <div style="margin-top: 10px;">最佳成绩: <span id="best-time">--</span> ms</div>
+                    </div>
+                </div>
+                
+                <!-- 我的世界问答游戏 -->
+                <div class="favorite-card">
+                    <div class="icon">🎮</div>
+                    <div class="title">我的世界问答</div>
+                    <div class="content">测试你对MC的了解</div>
+                    <div style="margin-top: 15px;">
+                        <div id="mc-question" style="margin-bottom: 15px; padding: 10px; border-radius: 10px; background: rgba(0, 0, 0, 0.3); min-height: 60px;">点击开始按钮开始问答</div>
+                        <div id="mc-options" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;"></div>
+                        <div id="mc-result" style="margin-top: 10px; padding: 10px; border-radius: 10px; background: rgba(0, 0, 0, 0.3); min-height: 40px;"></div>
+                        <div style="display: flex; gap: 10px;">
+                            <button id="start-mc-quiz" style="flex: 1; padding: 10px; border: none; border-radius: 10px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: var(--dark); font-size: 1em; font-weight: bold; cursor: pointer;">开始问答</button>
+                            <button id="next-mc-question" style="flex: 1; padding: 10px; border: 1px solid var(--primary); border-radius: 10px; background: transparent; color: var(--primary); font-size: 1em; cursor: pointer; display: none;">下一题</button>
+                        </div>
+                        <div style="margin-top: 10px; display: flex; justify-content: space-between;">
+                            <div>得分: <span id="mc-score">0</span></div>
+                            <div>问题: <span id="mc-question-count">0/5</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact">
+            <h2 class="section-title"><span>📧</span> 联系方式</h2>
+            <div class="divider"></div>
+            <div class="contact-section">
+                <div class="contact-item">
+                    <div class="icon">📧</div>
+                    <div class="label">邮箱</div>
+                    <div class="value">liuzhiyuan@example.com</div>
+                </div>
+                <div class="contact-item">
+                    <div class="icon">📱</div>
+                    <div class="label">电话</div>
+                    <div class="value">+86 138****8888</div>
+                </div>
+                <div class="contact-item">
+                    <div class="icon">🎮</div>
+                    <div class="label">游戏ID</div>
+                    <div class="value">LZY_Gamer</div>
+                </div>
+                <div class="contact-item">
+                    <div class="icon">🌐</div>
+                    <div class="label">社交媒体</div>
+                    <div class="value">@刘致远</div>
+                </div>
+                <div class="contact-item">
+                    <div class="icon">🔗</div>
+                    <div class="label">社交平台</div>
+                    <div class="value">B站、小红书</div>
+                </div>
+                <div class="contact-item">
+                    <div class="icon">🖥️</div>
+                    <div class="label">游戏服务器</div>
+                    <div class="value">mc.example.com:25565</div>
+                </div>
+                <div class="contact-item">
+                    <div class="icon">🎯</div>
+                    <div class="label">服务器邀请码</div>
+                    <div class="value">LZY2024</div>
+                </div>
+                <div class="contact-item">
+                    <div class="icon">⏰</div>
+                    <div class="label">在线时间</div>
+                    <div class="value">周末全天</div>
+                </div>
+            </div>
+        </section>
+
+        <button id="back-to-top" class="back-to-top">↑</button>
+
+        <footer class="footer">
+            <p>用 <span class="heart">❤️</span> 打造的个人简历</p>
+            <p style="margin-top: 10px;">© 2024 刘致远 | 游戏人生 🎮</p>
+        </footer>
+    </div>
+
+    <script>
+        // 所有代码都在DOM加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM加载完成，初始化所有功能...');
+            
+            // 页面加载完成后隐藏加载动画
+            window.addEventListener('load', function() {
+                setTimeout(function() {
+                    const loader = document.querySelector('.loader-container');
+                    if (loader) loader.classList.add('hidden');
+                }, 1000);
+            });
+
+            // 初始化所有 section 和元素的动画状态
+            document.querySelectorAll('section').forEach(function(section) {
+                section.style.opacity = '0';
+                section.style.transform = 'translateY(30px)';
+            });
+
+            document.querySelectorAll('.info-item, .skill-badge, .favorite-card, .achievement, .contact-item').forEach(function(element) {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(20px)';
+            });
+
+            // 为 section 添加滚动动画
+            const sectionObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry, index) {
+                    if (entry.isIntersecting) {
+                        entry.target.style.transition = 'all 0.8s ease ' + (index * 0.1) + 's';
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            // 为内部元素添加滚动动画
+            const elementObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry, index) {
+                    if (entry.isIntersecting) {
+                        entry.target.style.transition = 'all 0.6s ease ' + (index * 0.1) + 's';
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.2 });
+
+            // 观察所有 section
+            document.querySelectorAll('section').forEach(function(section) {
+                sectionObserver.observe(section);
+            });
+
+            // 观察内部元素
+            document.querySelectorAll('.info-item, .skill-badge, .favorite-card, .achievement, .contact-item').forEach(function(element) {
+                elementObserver.observe(element);
+            });
+
+            document.querySelectorAll('.skill-badge, .friend-tag, .achievement').forEach(function(el, index) {
+                el.style.animationDelay = (index * 0.1) + 's';
+            });
+
+            const skillsObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        const progressBars = entry.target.querySelectorAll('.skill-progress-bar');
+                        progressBars.forEach(function(bar) {
+                            const progress = bar.getAttribute('data-progress');
+                            setTimeout(function() {
+                                bar.style.width = progress + '%';
+                            }, 300);
+                        });
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            document.querySelectorAll('#skills').forEach(function(section) {
+                skillsObserver.observe(section);
+            });
+
+            // 粒子效果
+            const canvas = document.getElementById('particles-canvas');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+
+                const particles = [];
+                const particleCount = window.innerWidth < 768 ? 20 : 50;
+                let particlesEnabled = true;
+                let animationId;
+
+                class Particle {
+                    constructor() {
+                        this.x = Math.random() * canvas.width;
+                        this.y = Math.random() * canvas.height;
+                        this.size = Math.random() * 3 + 1;
+                        this.speedX = Math.random() * 1 - 0.5;
+                        this.speedY = Math.random() * 1 - 0.5;
+                        this.color = Math.random() > 0.5 ? '#00f0ff' : '#ff00aa';
+                        this.opacity = Math.random() * 0.5 + 0.2;
+                    }
+                    update() {
+                        this.x += this.speedX;
+                        this.y += this.speedY;
+                        if (this.x > canvas.width) this.x = 0;
+                        if (this.x < 0) this.x = canvas.width;
+                        if (this.y > canvas.height) this.y = 0;
+                        if (this.y < 0) this.y = canvas.height;
+                    }
+                    draw() {
+                        ctx.fillStyle = this.color;
+                        ctx.globalAlpha = this.opacity;
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.globalAlpha = 1;
+                    }
+                }
+
+                function initParticles() {
+                    particles.length = 0;
+                    for (let i = 0; i < particleCount; i++) {
+                        particles.push(new Particle());
+                    }
+                }
+
+                function connectParticles() {
+                    const maxDistance = 120;
+                    const maxDistanceSquared = maxDistance * maxDistance;
+                    for (let i = 0; i < particles.length; i++) {
+                        for (let j = i; j < particles.length; j++) {
+                            const dx = particles[i].x - particles[j].x;
+                            const dy = particles[i].y - particles[j].y;
+                            const distanceSquared = dx * dx + dy * dy;
+                            if (distanceSquared < maxDistanceSquared) {
+                                const distance = Math.sqrt(distanceSquared);
+                                ctx.strokeStyle = particles[i].color;
+                                ctx.globalAlpha = 0.1 * (1 - distance / maxDistance);
+                                ctx.lineWidth = 1;
+                                ctx.beginPath();
+                                ctx.moveTo(particles[i].x, particles[i].y);
+                                ctx.lineTo(particles[j].x, particles[j].y);
+                                ctx.stroke();
+                                ctx.globalAlpha = 1;
+                            }
+                        }
+                    }
+                }
+
+                function animateParticles() {
+                    if (!particlesEnabled) return;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    for (let i = 0; i < particles.length; i++) {
+                        particles[i].update();
+                        particles[i].draw();
+                    }
+                    connectParticles();
+                    animationId = requestAnimationFrame(animateParticles);
+                }
+
+                initParticles();
+                animateParticles();
+
+                window.addEventListener('resize', function() {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                });
+            }
+
+            // 朋友标签动画
+            document.querySelectorAll('.friend-tag').forEach(function(tag, index) {
+                tag.style.opacity = '0';
+                tag.style.transform = 'translateY(20px)';
+                setTimeout(function() {
+                    tag.style.transition = 'all 0.5s ease';
+                    tag.style.opacity = '1';
+                    tag.style.transform = 'translateY(0)';
+                }, 500 + index * 100);
+            });
+
+            // 技能徽章点击效果
+            document.querySelectorAll('.skill-badge').forEach(function(badge) {
+                badge.addEventListener('click', function() {
+                    badge.style.transform = 'scale(1.1) rotate(5deg)';
+                    setTimeout(function() {
+                        badge.style.transform = 'scale(1) rotate(0deg)';
+                    }, 200);
+                });
+            });
+
+            // 成就点击效果
+            document.querySelectorAll('.achievement').forEach(function(achievement) {
+                achievement.addEventListener('click', function() {
+                    const trophy = achievement.querySelector('.trophy');
+                    if (trophy) {
+                        trophy.style.animation = 'float 1s ease-in-out';
+                        setTimeout(function() {
+                            trophy.style.animation = 'float 3s ease-in-out infinite';
+                        }, 1000);
+                    }
+                });
+            });
+
+            // 卡片点击效果
+            document.querySelectorAll('.favorite-card').forEach(function(card) {
+                card.addEventListener('click', function() {
+                    card.style.transform = 'scale(1.05)';
+                    card.style.boxShadow = '0 0 30px rgba(0, 240, 255, 0.4)';
+                    setTimeout(function() {
+                        card.style.transform = 'scale(1)';
+                        card.style.boxShadow = '0 0 25px rgba(255, 0, 170, 0.3)';
+                    }, 300);
+                });
+            });
+
+            // 光标发光效果
+            const cursorGlow = document.querySelector('.cursor-glow');
+            if (cursorGlow) {
+                document.addEventListener('mousemove', function(e) {
+                    cursorGlow.style.left = e.clientX + 'px';
+                    cursorGlow.style.top = e.clientY + 'px';
+                });
+                document.addEventListener('mouseenter', function() {
+                    cursorGlow.style.opacity = '1';
+                });
+                document.addEventListener('mouseleave', function() {
+                    cursorGlow.style.opacity = '0';
+                });
+            }
+
+            // 鼠标表情包拖尾效果
+            const emojis = ['🎮', '🏀', '✨', '🌟', '🎯', '⚡', '💻', '🎨', '🚴', '🍳', '📚', '🎭', '🤝', '🏆'];
+            document.addEventListener('mousemove', function(e) {
+                if (Math.random() > 0.8) {
+                    const emoji = document.createElement('div');
+                    emoji.className = 'emoji-trail';
+                    emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    emoji.style.left = e.clientX + 'px';
+                    emoji.style.top = e.clientY + 'px';
+                    const offsetX = (Math.random() - 0.5) * 20;
+                    const offsetY = (Math.random() - 0.5) * 20;
+                    emoji.style.transform = 'translate(' + offsetX + 'px, ' + offsetY + 'px)';
+                    document.body.appendChild(emoji);
+                    setTimeout(function() {
+                        emoji.remove();
+                    }, 1000);
+                }
+            });
+
+            console.log('基础功能初始化完成，开始初始化游戏...');
+            // 返回顶部按钮功能
+            const backToTopBtn = document.getElementById('back-to-top');
+            
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) {
+                    backToTopBtn.classList.add('active');
+                } else {
+                    backToTopBtn.classList.remove('active');
+                }
+            });
+            
+            backToTopBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+
+            // ========== 猜数字游戏 ==========
+            let secretNumber = Math.floor(Math.random() * 100) + 1;
+            const guessInput = document.getElementById('guess-input');
+            const guessButton = document.getElementById('guess-button');
+            const guessResult = document.getElementById('guess-result');
+            const resetGuess = document.getElementById('reset-guess');
+
+            if (guessButton) {
+                guessButton.addEventListener('click', function() {
+                    const guess = parseInt(guessInput.value);
+                    
+                    if (isNaN(guess) || guess < 1 || guess > 100) {
+                        guessResult.textContent = '请输入1-100之间的数字！';
+                        guessResult.style.backgroundColor = 'rgba(255, 255, 0, 0.2)';
+                        return;
+                    }
+                    
+                    if (guess === secretNumber) {
+                        guessResult.textContent = '恭喜你猜对了！答案就是 ' + secretNumber + '！';
+                        guessResult.style.backgroundColor = 'rgba(0, 255, 0, 0.2)';
+                    } else if (guess > secretNumber) {
+                        guessResult.textContent = '太大了！再小一点。';
+                        guessResult.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
+                    } else {
+                        guessResult.textContent = '太小了！再大一点。';
+                        guessResult.style.backgroundColor = 'rgba(255, 100, 0, 0.2)';
+                    }
+                });
+            }
+
+            if (resetGuess) {
+                resetGuess.addEventListener('click', function() {
+                    secretNumber = Math.floor(Math.random() * 100) + 1;
+                    guessInput.value = '';
+                    guessResult.textContent = '';
+                    guessResult.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                });
+            }
+
+            // ========== 石头剪刀布游戏 ==========
+            const rpsBtns = document.querySelectorAll('.rps-btn');
+            const rpsResult = document.getElementById('rps-result');
+            const playerScore = document.getElementById('player-score');
+            const computerScore = document.getElementById('computer-score');
+            let pScore = 0;
+            let cScore = 0;
+
+            const choices = ['rock', 'paper', 'scissors'];
+            const choiceEmojis = { rock: '✊', paper: '✋', scissors: '✌️' };
+
+            rpsBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const playerChoice = btn.getAttribute('data-choice');
+                    const computerChoice = choices[Math.floor(Math.random() * choices.length)];
+                    
+                    const result = determineWinner(playerChoice, computerChoice);
+                    updateScore(result);
+                    displayResult(playerChoice, computerChoice, result);
+                });
+            });
+
+            function determineWinner(player, computer) {
+                if (player === computer) return 'tie';
+                if (
+                    (player === 'rock' && computer === 'scissors') ||
+                    (player === 'paper' && computer === 'rock') ||
+                    (player === 'scissors' && computer === 'paper')
+                ) {
+                    return 'player';
+                } else {
+                    return 'computer';
+                }
+            }
+
+            function updateScore(result) {
+                if (result === 'player') {
+                    pScore++;
+                    playerScore.textContent = pScore;
+                } else if (result === 'computer') {
+                    cScore++;
+                    computerScore.textContent = cScore;
+                }
+            }
+
+            function displayResult(player, computer, result) {
+                let message = '你: ' + choiceEmojis[player] + ' | 电脑: ' + choiceEmojis[computer] + '<br>';
+                
+                if (result === 'tie') {
+                    message += '<strong>平局！</strong>';
+                    rpsResult.style.backgroundColor = 'rgba(255, 255, 0, 0.2)';
+                } else if (result === 'player') {
+                    message += '<strong>你赢了！🎉</strong>';
+                    rpsResult.style.backgroundColor = 'rgba(0, 255, 0, 0.2)';
+                } else {
+                    message += '<strong>电脑赢了！</strong>';
+                    rpsResult.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
+                }
+                
+                rpsResult.innerHTML = message;
+            }
+
+            // ========== 反应测试游戏 ==========
+            const reactionTarget = document.getElementById('reaction-target');
+            const reactionResult = document.getElementById('reaction-result');
+            const bestTime = document.getElementById('best-time');
+            let startTime;
+            let gameState = 'ready';
+            let bestReactionTime = Infinity;
+
+            if (reactionTarget) {
+                reactionTarget.addEventListener('click', function() {
+                    if (gameState === 'ready') {
+                        startReactionTest();
+                    } else if (gameState === 'active') {
+                        endReactionTest();
+                    }
+                });
+            }
+
+            function startReactionTest() {
+                gameState = 'waiting';
+                reactionTarget.textContent = '准备...';
+                reactionTarget.style.backgroundColor = 'rgba(255, 255, 0, 0.3)';
+                
+                const delay = Math.random() * 3000 + 1000;
+                
+                setTimeout(function() {
+                    if (gameState === 'waiting') {
+                        gameState = 'active';
+                        reactionTarget.textContent = '点击！';
+                        reactionTarget.style.backgroundColor = 'rgba(0, 255, 0, 0.5)';
+                        startTime = Date.now();
+                    }
+                }, delay);
+            }
+
+            function endReactionTest() {
+                const endTime = Date.now();
+                const reactionTime = endTime - startTime;
+                
+                gameState = 'ready';
+                reactionTarget.textContent = '点击开始';
+                reactionTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                
+                reactionResult.textContent = '你的反应时间: ' + reactionTime + ' ms';
+                
+                if (reactionTime < bestReactionTime) {
+                    bestReactionTime = reactionTime;
+                    bestTime.textContent = bestReactionTime;
+                    reactionResult.textContent += ' 🎉 新纪录！';
+                }
+            }
+
+            // ========== 我的世界问答游戏 ==========
+            const mcQuestions = [
+                {
+                    question: '我的世界中，末影龙会掉落什么物品？',
+                    options: ['龙蛋', '末影珍珠', '钻石', '绿宝石'],
+                    correctAnswer: 0
+                },
+                {
+                    question: '以下哪种方块可以制作床？',
+                    options: ['羊毛和木板', '棉花和木棍', '皮革和木板', '丝绸和木棍'],
+                    correctAnswer: 0
+                },
+                {
+                    question: '红石粉的主要用途是什么？',
+                    options: ['制作工具', '制作电路', '制作食物', '制作武器'],
+                    correctAnswer: 1
+                },
+                {
+                    question: '下界中最危险的生物是什么？',
+                    options: ['僵尸猪人', '烈焰人', '凋灵骷髅', '恶魂'],
+                    correctAnswer: 2
+                },
+                {
+                    question: '附魔台需要什么材料才能使用？',
+                    options: ['钻石', '青金石', '绿宝石', '红石'],
+                    correctAnswer: 1
+                }
+            ];
+
+            const startMcQuiz = document.getElementById('start-mc-quiz');
+            const nextMcQuestion = document.getElementById('next-mc-question');
+            const mcQuestion = document.getElementById('mc-question');
+            const mcOptions = document.getElementById('mc-options');
+            const mcResult = document.getElementById('mc-result');
+            const mcScore = document.getElementById('mc-score');
+            const mcQuestionCount = document.getElementById('mc-question-count');
+
+            let currentQuestion = 0;
+            let mcScoreValue = 0;
+            let answered = false;
+
+            if (startMcQuiz) {
+                startMcQuiz.addEventListener('click', startMcQuizGame);
+            }
+            
+            if (nextMcQuestion) {
+                nextMcQuestion.addEventListener('click', nextMcQuizQuestion);
+            }
+
+            function startMcQuizGame() {
+                currentQuestion = 0;
+                mcScoreValue = 0;
+                answered = false;
+                mcScore.textContent = mcScoreValue;
+                mcQuestionCount.textContent = '1/5';
+                startMcQuiz.style.display = 'none';
+                nextMcQuestion.style.display = 'block';
+                showMcQuestion();
+            }
+
+            function showMcQuestion() {
+                if (currentQuestion < mcQuestions.length) {
+                    const question = mcQuestions[currentQuestion];
+                    mcQuestion.textContent = question.question;
+                    mcOptions.innerHTML = '';
+                    mcResult.textContent = '';
+                    mcResult.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                    answered = false;
+
+                    question.options.forEach(function(option, index) {
+                        const optionButton = document.createElement('button');
+                        optionButton.textContent = option;
+                        optionButton.style.padding = '10px';
+                        optionButton.style.border = '1px solid var(--primary)';
+                        optionButton.style.borderRadius = '10px';
+                        optionButton.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                        optionButton.style.color = '#ffffff';
+                        optionButton.style.fontSize = '1em';
+                        optionButton.style.cursor = 'pointer';
+                        optionButton.style.textAlign = 'left';
+                        
+                        optionButton.addEventListener('click', function() {
+                            if (!answered) {
+                                checkMcAnswer(index);
+                            }
+                        });
+                        
+                        mcOptions.appendChild(optionButton);
+                    });
+                } else {
+                    endMcQuiz();
+                }
+            }
+
+            function checkMcAnswer(selectedIndex) {
+                const question = mcQuestions[currentQuestion];
+                answered = true;
+                
+                if (selectedIndex === question.correctAnswer) {
+                    mcScoreValue++;
+                    mcScore.textContent = mcScoreValue;
+                    mcResult.textContent = '正确！🎉';
+                    mcResult.style.backgroundColor = 'rgba(0, 255, 0, 0.2)';
+                } else {
+                    mcResult.textContent = '错误！正确答案是: ' + question.options[question.correctAnswer];
+                    mcResult.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
+                }
+            }
+
+            function nextMcQuizQuestion() {
+                currentQuestion++;
+                if (currentQuestion < mcQuestions.length) {
+                    mcQuestionCount.textContent = (currentQuestion + 1) + '/5';
+                }
+                showMcQuestion();
+            }
+
+            function endMcQuiz() {
+                mcQuestion.textContent = '问答结束！你的得分是 ' + mcScoreValue + '/5';
+                mcOptions.innerHTML = '';
+                mcResult.textContent = mcScoreValue >= 3 ? '做得不错！👍' : '继续加油！💪';
+                mcResult.style.backgroundColor = mcScoreValue >= 3 ? 'rgba(0, 255, 0, 0.2)' : 'rgba(255, 255, 0, 0.2)';
+                startMcQuiz.style.display = 'block';
+                nextMcQuestion.style.display = 'none';
+                mcQuestionCount.textContent = '5/5';
+            }
+
+            // 主题切换和粒子效果
+            const themeToggle = document.getElementById('theme-toggle');
+            const particlesToggle = document.getElementById('particles-toggle');
+            const body = document.body;
+            let isDarkTheme = true;
+            let particlesEnabled = true;
+
+            themeToggle.addEventListener('click', () => {
+                isDarkTheme = !isDarkTheme;
+                body.classList.toggle('light-theme');
+                themeToggle.textContent = isDarkTheme ? '🌙' : '☀️';
+            });
+
+            particlesToggle.addEventListener('click', () => {
+                particlesEnabled = !particlesEnabled;
+                const canvas = document.getElementById('particles-canvas');
+                if (particlesEnabled) {
+                    canvas.style.display = 'block';
+                    particlesToggle.textContent = '✨';
+                    initParticles();
+                    animateParticles();
+                } else {
+                    canvas.style.display = 'none';
+                    particlesToggle.textContent = '✴️';
+                    if (animationId) {
+                        cancelAnimationFrame(animationId);
+                    }
+                }
+            });
+
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            const navbarMenu = document.querySelector('.navbar-menu');
+
+            mobileMenuBtn.addEventListener('click', () => {
+                navbarMenu.classList.toggle('active');
+            });
+
+            document.querySelectorAll('.navbar-menu a').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                    
+                    navbarMenu.classList.remove('active');
+                });
+            });
+
+            const statsObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const statNumbers = entry.target.querySelectorAll('.stat-number');
+                        statNumbers.forEach(stat => {
+                            const target = parseInt(stat.getAttribute('data-target'));
+                            animateNumber(stat, target);
+                        });
+                        statsObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            document.querySelectorAll('#achievements').forEach(section => {
+                statsObserver.observe(section);
+            });
+
+            function animateNumber(element, target) {
+                let current = 0;
+                const increment = target / 50;
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        element.textContent = target;
+                        clearInterval(timer);
+                    } else {
+                        element.textContent = Math.floor(current);
+                    }
+                }, 30);
+            }
+        });
+    </script>
+</body>
+</html>

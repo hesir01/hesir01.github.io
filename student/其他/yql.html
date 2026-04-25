@@ -1,0 +1,2283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>仰千里 - 个人主页</title>
+    <style>
+        :root {
+            --primary-color: #0a192f;
+            --secondary-color: #64ffda;
+            --accent-color: #112240;
+            --text-color: #ccd6f6;
+            --text-light: #8892b0;
+            --white: #e6f1ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--secondary-color);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: particleFloat 15s infinite ease-in-out;
+        }
+
+        .spaceship {
+            position: absolute;
+            color: var(--secondary-color);
+            animation: spaceshipFloat 20s infinite ease-in-out;
+            text-shadow: 0 0 10px rgba(100, 255, 218, 0.5);
+        }
+
+        @keyframes particleFloat {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0.3;
+            }
+            50% {
+                transform: translateY(-100px) translateX(50px);
+                opacity: 0.6;
+            }
+        }
+
+        @keyframes spaceshipFloat {
+            0%, 100% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+            }
+            25% {
+                transform: translateY(-150px) translateX(100px) rotate(10deg);
+            }
+            50% {
+                transform: translateY(-50px) translateX(-50px) rotate(-5deg);
+            }
+            75% {
+                transform: translateY(-200px) translateX(50px) rotate(15deg);
+            }
+        }
+
+        .mouse-trail {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            mix-blend-mode: difference;
+        }
+
+        .explosion {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+        }
+
+        .explosion-particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            box-shadow: 0 0 15px var(--secondary-color), 0 0 30px var(--secondary-color);
+            animation: particleExplode 0.5s ease-out forwards;
+        }
+
+        .explosion-emoji {
+            position: absolute;
+            font-size: 28px;
+            animation: emojiExplode 0.6s ease-out forwards;
+        }
+
+        @keyframes particleExplode {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        @keyframes emojiExplode {
+            0% {
+                transform: translate(0, 0) scale(0);
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: rgba(10, 25, 47, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--secondary-color);
+        }
+
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding-top: 80px;
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .hero-text h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: var(--white);
+        }
+
+        .hero-text h2 {
+            font-size: 24px;
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+        }
+
+        .hero-text p {
+            font-size: 18px;
+            color: var(--text-light);
+            margin-bottom: 30px;
+        }
+
+        .hero-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .avatar {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 150px;
+            box-shadow: 0 20px 40px rgba(100, 255, 218, 0.2);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        section {
+            padding: 100px 0;
+        }
+
+        .section-title {
+            font-size: 36px;
+            margin-bottom: 50px;
+            text-align: center;
+            color: var(--white);
+        }
+
+        .section-title span {
+            color: var(--secondary-color);
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .about-image {
+            display: flex;
+            justify-content: center;
+        }
+
+        .about-avatar {
+            width: 250px;
+            height: 250px;
+            background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 120px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .about-text p {
+            font-size: 18px;
+            color: var(--text-light);
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .skill-card {
+            background-color: var(--accent-color);
+            padding: 30px;
+            border-radius: 15px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .skill-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(100, 255, 218, 0.1);
+        }
+
+        .skill-icon {
+            font-size: 50px;
+            margin-bottom: 20px;
+        }
+
+        .skill-card h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: var(--white);
+        }
+
+        .skill-card p {
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .interests-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+
+        .interest-item {
+            background-color: var(--accent-color);
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .interest-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(100, 255, 218, 0.1);
+        }
+
+        .interest-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .interest-item h4 {
+            font-size: 18px;
+            color: var(--white);
+            margin-bottom: 10px;
+        }
+
+        .interest-item p {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .dream-section {
+            background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+            border-radius: 20px;
+            padding: 60px;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .dream-icon {
+            font-size: 80px;
+            margin-bottom: 30px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .dream-section h3 {
+            font-size: 32px;
+            color: var(--white);
+            margin-bottom: 20px;
+        }
+
+        .dream-section p {
+            font-size: 20px;
+            color: var(--text-light);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .game-wrapper {
+            background-color: var(--accent-color);
+            border-radius: 20px;
+            padding: 30px;
+        }
+
+        .game-wrapper h3 {
+            text-align: center;
+            color: var(--white);
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .game-container {
+            background-color: var(--primary-color);
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 20px;
+        }
+
+        .game-info-item {
+            text-align: center;
+        }
+
+        .game-info-item h4 {
+            font-size: 16px;
+            color: var(--white);
+            margin-bottom: 5px;
+        }
+
+        .game-info-item span {
+            font-size: 24px;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            max-width: 400px;
+            margin: 0 auto 20px;
+        }
+
+        .hole {
+            width: 100px;
+            height: 100px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .hole:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(100, 255, 218, 0.3);
+        }
+
+        .mole {
+            width: 70px;
+            height: 70px;
+            position: absolute;
+            bottom: -70px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 45px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: bottom 0.2s ease;
+        }
+
+        .mole.show {
+            bottom: 10px;
+        }
+
+        .game-controls {
+            text-align: center;
+        }
+
+        .game-btn {
+            background: linear-gradient(135deg, var(--secondary-color), #45b7d1);
+            color: var(--primary-color);
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(100, 255, 218, 0.3);
+        }
+
+        .game-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(100, 255, 218, 0.4);
+        }
+
+        .game-btn:active {
+            transform: translateY(0);
+        }
+
+        .game-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .memory-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            max-width: 400px;
+            margin: 0 auto 20px;
+            perspective: 1000px;
+        }
+
+        .memory-card {
+            width: 80px;
+            height: 80px;
+            background-color: var(--accent-color);
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            transition: transform 0.6s ease, background-color 0.3s ease;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+
+        .memory-card::before {
+            content: '❓';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--accent-color);
+            border-radius: 10px;
+            backface-visibility: hidden;
+        }
+
+        .memory-card span {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backface-visibility: hidden;
+            transform: rotateY(180deg);
+        }
+
+        .memory-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .memory-card.flipped::before {
+            opacity: 0;
+        }
+
+        .memory-card.flipped span {
+            background-color: var(--secondary-color);
+            border-radius: 10px;
+        }
+
+        .memory-card.matched {
+            animation: matchPulse 0.5s ease;
+        }
+
+        .memory-card.matched span {
+            background-color: #4CAF50;
+        }
+
+        @keyframes matchPulse {
+            0%, 100% { transform: rotateY(180deg) scale(1); }
+            50% { transform: rotateY(180deg) scale(1.1); }
+        }
+
+        .snake-board {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            gap: 2px;
+            max-width: 300px;
+            margin: 0 auto 20px;
+            background-color: var(--accent-color);
+            padding: 5px;
+            border-radius: 10px;
+        }
+
+        .snake-cell {
+            width: 18px;
+            height: 18px;
+            background-color: var(--primary-color);
+            border-radius: 3px;
+        }
+
+        .snake-cell.snake {
+            background-color: var(--secondary-color);
+        }
+
+        .snake-cell.food {
+            background-color: #ff6b6b;
+            border-radius: 50%;
+        }
+
+        .snake-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 200px;
+            margin: 20px auto 0;
+        }
+
+        .snake-btn {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+            border: none;
+            padding: 10px;
+            font-size: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .snake-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .snake-btn:active {
+            transform: scale(0.95);
+        }
+
+        .guestbook-container {
+            background-color: var(--accent-color);
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 50px;
+        }
+
+        .guestbook-form {
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--white);
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            border: 2px solid var(--secondary-color);
+            border-radius: 10px;
+            color: var(--text-color);
+            font-size: 16px;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, var(--secondary-color), #45b7d1);
+            color: var(--primary-color);
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(100, 255, 218, 0.4);
+        }
+
+        .guestbook-messages {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .message-item {
+            background-color: var(--primary-color);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .message-author {
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+
+        .message-date {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .message-content {
+            color: var(--text-color);
+        }
+
+        .utils-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .util-card {
+            background-color: var(--accent-color);
+            border-radius: 20px;
+            padding: 30px;
+        }
+
+        .util-card h3 {
+            text-align: center;
+            color: var(--white);
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .calculator {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .calc-display {
+            grid-column: span 4;
+            background-color: var(--primary-color);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: right;
+            font-size: 24px;
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+            min-height: 60px;
+            word-break: break-all;
+        }
+
+        .calc-btn {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            border: none;
+            padding: 15px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .calc-btn:hover {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+        }
+
+        .calc-btn.operator {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+        }
+
+        .calc-btn.equals {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .todo-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .todo-input input {
+            flex: 1;
+            padding: 12px;
+            background-color: var(--primary-color);
+            border: 2px solid var(--secondary-color);
+            border-radius: 10px;
+            color: var(--text-color);
+            font-size: 16px;
+        }
+
+        .todo-list {
+            list-style: none;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background-color: var(--primary-color);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .todo-item.completed .todo-text {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+
+        .todo-text {
+            flex: 1;
+            color: var(--text-color);
+        }
+
+        .todo-delete {
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .quiz-container {
+            text-align: center;
+        }
+
+        .quiz-question {
+            font-size: 32px;
+            color: var(--white);
+            margin-bottom: 20px;
+        }
+
+        .quiz-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .quiz-option {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            border: 2px solid var(--secondary-color);
+            padding: 15px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quiz-option:hover {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+        }
+
+        .quiz-option.correct {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        .quiz-option.wrong {
+            background-color: #ff6b6b;
+            color: white;
+            border-color: #ff6b6b;
+        }
+
+        .quiz-score {
+            color: var(--secondary-color);
+            font-size: 20px;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .gallery-item {
+            background-color: var(--accent-color);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(100, 255, 218, 0.2);
+        }
+
+        .gallery-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 60px;
+        }
+
+        .gallery-caption {
+            padding: 15px;
+            text-align: center;
+            color: var(--text-color);
+        }
+
+        .music-player {
+            text-align: center;
+        }
+
+        .music-info {
+            margin-bottom: 20px;
+        }
+
+        .music-title {
+            color: var(--white);
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .music-artist {
+            color: var(--text-light);
+        }
+
+        .music-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .music-btn {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .music-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .music-progress {
+            width: 100%;
+            margin-top: 20px;
+            height: 8px;
+            background-color: var(--primary-color);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .music-progress-bar {
+            height: 100%;
+            background-color: var(--secondary-color);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .birthday-section {
+            background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .birthday-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce 1s ease infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .birthday-title {
+            color: var(--white);
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .birthday-countdown {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .countdown-item {
+            background-color: var(--primary-color);
+            padding: 20px;
+            border-radius: 15px;
+            min-width: 80px;
+        }
+
+        .countdown-value {
+            font-size: 36px;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+
+        .countdown-label {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .visitor-counter {
+            display: inline-block;
+            background-color: var(--accent-color);
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .visitor-counter span {
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+
+        footer {
+            background-color: var(--accent-color);
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        .footer-content p {
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+
+        .footer-content a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .about-content {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero-text h1 {
+                font-size: 36px;
+            }
+
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .utils-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    <div class="mouse-trail" id="mouseTrail"></div>
+
+    <header>
+        <nav class="container">
+            <div class="logo">🚀 仰千里</div>
+            <ul class="nav-links">
+                <li><a href="#home">首页</a></li>
+                <li><a href="#about">关于我</a></li>
+                <li><a href="#skills">技能</a></li>
+                <li><a href="#interests">兴趣</a></li>
+                <li><a href="#games">游戏</a></li>
+                <li><a href="#gallery">照片墙</a></li>
+                <li><a href="#guestbook">留言板</a></li>
+                <li><a href="#utils">工具</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section id="home" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text fade-in">
+                    <h2>👋 你好，我是</h2>
+                    <h1>仰千里</h1>
+                    <p>🎒 一个五年级小学生，热爱生活，充满好奇心，对未来充满期待！</p>
+                    <p>📅 2014年出生 | ♐ 射手座</p>
+                    <div class="visitor-counter">
+                        👥 访客数：<span id="visitorCount">0</span>
+                    </div>
+                </div>
+                <div class="hero-image fade-in">
+                    <div class="avatar">👦</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="about">
+        <div class="container">
+            <h2 class="section-title">📖 关于<span>我</span></h2>
+            <div class="about-content">
+                <div class="about-image fade-in">
+                    <div class="about-avatar">🎓</div>
+                </div>
+                <div class="about-text fade-in">
+                    <p>大家好！我是仰千里，一个正在上五年级的小学生。我2014年出生，是一个乐观开朗的射手座男孩。</p>
+                    <p>在学校里，我认真学习，特别喜欢数学，曾经获得过数学奖项。我有一个最好的朋友叫伍俊逸，我们从小学就认识了，已经在一起度过了4年的美好时光。</p>
+                    <p>课余时间，我喜欢打羽毛球、玩游戏和阅读。这些活动让我保持健康、锻炼思维，也让我学到了很多课本以外的知识。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="birthday" class="birthday">
+        <div class="container">
+            <div class="birthday-section fade-in">
+                <div class="birthday-icon">🎂</div>
+                <h3 class="birthday-title">距离我的生日还有</h3>
+                <div class="birthday-countdown">
+                    <div class="countdown-item">
+                        <div class="countdown-value" id="days">0</div>
+                        <div class="countdown-label">天</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-value" id="hours">0</div>
+                        <div class="countdown-label">时</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-value" id="minutes">0</div>
+                        <div class="countdown-label">分</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-value" id="seconds">0</div>
+                        <div class="countdown-label">秒</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="skills" class="skills">
+        <div class="container">
+            <h2 class="section-title">💪 我的<span>技能</span></h2>
+            <div class="skills-grid">
+                <div class="skill-card fade-in">
+                    <div class="skill-icon">🏸</div>
+                    <h3>打羽毛球</h3>
+                    <p>我喜欢打羽毛球，这是一项很好的运动。它让我身体健康，反应敏捷，还能和朋友们一起享受运动的乐趣！</p>
+                </div>
+                <div class="skill-card fade-in">
+                    <div class="skill-icon">🎮</div>
+                    <h3>打游戏</h3>
+                    <p>玩游戏是我的爱好之一。我喜欢策略类游戏，这锻炼了我的思维能力和决策能力。当然，我也会控制游戏时间，不影响学习。</p>
+                </div>
+                <div class="skill-card fade-in">
+                    <div class="skill-icon">📚</div>
+                    <h3>阅读</h3>
+                    <p>阅读是我最大的爱好之一。通过阅读，我了解了很多历史故事和科学知识。我特别喜欢《三国演义》这本书！</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="interests" class="interests">
+        <div class="container">
+            <h2 class="section-title">❤️ 我的<span>兴趣爱好</span></h2>
+            <div class="interests-grid">
+                <div class="interest-item fade-in">
+                    <div class="interest-icon">🎵</div>
+                    <h4>最喜欢的歌</h4>
+                    <p>《坠落》</p>
+                </div>
+                <div class="interest-item fade-in">
+                    <div class="interest-icon">🎬</div>
+                    <h4>最喜欢的电影</h4>
+                    <p>《西游记》</p>
+                </div>
+                <div class="interest-item fade-in">
+                    <div class="interest-icon">📖</div>
+                    <h4>最喜欢的书</h4>
+                    <p>《三国演义》</p>
+                </div>
+                <div class="interest-item fade-in">
+                    <div class="interest-icon">🏆</div>
+                    <h4>荣誉</h4>
+                    <p>数学奖</p>
+                </div>
+                <div class="interest-item fade-in">
+                    <div class="interest-icon">👥</div>
+                    <h4>最好的朋友</h4>
+                    <p>伍俊逸（4年）</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="games" class="games">
+        <div class="container">
+            <h2 class="section-title">🎮 小游戏<span>乐园</span></h2>
+            <div class="games-grid">
+                <div class="game-wrapper fade-in">
+                    <h3>🐹 打地鼠</h3>
+                    <div class="game-container">
+                        <div class="game-header">
+                            <div class="game-info">
+                                <div class="game-info-item">
+                                    <h4>得分</h4>
+                                    <span id="score">0</span>
+                                </div>
+                                <div class="game-info-item">
+                                    <h4>时间</h4>
+                                    <span id="time">30</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="game-board">
+                            <div class="hole" data-hole="0">
+                                <div class="mole">🐹</div>
+                            </div>
+                            <div class="hole" data-hole="1">
+                                <div class="mole">🐹</div>
+                            </div>
+                            <div class="hole" data-hole="2">
+                                <div class="mole">🐹</div>
+                            </div>
+                            <div class="hole" data-hole="3">
+                                <div class="mole">🐹</div>
+                            </div>
+                            <div class="hole" data-hole="4">
+                                <div class="mole">🐹</div>
+                            </div>
+                            <div class="hole" data-hole="5">
+                                <div class="mole">🐹</div>
+                            </div>
+                            <div class="hole" data-hole="6">
+                                <div class="mole">🐹</div>
+                            </div>
+                            <div class="hole" data-hole="7">
+                                <div class="mole">🐹</div>
+                            </div>
+                            <div class="hole" data-hole="8">
+                                <div class="mole">🐹</div>
+                            </div>
+                        </div>
+                        <div class="game-controls">
+                            <button id="startBtn" class="game-btn">开始游戏</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="game-wrapper fade-in">
+                    <h3>🧠 记忆配对</h3>
+                    <div class="game-container">
+                        <div class="game-header">
+                            <div class="game-info">
+                                <div class="game-info-item">
+                                    <h4>配对</h4>
+                                    <span id="memoryPairs">0</span>
+                                </div>
+                                <div class="game-info-item">
+                                    <h4>尝试</h4>
+                                    <span id="memoryAttempts">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="memory-board" id="memoryBoard"></div>
+                        <div class="game-controls">
+                            <button id="memoryStartBtn" class="game-btn">重新开始</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="game-wrapper fade-in">
+                    <h3>🐍 贪吃蛇</h3>
+                    <div class="game-container">
+                        <div class="game-header">
+                            <div class="game-info">
+                                <div class="game-info-item">
+                                    <h4>得分</h4>
+                                    <span id="snakeScore">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="snake-board" id="snakeBoard"></div>
+                        <div class="snake-controls">
+                            <div></div>
+                            <button class="snake-btn" data-direction="up">⬆️</button>
+                            <div></div>
+                            <button class="snake-btn" data-direction="left">⬅️</button>
+                            <button class="snake-btn" data-direction="down">⬇️</button>
+                            <button class="snake-btn" data-direction="right">➡️</button>
+                        </div>
+                        <div class="game-controls" style="margin-top: 20px;">
+                            <button id="snakeStartBtn" class="game-btn">开始游戏</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="gallery" class="gallery">
+        <div class="container">
+            <h2 class="section-title">📸 我的<span>照片墙</span></h2>
+            <div class="gallery-grid fade-in">
+                <div class="gallery-item">
+                    <div class="gallery-image">🏸</div>
+                    <div class="gallery-caption">羽毛球比赛</div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-image">🎓</div>
+                    <div class="gallery-caption">学习时光</div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-image">🏆</div>
+                    <div class="gallery-caption">获奖时刻</div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-image">👥</div>
+                    <div class="gallery-caption">和朋友们</div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-image">🎮</div>
+                    <div class="gallery-caption">游戏时间</div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-image">📚</div>
+                    <div class="gallery-caption">阅读时光</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="music" class="music">
+        <div class="container">
+            <h2 class="section-title">🎵 音乐<span>播放器</span></h2>
+            <div class="game-container fade-in">
+                <div class="music-player">
+                    <div class="music-info">
+                        <h3 class="music-title">坠落</h3>
+                        <p class="music-artist">正在播放...</p>
+                    </div>
+                    <div class="music-controls">
+                        <button class="music-btn" id="prevBtn">⏮️</button>
+                        <button class="music-btn" id="playBtn">▶️</button>
+                        <button class="music-btn" id="nextBtn">⏭️</button>
+                    </div>
+                    <div class="music-progress" id="musicProgress">
+                        <div class="music-progress-bar" id="musicProgressBar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="guestbook" class="guestbook">
+        <div class="container">
+            <h2 class="section-title">📝 留言<span>板</span></h2>
+            <div class="guestbook-container fade-in">
+                <div class="guestbook-form">
+                    <div class="form-group">
+                        <label for="guestName">你的名字：</label>
+                        <input type="text" id="guestName" placeholder="请输入你的名字">
+                    </div>
+                    <div class="form-group">
+                        <label for="guestMessage">留言内容：</label>
+                        <textarea id="guestMessage" placeholder="写下你想说的话..."></textarea>
+                    </div>
+                    <button class="submit-btn" onclick="addMessage()">提交留言</button>
+                </div>
+                <div class="guestbook-messages" id="guestbookMessages">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="utils" class="utils">
+        <div class="container">
+            <h2 class="section-title">🛠️ 实用<span>工具</span></h2>
+            <div class="utils-grid">
+                <div class="util-card fade-in">
+                    <h3>🔢 计算器</h3>
+                    <div class="calculator">
+                        <div class="calc-display" id="calcDisplay">0</div>
+                        <button class="calc-btn" onclick="calcClear()">C</button>
+                        <button class="calc-btn" onclick="calcBackspace()">⌫</button>
+                        <button class="calc-btn" onclick="calcInput('%')">%</button>
+                        <button class="calc-btn operator" onclick="calcInput('/')">÷</button>
+                        <button class="calc-btn" onclick="calcInput('7')">7</button>
+                        <button class="calc-btn" onclick="calcInput('8')">8</button>
+                        <button class="calc-btn" onclick="calcInput('9')">9</button>
+                        <button class="calc-btn operator" onclick="calcInput('*')">×</button>
+                        <button class="calc-btn" onclick="calcInput('4')">4</button>
+                        <button class="calc-btn" onclick="calcInput('5')">5</button>
+                        <button class="calc-btn" onclick="calcInput('6')">6</button>
+                        <button class="calc-btn operator" onclick="calcInput('-')">−</button>
+                        <button class="calc-btn" onclick="calcInput('1')">1</button>
+                        <button class="calc-btn" onclick="calcInput('2')">2</button>
+                        <button class="calc-btn" onclick="calcInput('3')">3</button>
+                        <button class="calc-btn operator" onclick="calcInput('+')">+</button>
+                        <button class="calc-btn" onclick="calcInput('0')">0</button>
+                        <button class="calc-btn" onclick="calcInput('.')">.</button>
+                        <button class="calc-btn equals" onclick="calcEquals()" colspan="2">=</button>
+                    </div>
+                </div>
+
+                <div class="util-card fade-in">
+                    <h3>✅ 待办事项</h3>
+                    <div class="todo-container">
+                        <div class="todo-input">
+                            <input type="text" id="todoInput" placeholder="添加新任务...">
+                            <button class="submit-btn" onclick="addTodo()">添加</button>
+                        </div>
+                        <ul class="todo-list" id="todoList">
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="util-card fade-in">
+                    <h3>🧮 数学小测验</h3>
+                    <div class="quiz-container">
+                        <div class="quiz-question" id="quizQuestion">10 + 5 = ?</div>
+                        <div class="quiz-options" id="quizOptions">
+                            <button class="quiz-option" onclick="checkAnswer(this, 15)">12</button>
+                            <button class="quiz-option" onclick="checkAnswer(this, 15)">15</button>
+                            <button class="quiz-option" onclick="checkAnswer(this, 15)">18</button>
+                            <button class="quiz-option" onclick="checkAnswer(this, 15)">20</button>
+                        </div>
+                        <div class="quiz-score">得分：<span id="quizScore">0</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <p>© 2026 仰千里. 用 ❤️ 制作</p>
+                <p>联系我：<a href="mailto:yangqianli@example.com">yangqianli@example.com</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (window.scrollY > 100) {
+                header.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.3)';
+            } else {
+                header.style.boxShadow = 'none';
+            }
+        });
+
+        const fadeElements = document.querySelectorAll('.fade-in');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+
+        fadeElements.forEach(element => {
+            observer.observe(element);
+        });
+
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 40;
+            const spaceshipCount = 10;
+            const spaceships = ['🚀', '🛸', '🛰️', '👨‍🚀', '🚁'];
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+
+            for (let i = 0; i < spaceshipCount; i++) {
+                const spaceship = document.createElement('div');
+                spaceship.className = 'spaceship';
+                spaceship.textContent = spaceships[Math.floor(Math.random() * spaceships.length)];
+                spaceship.style.left = Math.random() * 100 + '%';
+                spaceship.style.top = Math.random() * 100 + '%';
+                spaceship.style.animationDelay = Math.random() * 20 + 's';
+                spaceship.style.animationDuration = (15 + Math.random() * 15) + 's';
+                spaceship.style.fontSize = (20 + Math.random() * 20) + 'px';
+                spaceship.style.opacity = 0.6 + Math.random() * 0.4;
+                particlesContainer.appendChild(spaceship);
+            }
+        }
+
+        createParticles();
+
+        const mouseTrail = document.getElementById('mouseTrail');
+        let mouseX = 0, mouseY = 0;
+        let trailX = 0, trailY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            mouseTrail.style.opacity = '1';
+        });
+
+        document.addEventListener('mouseleave', () => {
+            mouseTrail.style.opacity = '0';
+        });
+
+        function animateTrail() {
+            trailX += (mouseX - trailX) * 0.1;
+            trailY += (mouseY - trailY) * 0.1;
+            mouseTrail.style.left = trailX - 10 + 'px';
+            mouseTrail.style.top = trailY - 10 + 'px';
+            requestAnimationFrame(animateTrail);
+        }
+
+        animateTrail();
+
+        const explosionEmojis = ['💥', '✨', '⭐', '🌟', '💫', '🎉', '🔥', '⚡'];
+
+        document.addEventListener('click', function(e) {
+            createExplosion(e.clientX, e.clientY);
+        });
+
+        function createExplosion(x, y) {
+            const particleCount = 12;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.style.cssText = `
+                    position: fixed;
+                    left: ${x}px;
+                    top: ${y}px;
+                    width: 10px;
+                    height: 10px;
+                    background: var(--secondary-color);
+                    border-radius: 50%;
+                    box-shadow: 0 0 15px var(--secondary-color), 0 0 30px var(--secondary-color);
+                    pointer-events: none;
+                    z-index: 10000;
+                `;
+                document.body.appendChild(particle);
+
+                const angle = (i / particleCount) * Math.PI * 2;
+                const distance = 80 + Math.random() * 60;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+
+                particle.animate([
+                    { 
+                        transform: 'translate(0, 0) scale(1)',
+                        opacity: 1 
+                    },
+                    { 
+                        transform: `translate(${tx}px, ${ty}px) scale(0)`,
+                        opacity: 0 
+                    }
+                ], {
+                    duration: 600,
+                    easing: 'ease-out',
+                    fill: 'forwards'
+                });
+
+                setTimeout(() => particle.remove(), 700);
+            }
+
+            const emojiCount = 4;
+            for (let i = 0; i < emojiCount; i++) {
+                const emoji = document.createElement('div');
+                emoji.style.cssText = `
+                    position: fixed;
+                    left: ${x}px;
+                    top: ${y}px;
+                    font-size: 32px;
+                    pointer-events: none;
+                    z-index: 10000;
+                `;
+                emoji.textContent = explosionEmojis[Math.floor(Math.random() * explosionEmojis.length)];
+                document.body.appendChild(emoji);
+
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 60 + Math.random() * 80;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance - 50;
+
+                emoji.animate([
+                    { 
+                        transform: 'translate(0, 0) scale(0)',
+                        opacity: 1 
+                    },
+                    { 
+                        transform: `translate(${tx}px, ${ty}px) scale(1.8)`,
+                        opacity: 0 
+                    }
+                ], {
+                    duration: 700,
+                    easing: 'ease-out',
+                    fill: 'forwards'
+                });
+
+                setTimeout(() => emoji.remove(), 800);
+            }
+        }
+
+        let visitorCount = localStorage.getItem('visitorCount') || 0;
+        visitorCount++;
+        localStorage.setItem('visitorCount', visitorCount);
+        document.getElementById('visitorCount').textContent = visitorCount;
+
+        function updateBirthdayCountdown() {
+            const today = new Date();
+            let birthday = new Date(today.getFullYear(), 11, 17);
+            if (today > birthday) {
+                birthday = new Date(today.getFullYear() + 1, 11, 17);
+            }
+            const diff = birthday - today;
+
+            if (diff > 0) {
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                document.getElementById('days').textContent = days;
+                document.getElementById('hours').textContent = hours;
+                document.getElementById('minutes').textContent = minutes;
+                document.getElementById('seconds').textContent = seconds;
+            }
+        }
+
+        updateBirthdayCountdown();
+        setInterval(updateBirthdayCountdown, 1000);
+
+        let score = 0;
+        let timeLeft = 30;
+        let gameInterval = null;
+        let moleInterval = null;
+        let isGameRunning = false;
+
+        const holes = document.querySelectorAll('.hole');
+        const scoreDisplay = document.getElementById('score');
+        const timeDisplay = document.getElementById('time');
+        const startBtn = document.getElementById('startBtn');
+
+        function randomHole() {
+            holes.forEach(hole => {
+                const mole = hole.querySelector('.mole');
+                mole.classList.remove('show');
+            });
+
+            const randomIndex = Math.floor(Math.random() * holes.length);
+            const randomHoleElement = holes[randomIndex];
+            const mole = randomHoleElement.querySelector('.mole');
+            mole.classList.add('show');
+
+            setTimeout(() => {
+                if (isGameRunning) {
+                    mole.classList.remove('show');
+                }
+            }, 800);
+        }
+
+        function whackMole(hole) {
+            const mole = hole.querySelector('.mole');
+            if (mole.classList.contains('show') && isGameRunning) {
+                score++;
+                scoreDisplay.textContent = score;
+                mole.classList.remove('show');
+                
+                hole.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    hole.style.transform = 'scale(1)';
+                }, 100);
+            }
+        }
+
+        holes.forEach(hole => {
+            hole.addEventListener('click', () => whackMole(hole));
+        });
+
+        function startGame() {
+            if (isGameRunning) return;
+
+            score = 0;
+            timeLeft = 30;
+            scoreDisplay.textContent = score;
+            timeDisplay.textContent = timeLeft;
+            isGameRunning = true;
+            startBtn.disabled = true;
+            startBtn.textContent = '游戏中...';
+
+            holes.forEach(hole => {
+                const mole = hole.querySelector('.mole');
+                mole.classList.remove('show');
+            });
+
+            moleInterval = setInterval(randomHole, 1000);
+
+            gameInterval = setInterval(() => {
+                timeLeft--;
+                timeDisplay.textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            isGameRunning = false;
+            clearInterval(gameInterval);
+            clearInterval(moleInterval);
+
+            holes.forEach(hole => {
+                const mole = hole.querySelector('.mole');
+                mole.classList.remove('show');
+            });
+
+            startBtn.disabled = false;
+            startBtn.textContent = '再来一次';
+
+            setTimeout(() => {
+                alert(`游戏结束！你的得分是：${score} 分！`);
+            }, 300);
+        }
+
+        startBtn.addEventListener('click', startGame);
+
+        const memoryCards = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼'];
+        let memoryDeck = [...memoryCards, ...memoryCards];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let memoryAttempts = 0;
+
+        function shuffleMemoryCards() {
+            memoryDeck.sort(() => Math.random() - 0.5);
+        }
+
+        function createMemoryBoard() {
+            const memoryBoard = document.getElementById('memoryBoard');
+            memoryBoard.innerHTML = '';
+            shuffleMemoryCards();
+
+            memoryDeck.forEach((emoji, index) => {
+                const card = document.createElement('div');
+                card.className = 'memory-card';
+                card.dataset.emoji = emoji;
+                card.dataset.index = index;
+                
+                const emojiSpan = document.createElement('span');
+                emojiSpan.textContent = emoji;
+                card.appendChild(emojiSpan);
+                
+                card.addEventListener('click', flipMemoryCard);
+                memoryBoard.appendChild(card);
+            });
+        }
+
+        function flipMemoryCard() {
+            const card = this;
+            if (card.classList.contains('flipped') || card.classList.contains('matched') || flippedCards.length >= 2) return;
+
+            card.classList.add('flipped');
+            flippedCards.push(card);
+
+            if (flippedCards.length === 2) {
+                memoryAttempts++;
+                document.getElementById('memoryAttempts').textContent = memoryAttempts;
+
+                setTimeout(checkMemoryMatch, 500);
+            }
+        }
+
+        function checkMemoryMatch() {
+            const [card1, card2] = flippedCards;
+            if (card1.dataset.emoji === card2.dataset.emoji) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedPairs++;
+                document.getElementById('memoryPairs').textContent = matchedPairs;
+
+                if (matchedPairs === memoryCards.length) {
+                    setTimeout(() => {
+                        alert(`恭喜你！你用了 ${memoryAttempts} 次尝试完成了游戏！`);
+                    }, 500);
+                }
+            } else {
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                }, 500);
+            }
+            setTimeout(() => {
+                flippedCards = [];
+            }, 600);
+        }
+
+        function resetMemoryGame() {
+            flippedCards = [];
+            matchedPairs = 0;
+            memoryAttempts = 0;
+            document.getElementById('memoryPairs').textContent = 0;
+            document.getElementById('memoryAttempts').textContent = 0;
+            createMemoryBoard();
+        }
+
+        createMemoryBoard();
+        document.getElementById('memoryStartBtn').addEventListener('click', resetMemoryGame);
+
+        const snakeBoardSize = 15;
+        let snake = [{x: 7, y: 7}];
+        let snakeFood = {x: 5, y: 5};
+        let snakeDirection = {x: 1, y: 0};
+        let snakeScore = 0;
+        let snakeGameInterval = null;
+        let snakeGameRunning = false;
+
+        function createSnakeBoard() {
+            const snakeBoard = document.getElementById('snakeBoard');
+            snakeBoard.innerHTML = '';
+
+            for (let y = 0; y < snakeBoardSize; y++) {
+                for (let x = 0; x < snakeBoardSize; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'snake-cell';
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+                    snakeBoard.appendChild(cell);
+                }
+            }
+        }
+
+        function updateSnakeBoard() {
+            const cells = document.querySelectorAll('.snake-cell');
+            cells.forEach(cell => {
+                cell.classList.remove('snake', 'food');
+            });
+
+            snake.forEach(segment => {
+                const cell = document.querySelector(`[data-x="${segment.x}"][data-y="${segment.y}"]`);
+                if (cell) cell.classList.add('snake');
+            });
+
+            const foodCell = document.querySelector(`[data-x="${snakeFood.x}"][data-y="${snakeFood.y}"]`);
+            if (foodCell) foodCell.classList.add('food');
+        }
+
+        function moveSnake() {
+            const head = {x: snake[0].x + snakeDirection.x, y: snake[0].y + snakeDirection.y};
+
+            if (head.x < 0 || head.x >= snakeBoardSize || head.y < 0 || head.y >= snakeBoardSize) {
+                endSnakeGame();
+                return;
+            }
+
+            if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+                endSnakeGame();
+                return;
+            }
+
+            snake.unshift(head);
+
+            if (head.x === snakeFood.x && head.y === snakeFood.y) {
+                snakeScore++;
+                document.getElementById('snakeScore').textContent = snakeScore;
+                placeSnakeFood();
+            } else {
+                snake.pop();
+            }
+
+            updateSnakeBoard();
+        }
+
+        function placeSnakeFood() {
+            let newFood;
+            do {
+                newFood = {
+                    x: Math.floor(Math.random() * snakeBoardSize),
+                    y: Math.floor(Math.random() * snakeBoardSize)
+                };
+            } while (snake.some(segment => segment.x === newFood.x && segment.y === newFood.y));
+            snakeFood = newFood;
+        }
+
+        function startSnakeGame() {
+            if (snakeGameRunning) return;
+
+            snake = [{x: 7, y: 7}];
+            snakeDirection = {x: 1, y: 0};
+            snakeScore = 0;
+            document.getElementById('snakeScore').textContent = 0;
+            placeSnakeFood();
+            updateSnakeBoard();
+            snakeGameRunning = true;
+            document.getElementById('snakeStartBtn').disabled = true;
+            document.getElementById('snakeStartBtn').textContent = '游戏中...';
+
+            snakeGameInterval = setInterval(moveSnake, 200);
+        }
+
+        function endSnakeGame() {
+            snakeGameRunning = false;
+            clearInterval(snakeGameInterval);
+            document.getElementById('snakeStartBtn').disabled = false;
+            document.getElementById('snakeStartBtn').textContent = '重新开始';
+            setTimeout(() => {
+                alert(`游戏结束！你的得分是：${snakeScore} 分！`);
+            }, 300);
+        }
+
+        function changeSnakeDirection(direction) {
+            if (!snakeGameRunning) return;
+
+            switch(direction) {
+                case 'up':
+                    if (snakeDirection.y !== 1) snakeDirection = {x: 0, y: -1};
+                    break;
+                case 'down':
+                    if (snakeDirection.y !== -1) snakeDirection = {x: 0, y: 1};
+                    break;
+                case 'left':
+                    if (snakeDirection.x !== 1) snakeDirection = {x: -1, y: 0};
+                    break;
+                case 'right':
+                    if (snakeDirection.x !== -1) snakeDirection = {x: 1, y: 0};
+                    break;
+            }
+        }
+
+        document.querySelectorAll('.snake-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                changeSnakeDirection(btn.dataset.direction);
+            });
+        });
+
+        document.getElementById('snakeStartBtn').addEventListener('click', startSnakeGame);
+        createSnakeBoard();
+
+        let messages = JSON.parse(localStorage.getItem('guestbookMessages') || '[]');
+
+        function addMessage() {
+            const name = document.getElementById('guestName').value.trim();
+            const message = document.getElementById('guestMessage').value.trim();
+
+            if (!name || !message) {
+                alert('请填写名字和留言内容！');
+                return;
+            }
+
+            const newMessage = {
+                name,
+                message,
+                date: new Date().toLocaleString('zh-CN')
+            };
+
+            messages.unshift(newMessage);
+            localStorage.setItem('guestbookMessages', JSON.stringify(messages));
+            renderMessages();
+
+            document.getElementById('guestName').value = '';
+            document.getElementById('guestMessage').value = '';
+        }
+
+        function renderMessages() {
+            const messagesContainer = document.getElementById('guestbookMessages');
+            messagesContainer.innerHTML = '';
+
+            messages.forEach(msg => {
+                const messageElement = document.createElement('div');
+                messageElement.className = 'message-item';
+                messageElement.innerHTML = `
+                    <div class="message-header">
+                        <span class="message-author">${msg.name}</span>
+                        <span class="message-date">${msg.date}</span>
+                    </div>
+                    <div class="message-content">${msg.message}</div>
+                `;
+                messagesContainer.appendChild(messageElement);
+            });
+        }
+
+        renderMessages();
+
+        let calcExpression = '';
+        let calcResult = '';
+
+        function calcInput(value) {
+            if (calcResult !== '') {
+                calcExpression = calcResult;
+                calcResult = '';
+            }
+            if (calcExpression === '0' && value !== '.') {
+                calcExpression = value;
+            } else {
+                calcExpression += value;
+            }
+            document.getElementById('calcDisplay').textContent = calcExpression;
+        }
+
+        function calcClear() {
+            calcExpression = '0';
+            calcResult = '';
+            document.getElementById('calcDisplay').textContent = calcExpression;
+        }
+
+        function calcBackspace() {
+            if (calcExpression.length > 1) {
+                calcExpression = calcExpression.slice(0, -1);
+            } else {
+                calcExpression = '0';
+            }
+            document.getElementById('calcDisplay').textContent = calcExpression;
+        }
+
+        function calcEquals() {
+            try {
+                calcResult = eval(calcExpression).toString();
+                document.getElementById('calcDisplay').textContent = calcResult;
+                calcExpression = '';
+            } catch (e) {
+                document.getElementById('calcDisplay').textContent = 'Error';
+                calcExpression = '0';
+                calcResult = '';
+            }
+        }
+
+        let todos = JSON.parse(localStorage.getItem('todos') || '[]');
+
+        function addTodo() {
+            const input = document.getElementById('todoInput');
+            const text = input.value.trim();
+
+            if (!text) return;
+
+            const newTodo = {
+                id: Date.now(),
+                text,
+                completed: false
+            };
+
+            todos.push(newTodo);
+            localStorage.setItem('todos', JSON.stringify(todos));
+            renderTodos();
+            input.value = '';
+        }
+
+        function toggleTodo(id) {
+            todos = todos.map(todo => 
+                todo.id === id ? {...todo, completed: !todo.completed} : todo
+            );
+            localStorage.setItem('todos', JSON.stringify(todos));
+            renderTodos();
+        }
+
+        function deleteTodo(id) {
+            todos = todos.filter(todo => todo.id !== id);
+            localStorage.setItem('todos', JSON.stringify(todos));
+            renderTodos();
+        }
+
+        function renderTodos() {
+            const todoList = document.getElementById('todoList');
+            todoList.innerHTML = '';
+
+            todos.forEach(todo => {
+                const li = document.createElement('li');
+                li.className = 'todo-item' + (todo.completed ? ' completed' : '');
+                li.innerHTML = `
+                    <input type="checkbox" ${todo.completed ? 'checked' : ''} onchange="toggleTodo(${todo.id})">
+                    <span class="todo-text">${todo.text}</span>
+                    <button class="todo-delete" onclick="deleteTodo(${todo.id})">删除</button>
+                `;
+                todoList.appendChild(li);
+            });
+        }
+
+        renderTodos();
+
+        let quizScore = 0;
+        let currentAnswer = 0;
+
+        function generateQuiz() {
+            const num1 = Math.floor(Math.random() * 20) + 1;
+            const num2 = Math.floor(Math.random() * 20) + 1;
+            const operators = ['+', '-', '×'];
+            const operator = operators[Math.floor(Math.random() * operators.length)];
+
+            let answer;
+            switch(operator) {
+                case '+':
+                    answer = num1 + num2;
+                    break;
+                case '-':
+                    answer = num1 - num2;
+                    break;
+                case '×':
+                    answer = num1 * num2;
+                    break;
+            }
+
+            currentAnswer = answer;
+            document.getElementById('quizQuestion').textContent = `${num1} ${operator} ${num2} = ?`;
+
+            const options = [answer];
+            while (options.length < 4) {
+                const wrongAnswer = answer + Math.floor(Math.random() * 10) - 5;
+                if (!options.includes(wrongAnswer) && wrongAnswer !== answer) {
+                    options.push(wrongAnswer);
+                }
+            }
+
+            options.sort(() => Math.random() - 0.5);
+            const optionsContainer = document.getElementById('quizOptions');
+            optionsContainer.innerHTML = '';
+
+            options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-option';
+                btn.textContent = option;
+                btn.onclick = function() { checkAnswer(this, option); };
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(button, selectedAnswer) {
+            const options = document.querySelectorAll('.quiz-option');
+            
+            options.forEach(opt => {
+                opt.disabled = true;
+                if (parseInt(opt.textContent) === currentAnswer) {
+                    opt.classList.add('correct');
+                }
+            });
+
+            if (selectedAnswer === currentAnswer) {
+                button.classList.add('correct');
+                quizScore++;
+                document.getElementById('quizScore').textContent = quizScore;
+            } else {
+                button.classList.add('wrong');
+            }
+
+            setTimeout(generateQuiz, 1500);
+        }
+
+        generateQuiz();
+
+        let isPlaying = false;
+        let currentTime = 0;
+        let duration = 180;
+        let musicInterval = null;
+
+        function updateMusicProgress() {
+            if (isPlaying && currentTime < duration) {
+                currentTime++;
+                const progress = (currentTime / duration) * 100;
+                document.getElementById('musicProgressBar').style.width = progress + '%';
+            } else if (currentTime >= duration) {
+                isPlaying = false;
+                currentTime = 0;
+                document.getElementById('playBtn').textContent = '▶️';
+                clearInterval(musicInterval);
+            }
+        }
+
+        document.getElementById('playBtn').addEventListener('click', function() {
+            if (isPlaying) {
+                isPlaying = false;
+                this.textContent = '▶️';
+                clearInterval(musicInterval);
+            } else {
+                isPlaying = true;
+                this.textContent = '⏸️';
+                musicInterval = setInterval(updateMusicProgress, 1000);
+            }
+        });
+
+        document.getElementById('prevBtn').addEventListener('click', function() {
+            currentTime = 0;
+            document.getElementById('musicProgressBar').style.width = '0%';
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', function() {
+            currentTime = 0;
+            document.getElementById('musicProgressBar').style.width = '0%';
+            if (!isPlaying) {
+                document.getElementById('playBtn').click();
+            }
+        });
+
+        document.getElementById('musicProgress').addEventListener('click', function(e) {
+            const rect = this.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const progress = clickX / rect.width;
+            currentTime = Math.floor(progress * duration);
+            document.getElementById('musicProgressBar').style.width = (progress * 100) + '%';
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (snakeGameRunning) {
+                switch(e.key) {
+                    case 'ArrowUp':
+                        changeSnakeDirection('up');
+                        e.preventDefault();
+                        break;
+                    case 'ArrowDown':
+                        changeSnakeDirection('down');
+                        e.preventDefault();
+                        break;
+                    case 'ArrowLeft':
+                        changeSnakeDirection('left');
+                        e.preventDefault();
+                        break;
+                    case 'ArrowRight':
+                        changeSnakeDirection('right');
+                        e.preventDefault();
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
