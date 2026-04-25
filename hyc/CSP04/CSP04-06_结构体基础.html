@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C++ 结构体基础</title>
+    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=jetbrains-mono@400,700&display=swap">
+    <style>
+        /* ===========================================
+           CSS CUSTOM PROPERTIES (THEME)
+           Terminal Green - Developer Education Theme
+           =========================================== */
+        :root {
+            /* Colors - Terminal Green Theme */
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent-green: #39d353;
+            --accent-green-dim: #238636;
+            --accent-green-glow: rgba(57, 211, 83, 0.3);
+            --accent-blue: #58a6ff;
+            --accent-yellow: #d29922;
+            --accent-red: #f85149;
+            --accent-purple: #a371f7;
+            --border-color: #30363d;
+
+            /* Typography */
+            --font-mono: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+            --title-size: clamp(1.8rem, 5vw, 3.5rem);
+            --h2-size: clamp(1.3rem, 3vw, 2rem);
+            --h3-size: clamp(1rem, 2vw, 1.5rem);
+            --body-size: clamp(0.8rem, 1.5vw, 1rem);
+            --code-size: clamp(0.7rem, 1.2vw, 0.9rem);
+
+            /* Spacing */
+            --slide-padding: clamp(1.5rem, 4vw, 3rem);
+            --content-gap: clamp(1rem, 2vw, 1.5rem);
+            --element-gap: clamp(0.5rem, 1vw, 1rem);
+
+            /* Animation */
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration-normal: 0.5s;
+            --duration-fast: 0.3s;
+        }
+
+        /* ===========================================
+           BASE STYLES
+           =========================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+            font-family: var(--font-mono);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        /* ===========================================
+           VIEWPORT BASE STYLES
+           =========================================== */
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: var(--bg-primary);
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+            padding: var(--slide-padding);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===========================================
+           TERMINAL AESTHETICS
+           =========================================== */
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-dot.red { background: var(--accent-red); }
+        .terminal-dot.yellow { background: var(--accent-yellow); }
+        .terminal-dot.green { background: var(--accent-green); }
+
+        .terminal-title {
+            margin-left: auto;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .terminal-body {
+            flex: 1;
+            padding: var(--slide-padding);
+            overflow: hidden;
+        }
+
+        /* Scan line effect */
+        .scanlines::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.03) 2px,
+                rgba(0, 0, 0, 0.03) 4px
+            );
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Blinking cursor */
+        .cursor::after {
+            content: "_";
+            animation: blink 1s step-end infinite;
+            color: var(--accent-green);
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        /* ===========================================
+           TYPOGRAPHY
+           =========================================== */
+        h1 {
+            font-size: var(--title-size);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: var(--content-gap);
+        }
+
+        h2 {
+            font-size: var(--h2-size);
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: var(--element-gap);
+            color: var(--accent-green);
+        }
+
+        h3 {
+            font-size: var(--h3-size);
+            font-weight: 700;
+            line-height: 1.4;
+            margin-bottom: var(--element-gap);
+            color: var(--accent-blue);
+        }
+
+        p, li {
+            font-size: var(--body-size);
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        /* ===========================================
+           CODE BLOCKS
+           =========================================== */
+        .code-block {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: var(--element-gap) 0;
+            font-family: var(--font-mono);
+            font-size: var(--code-size);
+            overflow-x: auto;
+        }
+
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .code-comment { color: var(--text-muted); }
+        .code-keyword { color: var(--accent-purple); }
+        .code-type { color: var(--accent-blue); }
+        .code-string { color: var(--accent-green); }
+        .code-number { color: var(--accent-yellow); }
+        .code-function { color: var(--accent-blue); }
+
+        .inline-code {
+            background: var(--bg-tertiary);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: var(--accent-green);
+        }
+
+        /* ===========================================
+           LISTS
+           =========================================== */
+        ul, ol {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        li::before {
+            content: ">";
+            position: absolute;
+            left: 0;
+            color: var(--accent-green);
+        }
+
+        /* ===========================================
+           CARDS & BOXES
+           =========================================== */
+        .info-box {
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--accent-blue);
+            padding: 1rem;
+            margin: var(--element-gap) 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .warning-box {
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--accent-yellow);
+            padding: 1rem;
+            margin: var(--element-gap) 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .tip-box {
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--accent-green);
+            padding: 1rem;
+            margin: var(--element-gap) 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .box-title {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        /* ===========================================
+           GRID LAYOUTS
+           =========================================== */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--content-gap);
+            align-items: start;
+        }
+
+        .three-col {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--content-gap);
+        }
+
+        /* ===========================================
+           SLIDE SPECIFIC STYLES
+           =========================================== */
+        .title-slide {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .title-slide h1 {
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            color: var(--accent-green);
+            text-shadow: 0 0 20px var(--accent-green-glow);
+        }
+
+        .title-slide .subtitle {
+            font-size: var(--h2-size);
+            color: var(--text-secondary);
+            margin-top: 1rem;
+        }
+
+        .section-number {
+            position: absolute;
+            top: var(--slide-padding);
+            right: var(--slide-padding);
+            font-size: var(--h3-size);
+            color: var(--text-muted);
+        }
+
+        .slide-label {
+            display: inline-block;
+            background: var(--accent-green-dim);
+            color: var(--text-primary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-bottom: var(--element-gap);
+        }
+
+        /* ===========================================
+           ANIMATIONS
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition:
+                opacity var(--duration-normal) var(--ease-out-expo),
+                transform var(--duration-normal) var(--ease-out-expo);
+        }
+
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal:nth-child(1) { transition-delay: 0.1s; }
+        .reveal:nth-child(2) { transition-delay: 0.2s; }
+        .reveal:nth-child(3) { transition-delay: 0.3s; }
+        .reveal:nth-child(4) { transition-delay: 0.4s; }
+        .reveal:nth-child(5) { transition-delay: 0.5s; }
+
+        /* ===========================================
+           PROGRESS BAR
+           =========================================== */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: var(--accent-green);
+            z-index: 1000;
+            transition: width 0.3s ease;
+        }
+
+        /* ===========================================
+           NAVIGATION DOTS
+           =========================================== */
+        .nav-dots {
+            position: fixed;
+            right: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 1000;
+        }
+
+        .nav-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-dot.active {
+            background: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green-glow);
+        }
+
+        /* ===========================================
+           KEYBOARD HINT
+           =========================================== */
+        .keyboard-hint {
+            position: fixed;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            z-index: 1000;
+        }
+
+        /* ===========================================
+           EXAMPLE OUTPUT
+           =========================================== */
+        .example-output {
+            background: var(--bg-tertiary);
+            border: 1px dashed var(--border-color);
+            padding: 1rem;
+            margin-top: var(--element-gap);
+            border-radius: 8px;
+        }
+
+        .example-output::before {
+            content: "// 输出";
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* ===========================================
+           QUIZ STYLES
+           =========================================== */
+        .quiz-option {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            margin: 0.5rem 0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quiz-option:hover {
+            border-color: var(--accent-green);
+            background: var(--bg-tertiary);
+        }
+
+        .quiz-option.correct {
+            border-color: var(--accent-green);
+            background: rgba(57, 211, 83, 0.1);
+        }
+
+        /* ===========================================
+           ANSWER REVEAL STYLES
+           =========================================== */
+        .answer-container {
+            margin-top: var(--element-gap);
+        }
+
+        .answer-toggle {
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: var(--font-mono);
+            font-size: var(--body-size);
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .answer-toggle:hover {
+            background: var(--accent-green);
+            color: var(--bg-primary);
+        }
+
+        .answer-toggle::before {
+            content: "▶";
+            font-size: 0.7rem;
+            transition: transform 0.3s ease;
+        }
+
+        .answer-toggle.revealed::before {
+            transform: rotate(90deg);
+        }
+
+        .answer-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .answer-content.revealed {
+            max-height: 1000px;
+            opacity: 1;
+            margin-top: var(--element-gap);
+        }
+
+        /* ===========================================
+           RESPONSIVE
+           =========================================== */
+        @media (max-width: 768px) {
+            .two-col, .three-col {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-dots {
+                display: none;
+            }
+        }
+
+        @media (max-height: 600px) {
+            .terminal-header {
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .keyboard-hint {
+                display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Navigation Dots -->
+    <nav class="nav-dots" id="navDots"></nav>
+
+    <!-- Keyboard Hint -->
+    <div class="keyboard-hint">使用 ↑ ↓ 或滚轮切换幻灯片</div>
+
+    <!-- Slide 1: Title -->
+    <section class="slide scanlines title-slide">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">CSP04-06.cpp</span>
+        </div>
+        <div class="slide-content">
+            <h1 class="reveal cursor">struct 结构体基础</h1>
+            <p class="subtitle reveal">C++ 自定义数据类型入门</p>
+            <p class="reveal" style="margin-top: 2rem; color: var(--text-muted);">GESP 四级 · 竞赛编程</p>
+        </div>
+    </section>
+
+    <!-- Slide 2: Course Objectives -->
+    <section class="slide scanlines">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">课程目标</span>
+        </div>
+        <div class="slide-content">
+            <span class="section-number">01</span>
+            <span class="slide-label reveal">OBJECTIVES</span>
+            <h2 class="reveal">本节课学习目标</h2>
+            <ul class="reveal">
+                <li>理解<strong>结构体的作用</strong>：将多种类型数据组合成一个自定义类型</li>
+                <li>掌握<strong>结构体的定义</strong>、变量声明、成员访问（<span class="inline-code">.</span> 运算符）</li>
+                <li>理解<strong>内存对齐原则</strong>，学会计算结构体空间大小</li>
+                <li>掌握<strong>结构体数组</strong>的定义与遍历，配合 sort 进行排序</li>
+            </ul>
+            <div class="tip-box reveal">
+                <div class="box-title">核心知识点</div>
+                <p><span class="inline-code">struct</span> 定义 · <span class="inline-code">.</span> 访问 · <span class="inline-code">sizeof</span> 计算 · <span class="inline-code">sort</span> + <span class="inline-code">cmp</span></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 3: Knowledge Review -->
+    <section class="slide scanlines">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">知识回顾</span>
+        </div>
+        <div class="slide-content">
+            <span class="section-number">02</span>
+            <span class="slide-label reveal">REVIEW</span>
+            <h2 class="reveal">从数组到结构体</h2>
+            <div class="two-col">
+                <div class="reveal">
+                    <h3>问题场景</h3>
+                    <p>管理班级学生信息，每个学生有：</p>
+                    <ul>
+                        <li>名字 (string)</li>
+                        <li>学号 (int)</li>
+                        <li>成绩 (int)</li>
+                    </ul>
+                    <div class="code-block">
+                        <pre><span class="code-comment">// 传统方式：三个数组</span>
+<span class="code-type">string</span> name[<span class="code-number">105</span>];
+<span class="code-type">int</span> id[<span class="code-number">105</span>];
+<span class="code-type">int</span> score[<span class="code-number">105</span>];</pre>
+                    </div>
+                </div>
+                <div class="reveal">
+                    <h3>痛点</h3>
+                    <p>操作分散，容易出错：</p>
+                    <ul>
+                        <li>移动第3个学生</li>
+                        <li>需要同时修改3个数组</li>
+                        <li>逻辑关联性弱</li>
+                    </ul>
+                    <div class="warning-box">
+                        <div class="box-title">有没有更好的方法？</div>
+                        <p>把所有信息<strong>"打包"</strong>在一起！</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 4: What is Struct -->
+    <section class="slide scanlines">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">概念引入</span>
+        </div>
+        <div class="slide-content">
+            <span class="section-number">03</span>
+            <span class="slide-label reveal">CONCEPT</span>
+            <h2 class="reveal">什么是结构体？</h2>
+            <div class="two-col">
+                <div class="reveal">
+                    <h3>生活比喻：档案袋</h3>
+                    <p>每个学生有一个档案袋，里面装了：</p>
+                    <ul>
+                        <li>学号 (int)</li>
+                        <li>姓名 (string)</li>
+                        <li>成绩 (int)</li>
+                        <li>身高 (double)</li>
+                    </ul>
+                    <div class="tip-box">
+                        <div class="box-title">结构体 = 档案袋</div>
+                        <p>通过档案袋 + 隔层(.)找到具体信息</p>
+                    </div>
+                </div>
+                <div class="reveal">
+                    <div class="code-block">
+                        <pre><span class="code-keyword">struct</span> <span class="code-type">Student</span> {
+    <span class="code-type">int</span> id;           <span class="code-comment">// 学号</span>
+    <span class="code-type">string</span> name;    <span class="code-comment">// 姓名</span>
+    <span class="code-type">int</span> score;      <span class="code-comment">// 成绩</span>
+};
+
+<span class="code-type">Student</span> stu;      <span class="code-comment">// 创建一个档案袋</span>
+stu.id = <span class="code-number">1</span>;      <span class="code-comment">// 填学号</span>
+stu.name = <span class="code-string">"小明"</span>; <span class="code-comment">// 填姓名</span></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 5: Struct Definition -->
+    <section class="slide scanlines">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">语法详解</span>
+        </div>
+        <div class="slide-content">
+            <span class="section-number">04</span>
+            <span class="slide-label reveal">SYNTAX</span>
+            <h2 class="reveal">结构体的定义</h2>
+            <div class="code-block reveal">
+                <pre><span class="code-keyword">struct</span> <span class="code-type">结构体名</span> {
+    类型1 成员名1;
+    类型2 成员名2;
+    <span class="code-comment">// ...</span>
+};   <span class="code-comment">// 注意：结尾有分号！</span></pre>
+            </div>
+            <div class="code-block reveal">
+                <pre><span class="code-keyword">struct</span> <span class="code-type">Student</span> {
+    <span class="code-type">int</span> id;          <span class="code-comment">// 学号</span>
+    <span class="code-type">string</span> name;     <span class="code-comment">// 姓名</span>
+    <span class="code-type">int</span> score;       <span class="code-comment">// 分数</span>
+    <span class="code-type">double</span> height;   <span class="code-comment">// 身高</span>
+};</pre>
+            </div>
+            <div class="warning-box reveal">
+                <div class="box-title">⚠️ 重要提醒</div>
+                <p>结构体定义结尾的 <span class="inline-code">}</span> 后面<strong>必须有分号</strong> <span class="inline-code">;</span>，这是 C++ 语法规定！</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 6: Variable & Member Access -->
+    <section class="slide scanlines">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">变量与访问</span>
+        </div>
+        <div class="slide-content">
+            <span class="section-number">05</span>
+            <span class="slide-label reveal">USAGE</span>
+            <h2 class="reveal">变量定义与成员访问</h2>
+            <div class="two-col">
+                <div class="reveal">
+                    <h3>定义变量</h3>
+                    <div class="code-block">
+                        <pre><span class="code-type">Student</span> stu1;        <span class="code-comment">// 定义变量</span>
+<span class="code-keyword">struct</span> <span class="code-type">Student</span> stu2; <span class="code-comment">// C风格（也支持）</span></pre>
+                    </div>
+                    <h3>访问成员（. 运算符）</h3>
+                    <div class="code-block">
+                        <pre>stu1.id = <span class="code-number">1001</span>;
+stu1.name = <span class="code-string">"小明"</span>;
+stu1.score = <span class="code-number">95</span>;
+
+cout << stu1.name << <span class="code-string">": "</span> 
+     << stu1.score << endl;</pre>
+                    </div>
+                </div>
+                <div class="reveal">
+                    <h3>整体赋值</h3>
+                    <div class="code-block">
+                        <pre><span class="code-type">Student</span> stu2 = stu1;
+<span class="code-comment">// 整体复制，完全独立</span>
+
+stu2.name = <span class="code-string">"小红"</span>;
+<span class="code-comment">// 修改 stu2 不影响 stu1</span></pre>
+                    </div>
+                    <div class="tip-box">
+                        <div class="box-title">💡 要点</div>
+                        <p>结构体变量可以<strong>整体赋值</strong>，两个变量完全独立，互不影响。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 7: Initialization -->
+    <section class="slide scanlines">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">初始化</span>
+        </div>
+        <div class="slide-content">
+            <span class="section-number">06</span>
+            <span class="slide-label reveal">INIT</span>
+            <h2 class="reveal">结构体的初始化</h2>
+            <div class="three-col">
+                <div class="reveal">
+                    <h3>方式一</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">按顺序（最常用）</p>
+                    <div class="code-block">
+                        <pre><span class="code-type">Student</span> stu = {
+    <span class="code-number">1001</span>, 
+    <span class="code-string">"小明"</span>, 
+    <span class="code-number">95</span>, 
+    <span class="code-number">170.5</span>
+};</pre>
+                    </div>
+                </div>
+                <div class="reveal">
+                    <h3>方式二</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">指定成员（C++11）</p>
+                    <div class="code-block">
+                        <pre><span class="code-type">Student</span> stu = {
+    .id = <span class="code-number">1001</span>,
+    .name = <span class="code-string">"小明"</span>,
+    .score = <span class="code-number">95</span>
+};</pre>
+                    </div>
+                </div>
+                <div class="reveal">
+                    <h3>方式三</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">先定义再赋值</p>
+                    <div class="code-block">
+                        <pre><span class="code-type">Student</span> stu;
+stu.id = <span class="code-number">1001</span>;
+stu.name = <span class="code-string">"小明"</span>;
+stu.score = <span class="code-number">95</span>;</pre>
+                    </div>
+                </div>
+            </div>
+            <div class="tip-box reveal" style="margin-top: 1rem;">
+                <div class="box-title">💡 竞赛建议</div>
+                <p>竞赛中最常用<strong>方式一</strong>，简洁高效！</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 8: Memory Alignment -->
+    <section class="slide scanlines">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">内存对齐</span>
+        </div>
+        <div class="slide-content">
+            <span class="section-number">07</span>
+            <span class="slide-label reveal">MEMORY</span>
+            <h2 class="reveal">结构体的空间计算</h2>
+            <div class="two-col">
+                <div class="reveal">
+                    <h3>内存对齐原则</h3>
+                    <ul>
+                        <li>每个成员按自身类型大小对齐</li>
+                        <li>结构体总大小是最大成员的整数倍</li>
+                    </ul>
+                    <div class="code-block">
+                        <pre><span class="code-keyword">struct</span> <span class="code-type">A</span> {
+    <span class="code-type">char</span> a;     <span class="code-comment">// 1字节</span>
+    <span class="code-type">int</span> b;      <span class="code-comment">// 4字节</span>
+    <span class="code-type">double</span> c; <span class="code-comment">// 8字节</span>
+};
+
+<span class="code-comment">// sizeof(A) = ?</span></pre>
+                    </div>
+                </div>
+                <div class="reveal">
+                    <h3>内存布局分析</h3>
+                    <div class="code-block">
+                        <pre>地址 0:  char a    [1字节]
+地址 1-3: 填充     [3字节]
+地址 4-7: int b    [4字节]
+地址 8-15: double c [8字节]
+
+总计: 16字节</pre>
+                    </div>
+                    <div class="example-output">
+                        <span class="code-type">cout</span> << <span class="code-keyword">sizeof</span>(A); <span class="code-comment">// 输出 16</span>
+                    </div>
+                    <div class="info-box">
+                        <div class="box-title">注意</div>
+                        <p>不是 1+4+8=13，而是<strong>16字节</strong>（内存对齐）</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 9: Struct Array -->
+    <section class="slide scanlines">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">结构体数组</span>
+        </div>
+        <div class="slide-content">
+            <span class="section-number">08</span>
+            <span class="slide-label reveal">ARRAY</span>
+            <h2 class="reveal">结构体数组</h2>
+            <div class="two-col">
+                <div class="reveal">
+                    <h3>定义与使用</h3>
+                    <div class="code-block">
+                        <pre><span class="code-type">Student</span> stu[<span class="code-number">105</span>];
+<span class="code-comment">// 定义105个Student</span>
+
+<span class="code-comment">// 赋值</span>
+<span class="code-keyword">for</span> (<span class="code-type">int</span> i = <span class="code-number">1</span>; i <= n; i++) {
+    cin >> stu[i].id 
+       >> stu[i].name 
+       >> stu[i].score;
+}
+
+<span class="code-comment">// 遍历输出</span>
+<span class="code-keyword">for</span> (<span class="code-type">int</span> i = <span class="code-number">1</span>; i <= n; i++) {
+    cout << stu[i].name 
+         << <span class="code-string">" "</span> 
+         << stu[i].score << endl;
+}</pre>
+                    </div>
+                </div>
+                <div class="reveal">
+                    <h3>要点</h3>
+                    <ul>
+                        <li>结构体和 int 一样，可以定义数组</li>
+                        <li>全局定义自动初始化为默认值</li>
+                        <li>数值型为 0，string 为 ""</li>
+                    </ul>
+                    <div class="tip-box">
+                        <div class="box-title">💡 技巧</div>
+                        <p>竞赛中常开 <span class="inline-code">[105]</span> 或 <span class="inline-code">[1005]</span>，根据题目范围决定</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 10: Sort with cmp -->
+    <section class="slide scanlines">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">排序</span>
+        </div>
+        <div class="slide-content">
+            <span class="section-number">09</span>
+            <span class="slide-label reveal">SORT</span>
+            <h2 class="reveal">结构体数组的 sort 排序</h2>
+            <div class="two-col">
+                <div class="reveal">
+                    <h3>自定义 cmp 函数</h3>
+                    <div class="code-block">
+                        <pre><span class="code-comment">// 按成绩降序</span>
+<span class="code-type">bool</span> <span class="code-function">cmp</span>(<span class="code-type">Student</span> a, <span class="code-type">Student</span> b) {
+    <span class="code-keyword">return</span> a.score > b.score;
+}
+
+sort(stu + <span class="code-number">1</span>, stu + n + <span class="code-number">1</span>, cmp);</pre>
+                    </div>
+                    <div class="info-box">
+                        <div class="box-title">cmp 返回值含义</div>
+                        <p><span class="inline-code">return a > b;</span> 表示 a 应该排在 b 前面（降序）</p>
+                    </div>
+                </div>
+                <div class="reveal">
+                    <h3>多关键字排序</h3>
+                    <div class="code-block">
+                        <pre><span class="code-comment">// 成绩降序，成绩相同按学号升序</span>
+<span class="code-type">bool</span> <span class="code-function">cmp</span>(<span class="code-type">Student</span> a, <span class="code-type">Student</span> b) {
+    <span class="code-keyword">if</span> (a.score != b.score) 
+        <span class="code-keyword">return</span> a.score > b.score;
+    <span class="code-keyword">return</span> a.id < b.id;
+}</pre>
+                    </div>
+                    <div class="tip-box">
+                        <div class="box-title">💡 记忆口诀</div>
+                        <p>先比主要关键字，相等再比次要关键字</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 11: Complete Example -->
+    <section class="slide scanlines">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">完整示例</span>
+        </div>
+        <div class="slide-content">
+            <span class="section-number">10</span>
+            <span class="slide-label reveal">EXAMPLE</span>
+            <h2 class="reveal">完整代码示例</h2>
+            <div class="code-block reveal">
+                <pre><span class="code-keyword">#include</span> <span class="code-string">&lt;iostream&gt;</span>
+<span class="code-keyword">#include</span> <span class="code-string">&lt;algorithm&gt;</span>
+<span class="code-keyword">#include</span> <span class="code-string">&lt;string&gt;</span>
+<span class="code-keyword">using namespace</span> std;
+
+<span class="code-keyword">struct</span> <span class="code-type">Student</span> {
+    <span class="code-type">int</span> id;
+    <span class="code-type">string</span> name;
+    <span class="code-type">int</span> score;
+} stu[<span class="code-number">105</span>];
+
+<span class="code-type">bool</span> <span class="code-function">cmp</span>(<span class="code-type">Student</span> a, <span class="code-type">Student</span> b) {
+    <span class="code-keyword">if</span> (a.score != b.score) <span class="code-keyword">return</span> a.score > b.score;
+    <span class="code-keyword">return</span> a.id < b.id;
+}
+
+<span class="code-type">int</span> <span class="code-function">main</span>() {
+    <span class="code-type">int</span> n; cin >> n;
+    <span class="code-keyword">for</span> (<span class="code-type">int</span> i = <span class="code-number">1</span>; i <= n; i++)
+        cin >> stu[i].id >> stu[i].name >> stu[i].score;
+    sort(stu + <span class="code-number">1</span>, stu + n + <span class="code-number">1</span>, cmp);
+    <span class="code-keyword">for</span> (<span class="code-type">int</span> i = <span class="code-number">1</span>; i <= n; i++)
+        cout << stu[i].id << <span class="code-string">" "</span> << stu[i].name << <span class="code-string">" "</span> << stu[i].score << endl;
+    <span class="code-keyword">return</span> <span class="code-number">0</span>;
+}</pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 12: GESP Quiz 1 -->
+    <section class="slide scanlines">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">GESP 真题</span>
+        </div>
+        <div class="slide-content">
+            <span class="section-number">11</span>
+            <span class="slide-label reveal">QUIZ</span>
+            <h2 class="reveal">抢答题 1</h2>
+            <div class="info-box reveal">
+                <p>结构体定义语法正确的是（ ）</p>
+            </div>
+            <div class="reveal">
+                <div class="quiz-option">A. <span class="inline-code">struct S { int a; int b; }</span></div>
+                <div class="quiz-option">B. <span class="inline-code">struct S { int a; int b; };</span></div>
+                <div class="quiz-option">C. <span class="inline-code">struct { int a; int b; } S;</span></div>
+                <div class="quiz-option">D. <span class="inline-code">S struct { int a; int b; };</span></div>
+            </div>
+            <div class="answer-container reveal">
+                <button class="answer-toggle" onclick="toggleAnswer(this)">查看答案解析</button>
+                <div class="answer-content">
+                    <div class="tip-box">
+                        <div class="box-title">解析</div>
+                        <p>答案：<strong>B</strong>。结构体定义结尾的 <span class="inline-code">}</span> 后必须有分号 <span class="inline-code">;</span>。A 缺分号；C 是匿名结构体；D 语法错误。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 13: GESP Quiz 2 -->
+    <section class="slide scanlines">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">GESP 真题</span>
+        </div>
+        <div class="slide-content">
+            <span class="section-number">12</span>
+            <span class="slide-label reveal">QUIZ</span>
+            <h2 class="reveal">判断题 2</h2>
+            <div class="info-box reveal">
+                <p>结构体变量的 <span class="inline-code">.</span> 运算符用于访问结构体的成员。（ ）</p>
+            </div>
+            <div class="two-col reveal" style="margin-top: 2rem;">
+                <div class="quiz-option" style="text-align: center; font-size: 1.5rem;">✓ 正确</div>
+                <div class="quiz-option" style="text-align: center; font-size: 1.5rem;">✗ 错误</div>
+            </div>
+            <div class="answer-container reveal">
+                <button class="answer-toggle" onclick="toggleAnswer(this)">查看答案解析</button>
+                <div class="answer-content">
+                    <div class="tip-box">
+                        <div class="box-title">解析</div>
+                        <p>答案：<strong>✓ 正确</strong>。通过 <span class="inline-code">变量名.成员名</span> 访问结构体中的具体成员，这是 <span class="inline-code">.</span> 运算符的标准用法。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 14: GESP Quiz 3 -->
+    <section class="slide scanlines">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">GESP 真题</span>
+        </div>
+        <div class="slide-content">
+            <span class="section-number">13</span>
+            <span class="slide-label reveal">QUIZ</span>
+            <h2 class="reveal">抢答题 3</h2>
+            <div class="info-box reveal">
+                <p>以下关于结构体排序的说法，正确的是（ ）</p>
+            </div>
+            <div class="reveal">
+                <div class="quiz-option">A. 结构体数组不能用 sort 排序</div>
+                <div class="quiz-option">B. sort 对结构体排序时必须提供自定义 cmp 函数</div>
+                <div class="quiz-option">C. 结构体的整体大小一定等于所有成员大小之和</div>
+                <div class="quiz-option">D. 同一个结构体变量可以整体赋值给另一个同类型变量</div>
+            </div>
+            <div class="answer-container reveal">
+                <button class="answer-toggle" onclick="toggleAnswer(this)">查看答案解析</button>
+                <div class="answer-content">
+                    <div class="tip-box">
+                        <div class="box-title">解析</div>
+                        <p>答案：<strong>D</strong>。A 错，可以 sort；B 错，也可重载 <span class="inline-code">operator&lt;</span>；C 错，内存对齐可能使大小更大；D 正确。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 15: Practice 1 -->
+    <section class="slide scanlines">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">课堂练习</span>
+        </div>
+        <div class="slide-content">
+            <span class="section-number">14</span>
+            <span class="slide-label reveal">PRACTICE</span>
+            <h2 class="reveal">练习 1：学生信息录入</h2>
+            <div class="two-col">
+                <div class="reveal">
+                    <h3>题目描述</h3>
+                    <p>输入 n 个学生的学号和成绩，原样输出。</p>
+                    <div class="info-box">
+                        <div class="box-title">输入格式</div>
+                        <p>第一行整数 n，接下来 n 行：学号 成绩</p>
+                    </div>
+                    <div class="example-output">
+                        样例：3 / 1001 85 / 1002 92 / 1003 78
+                    </div>
+                </div>
+                <div class="reveal">
+                    <div class="answer-container">
+                        <button class="answer-toggle" onclick="toggleAnswer(this)">查看参考答案</button>
+                        <div class="answer-content">
+                            <div class="code-block">
+                                <pre><span class="code-keyword">#include</span> <span class="code-string">&lt;iostream&gt;</span>
+<span class="code-keyword">using namespace</span> std;
+
+<span class="code-keyword">struct</span> <span class="code-type">Student</span> {
+    <span class="code-type">int</span> id, score;
+} stu[<span class="code-number">105</span>];
+
+<span class="code-type">int</span> <span class="code-function">main</span>() {
+    <span class="code-type">int</span> n;
+    cin >> n;
+    <span class="code-keyword">for</span> (<span class="code-type">int</span> i = <span class="code-number">1</span>; i <= n; i++) 
+        cin >> stu[i].id >> stu[i].score;
+    <span class="code-keyword">for</span> (<span class="code-type">int</span> i = <span class="code-number">1</span>; i <= n; i++)
+        cout << stu[i].id << <span class="code-string">" "</span> 
+             << stu[i].score << endl;
+    <span class="code-keyword">return</span> <span class="code-number">0</span>;
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 16: Practice 2 -->
+    <section class="slide scanlines">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">课堂练习</span>
+        </div>
+        <div class="slide-content">
+            <span class="section-number">15</span>
+            <span class="slide-label reveal">PRACTICE</span>
+            <h2 class="reveal">练习 2：按成绩排序</h2>
+            <div class="two-col">
+                <div class="reveal">
+                    <h3>题目描述</h3>
+                    <p>输入 n 个学生的姓名和成绩，按成绩从高到低排序后输出。</p>
+                    <div class="example-output">
+                        输入：3 / Alice 85 / Bob 92 / Carol 78<br>
+                        输出：Bob 92 / Alice 85 / Carol 78
+                    </div>
+                </div>
+                <div class="reveal">
+                    <div class="answer-container">
+                        <button class="answer-toggle" onclick="toggleAnswer(this)">查看参考答案</button>
+                        <div class="answer-content">
+                            <div class="code-block">
+                                <pre><span class="code-keyword">#include</span> <span class="code-string">&lt;iostream&gt;</span>
+<span class="code-keyword">#include</span> <span class="code-string">&lt;algorithm&gt;</span>
+<span class="code-keyword">#include</span> <span class="code-string">&lt;string&gt;</span>
+<span class="code-keyword">using namespace</span> std;
+
+<span class="code-keyword">struct</span> <span class="code-type">Student</span> { 
+    <span class="code-type">string</span> name; 
+    <span class="code-type">int</span> score; 
+} stu[<span class="code-number">105</span>];
+
+<span class="code-type">bool</span> <span class="code-function">cmp</span>(<span class="code-type">Student</span> a, <span class="code-type">Student</span> b) { 
+    <span class="code-keyword">return</span> a.score > b.score; 
+}
+
+<span class="code-type">int</span> <span class="code-function">main</span>() {
+    <span class="code-type">int</span> n; cin >> n;
+    <span class="code-keyword">for</span> (<span class="code-type">int</span> i = <span class="code-number">1</span>; i <= n; i++) 
+        cin >> stu[i].name >> stu[i].score;
+    sort(stu + <span class="code-number">1</span>, stu + n + <span class="code-number">1</span>, cmp);
+    <span class="code-keyword">for</span> (<span class="code-type">int</span> i = <span class="code-number">1</span>; i <= n; i++)
+        cout << stu[i].name << <span class="code-string">" "</span> 
+             << stu[i].score << endl;
+    <span class="code-keyword">return</span> <span class="code-number">0</span>;
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 17: Practice 3 -->
+    <section class="slide scanlines">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">课堂练习</span>
+        </div>
+        <div class="slide-content">
+            <span class="section-number">16</span>
+            <span class="slide-label reveal">PRACTICE</span>
+            <h2 class="reveal">练习 3：坐标排序</h2>
+            <div class="two-col">
+                <div class="reveal">
+                    <h3>题目描述</h3>
+                    <p>输入 n 个点的坐标 (x, y)，先按 x 升序排，x 相同按 y 升序排。</p>
+                    <div class="example-output">
+                        输入：4 / 3 2 / 1 5 / 3 1 / 1 3<br>
+                        输出：1 3 / 1 5 / 3 1 / 3 2
+                    </div>
+                    <div class="tip-box">
+                        <div class="box-title">多关键字排序</div>
+                        <p>先比 x，相等再比 y</p>
+                    </div>
+                </div>
+                <div class="reveal">
+                    <div class="answer-container">
+                        <button class="answer-toggle" onclick="toggleAnswer(this)">查看参考答案</button>
+                        <div class="answer-content">
+                            <div class="code-block">
+                                <pre><span class="code-keyword">struct</span> <span class="code-type">Point</span> { 
+    <span class="code-type">int</span> x, y; 
+} pts[<span class="code-number">105</span>];
+
+<span class="code-type">bool</span> <span class="code-function">cmp</span>(<span class="code-type">Point</span> a, <span class="code-type">Point</span> b) {
+    <span class="code-keyword">if</span> (a.x != b.x) <span class="code-keyword">return</span> a.x < b.x;
+    <span class="code-keyword">return</span> a.y < b.y;
+}
+
+<span class="code-comment">// main 函数与前面类似...</span></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 18: Practice 4 -->
+    <section class="slide scanlines">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">课堂练习</span>
+        </div>
+        <div class="slide-content">
+            <span class="section-number">17</span>
+            <span class="slide-label reveal">PRACTICE</span>
+            <h2 class="reveal">练习 4：日期排序</h2>
+            <div class="two-col">
+                <div class="reveal">
+                    <h3>题目描述</h3>
+                    <p>输入 n 个日期（年、月、日），按时间先后顺序排序。</p>
+                    <div class="example-output">
+                        输入：3 / 2024 3 15 / 2023 12 1 / 2024 3 5<br>
+                        输出：2023 12 1 / 2024 3 5 / 2024 3 15
+                    </div>
+                </div>
+                <div class="reveal">
+                    <div class="answer-container">
+                        <button class="answer-toggle" onclick="toggleAnswer(this)">查看参考答案</button>
+                        <div class="answer-content">
+                            <div class="code-block">
+                                <pre><span class="code-keyword">struct</span> <span class="code-type">Date</span> { 
+    <span class="code-type">int</span> y, m, d; 
+} dates[<span class="code-number">105</span>];
+
+<span class="code-type">bool</span> <span class="code-function">cmp</span>(<span class="code-type">Date</span> a, <span class="code-type">Date</span> b) {
+    <span class="code-keyword">if</span> (a.y != b.y) <span class="code-keyword">return</span> a.y < b.y;
+    <span class="code-keyword">if</span> (a.m != b.m) <span class="code-keyword">return</span> a.m < b.m;
+    <span class="code-keyword">return</span> a.d < b.d;
+}</pre>
+                            </div>
+                            <div class="info-box">
+                                <div class="box-title">三层比较</div>
+                                <p>年 → 月 → 日，逐级比较</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 19: Summary -->
+    <section class="slide scanlines">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">课堂总结</span>
+        </div>
+        <div class="slide-content">
+            <span class="section-number">18</span>
+            <span class="slide-label reveal">SUMMARY</span>
+            <h2 class="reveal">核心要点回顾</h2>
+            <div class="two-col">
+                <div class="reveal">
+                    <h3>核心语法三步走</h3>
+                    <ul>
+                        <li><strong>定义：</strong><span class="inline-code">struct 名字 { 成员; };</span></li>
+                        <li><strong>创建：</strong><span class="inline-code">名字 变量;</span></li>
+                        <li><strong>访问：</strong><span class="inline-code">变量.成员名</span></li>
+                    </ul>
+                    <div class="tip-box">
+                        <div class="box-title">💡 竞赛神器</div>
+                        <p>结构体数组 + sort + cmp = 排序利器！</p>
+                    </div>
+                </div>
+                <div class="reveal">
+                    <h3>重要提醒</h3>
+                    <ul>
+                        <li>定义结尾必须有 <span class="inline-code">;</span></li>
+                        <li>内存大小用 <span class="inline-code">sizeof</span> 查看</li>
+                        <li>支持整体赋值</li>
+                        <li>cmp 函数实现自定义排序</li>
+                    </ul>
+                    <div class="info-box">
+                        <div class="box-title">下节课预告</div>
+                        <p>结构体指针（<span class="inline-code">-></span> 运算符）和嵌套结构体</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 20: End -->
+    <section class="slide scanlines title-slide">
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">EOF</span>
+        </div>
+        <div class="slide-content">
+            <h1 class="reveal cursor">谢谢观看</h1>
+            <p class="subtitle reveal">CSP04-06 结构体基础</p>
+            <p class="reveal" style="margin-top: 2rem; color: var(--text-muted);">继续练习，巩固所学！</p>
+            <div class="reveal" style="margin-top: 3rem;">
+                <span class="inline-code">return 0;</span>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        /* ===========================================
+           SLIDE PRESENTATION CONTROLLER
+           =========================================== */
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll(".slide");
+                this.currentSlide = 0;
+                this.progressBar = document.getElementById("progressBar");
+                this.navDotsContainer = document.getElementById("navDots");
+                this.setupIntersectionObserver();
+                this.setupKeyboardNav();
+                this.setupTouchNav();
+                this.setupProgressBar();
+                this.setupNavDots();
+            }
+
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver(
+                    (entries) => {
+                        entries.forEach((entry) => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add("visible");
+                                const index = Array.from(this.slides).indexOf(entry.target);
+                                this.currentSlide = index;
+                                this.updateProgressBar();
+                                this.updateNavDots();
+                            }
+                        });
+                    },
+                    { threshold: 0.5 }
+                );
+
+                this.slides.forEach((slide) => observer.observe(slide));
+            }
+
+            setupKeyboardNav() {
+                document.addEventListener("keydown", (e) => {
+                    if (e.key === "ArrowDown" || e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
+                        e.preventDefault();
+                        this.nextSlide();
+                    } else if (e.key === "ArrowUp" || e.key === "ArrowLeft" || e.key === "PageUp") {
+                        e.preventDefault();
+                        this.prevSlide();
+                    } else if (e.key === "Home") {
+                        e.preventDefault();
+                        this.goToSlide(0);
+                    } else if (e.key === "End") {
+                        e.preventDefault();
+                        this.goToSlide(this.slides.length - 1);
+                    }
+                });
+            }
+
+            setupTouchNav() {
+                let touchStartY = 0;
+                let touchEndY = 0;
+
+                document.addEventListener("touchstart", (e) => {
+                    touchStartY = e.changedTouches[0].screenY;
+                }, { passive: true });
+
+                document.addEventListener("touchend", (e) => {
+                    touchEndY = e.changedTouches[0].screenY;
+                    this.handleSwipe(touchStartY, touchEndY);
+                }, { passive: true });
+            }
+
+            handleSwipe(startY, endY) {
+                const threshold = 50;
+                const diff = startY - endY;
+                if (Math.abs(diff) > threshold) {
+                    if (diff > 0) {
+                        this.nextSlide();
+                    } else {
+                        this.prevSlide();
+                    }
+                }
+            }
+
+            setupProgressBar() {
+                this.updateProgressBar();
+            }
+
+            updateProgressBar() {
+                const progress = ((this.currentSlide + 1) / this.slides.length) * 100;
+                this.progressBar.style.width = `${progress}%`;
+            }
+
+            setupNavDots() {
+                this.navDotsContainer.innerHTML = "";
+                this.slides.forEach((_, index) => {
+                    const dot = document.createElement("div");
+                    dot.className = "nav-dot";
+                    dot.addEventListener("click", () => this.goToSlide(index));
+                    this.navDotsContainer.appendChild(dot);
+                });
+                this.updateNavDots();
+            }
+
+            updateNavDots() {
+                const dots = this.navDotsContainer.querySelectorAll(".nav-dot");
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle("active", index === this.currentSlide);
+                });
+            }
+
+            nextSlide() {
+                if (this.currentSlide < this.slides.length - 1) {
+                    this.goToSlide(this.currentSlide + 1);
+                }
+            }
+
+            prevSlide() {
+                if (this.currentSlide > 0) {
+                    this.goToSlide(this.currentSlide - 1);
+                }
+            }
+
+            goToSlide(index) {
+                if (index >= 0 && index < this.slides.length) {
+                    this.slides[index].scrollIntoView({ behavior: "smooth" });
+                }
+            }
+        }
+
+        // Initialize presentation
+        new SlidePresentation();
+
+        /* ===========================================
+           ANSWER REVEAL FUNCTION
+           =========================================== */
+        function toggleAnswer(button) {
+            const content = button.nextElementSibling;
+            const isRevealed = content.classList.contains('revealed');
+            
+            if (isRevealed) {
+                content.classList.remove('revealed');
+                button.classList.remove('revealed');
+                button.textContent = '查看参考答案';
+            } else {
+                content.classList.add('revealed');
+                button.classList.add('revealed');
+                button.textContent = '隐藏参考答案';
+            }
+        }
+    </script>
+</body>
+</html>
