@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>涂鸦PK（一）— 画图工具 + 角色设计</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    <style>
+        /* ===========================================
+           CSS CUSTOM PROPERTIES (THEME)
+           =========================================== */
+        :root {
+            /* Colors - Creative Voltage inspired */
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --accent-electric: #00d4ff;
+            --accent-neon: #d4ff00;
+            --accent-coral: #ff6b6b;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            
+            /* Typography */
+            --font-display: "ZCOOL KuaiLe", "Noto Sans SC", sans-serif;
+            --font-body: "Noto Sans SC", sans-serif;
+            --title-size: clamp(2rem, 6vw, 4.5rem);
+            --h2-size: clamp(1.5rem, 4vw, 3rem);
+            --h3-size: clamp(1.25rem, 3vw, 2rem);
+            --body-size: clamp(0.875rem, 1.5vw, 1.125rem);
+            
+            /* Spacing */
+            --slide-padding: clamp(1.5rem, 4vw, 4rem);
+            --content-gap: clamp(1rem, 2vw, 2rem);
+            
+            /* Animation */
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration-normal: 0.6s;
+        }
+
+        /* ===========================================
+           VIEWPORT FITTING: MANDATORY BASE STYLES
+           =========================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: var(--bg-primary);
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+            padding: var(--slide-padding);
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Background decorations */
+        .bg-decoration {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .bg-decoration::before {
+            content: '';
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            top: -25%;
+            left: -25%;
+            background: 
+                radial-gradient(ellipse at 20% 80%, rgba(0, 212, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(212, 255, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(255, 107, 107, 0.08) 0%, transparent 60%);
+            animation: bgPulse 8s ease-in-out infinite;
+        }
+
+        @keyframes bgPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(5deg); }
+        }
+
+        .grid-pattern {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 1;
+        }
+
+        /* ===========================================
+           TYPOGRAPHY
+           =========================================== */
+        h1, h2, h3 {
+            font-family: var(--font-display);
+            line-height: 1.2;
+        }
+
+        h1 {
+            font-size: var(--title-size);
+            font-weight: 900;
+            margin-bottom: var(--content-gap);
+        }
+
+        h2 {
+            font-size: var(--h2-size);
+            font-weight: 700;
+            margin-bottom: calc(var(--content-gap) * 0.8);
+            color: var(--accent-electric);
+        }
+
+        h3 {
+            font-size: var(--h3-size);
+            font-weight: 500;
+            margin-bottom: calc(var(--content-gap) * 0.5);
+        }
+
+        p, li {
+            font-size: var(--body-size);
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        /* ===========================================
+           ANIMATIONS
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity var(--duration-normal) var(--ease-out-expo),
+                        transform var(--duration-normal) var(--ease-out-expo);
+        }
+
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal:nth-child(1) { transition-delay: 0.1s; }
+        .reveal:nth-child(2) { transition-delay: 0.2s; }
+        .reveal:nth-child(3) { transition-delay: 0.3s; }
+        .reveal:nth-child(4) { transition-delay: 0.4s; }
+        .reveal:nth-child(5) { transition-delay: 0.5s; }
+        .reveal:nth-child(6) { transition-delay: 0.6s; }
+
+        /* ===========================================
+           SLIDE SPECIFIC STYLES
+           =========================================== */
+        
+        /* Title Slide */
+        .title-slide {
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .title-slide h1 {
+            background: linear-gradient(135deg, var(--accent-electric), var(--accent-neon));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .title-slide .subtitle {
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
+            color: var(--text-secondary);
+            margin-top: 1rem;
+        }
+
+        .title-slide .meta {
+            margin-top: 2rem;
+            padding: 1rem 2rem;
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .title-slide .meta span {
+            display: inline-block;
+            margin: 0 1rem;
+            font-size: var(--body-size);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-right: 0.5rem;
+        }
+
+        .badge-electric {
+            background: rgba(0, 212, 255, 0.2);
+            color: var(--accent-electric);
+        }
+
+        .badge-neon {
+            background: rgba(212, 255, 0, 0.2);
+            color: var(--accent-neon);
+        }
+
+        /* Content Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--content-gap);
+            margin-top: var(--content-gap);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: clamp(1rem, 2vw, 1.5rem);
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(10px);
+        }
+
+        .card h3 {
+            color: var(--accent-electric);
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            margin-bottom: 0.75rem;
+        }
+
+        .card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .card li {
+            padding: 0.4rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .card li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--accent-neon);
+        }
+
+        /* Table Styles */
+        .concept-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: var(--content-gap);
+            font-size: clamp(0.75rem, 1.2vw, 0.95rem);
+        }
+
+        .concept-table th,
+        .concept-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .concept-table th {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--accent-electric);
+            font-weight: 500;
+        }
+
+        .concept-table tr:hover {
+            background: rgba(255,255,255,0.03);
+        }
+
+        /* Two Column Layout */
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--content-gap);
+            align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #0d1117;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin: var(--content-gap) 0;
+            border: 1px solid rgba(255,255,255,0.1);
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: clamp(0.7rem, 1.2vw, 0.9rem);
+            color: #e6edf3;
+            line-height: 1.6;
+        }
+
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-comment { color: #8b949e; }
+
+        /* Highlight Box */
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(212, 255, 0, 0.05));
+            border-left: 4px solid var(--accent-electric);
+            padding: 1rem 1.5rem;
+            border-radius: 0 12px 12px 0;
+            margin: var(--content-gap) 0;
+        }
+
+        .highlight-box p {
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        /* Step Number */
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem;
+            height: 2.5rem;
+            background: var(--accent-electric);
+            color: var(--bg-primary);
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 1.25rem;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .step-content h4 {
+            color: var(--text-primary);
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Attribute Grid */
+        .attr-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-top: var(--content-gap);
+        }
+
+        .attr-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .attr-card .attr-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .attr-card .attr-name {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .attr-card .attr-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-electric);
+        }
+
+        @media (max-width: 768px) {
+            .attr-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Navigation */
+        .nav-dots {
+            position: fixed;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            z-index: 100;
+        }
+
+        .nav-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-dot.active {
+            background: var(--accent-electric);
+            transform: scale(1.3);
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-electric), var(--accent-neon));
+            z-index: 100;
+            transition: width 0.3s ease;
+        }
+
+        /* Keyboard hint */
+        .keyboard-hint {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 2rem;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.4);
+            z-index: 100;
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+            html { scroll-behavior: auto; }
+        }
+
+        /* Short viewport adjustments */
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(1rem, 3vw, 2rem);
+                --content-gap: clamp(0.75rem, 1.5vw, 1rem);
+            }
+            .card-grid {
+                gap: 0.75rem;
+            }
+            .card {
+                padding: 0.75rem;
+            }
+        }
+
+        @media (max-height: 600px) {
+            .nav-dots, .keyboard-hint {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Navigation Dots -->
+    <nav class="nav-dots" id="navDots"></nav>
+
+    <!-- Keyboard Hint -->
+    <div class="keyboard-hint">← → 或空格键导航</div>
+
+    <!-- Slide 1: Title -->
+    <section class="slide title-slide">
+        <div class="bg-decoration"></div>
+        <div class="slide-content">
+            <h1 class="reveal">涂鸦PK（一）</h1>
+            <p class="subtitle reveal">画图工具 + 角色设计</p>
+            <div class="meta reveal">
+                <span><span class="badge badge-electric">核心能力</span>拆解力 · 审美力</span>
+                <span><span class="badge badge-neon">核心工具</span>Trae IDE · Kimi</span>
+                <span>⏱ 90分钟</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 2: Course Objectives -->
+    <section class="slide">
+        <div class="bg-decoration"></div>
+        <div class="grid-pattern"></div>
+        <div class="slide-content">
+            <h2 class="reveal">🎯 课程目标</h2>
+            <div class="card-grid">
+                <div class="card reveal">
+                    <h3>知识目标</h3>
+                    <ul>
+                        <li>理解「精准需求 > 冗余需求」</li>
+                        <li>理解「新窗口审核」的本质</li>
+                        <li>理解角色属性是「打法定位」</li>
+                    </ul>
+                </div>
+                <div class="card reveal">
+                    <h3>能力目标</h3>
+                    <ul>
+                        <li>用 Plan Mode 三步完成需求文档</li>
+                        <li>用画图工具画出两帧角色</li>
+                        <li>用 20分预算制分配属性点</li>
+                    </ul>
+                </div>
+                <div class="card reveal">
+                    <h3>情感目标</h3>
+                    <ul>
+                        <li>建立「工具是自己做的」自豪感</li>
+                        <li>发现像素画的审美乐趣</li>
+                        <li>体验打法定位的策略感</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 3: Core Concepts -->
+    <section class="slide">
+        <div class="bg-decoration"></div>
+        <div class="grid-pattern"></div>
+        <div class="slide-content">
+            <h2 class="reveal">💡 核心概念</h2>
+            <table class="concept-table reveal">
+                <thead>
+                    <tr>
+                        <th>概念</th>
+                        <th>学生类比</th>
+                        <th>认知层级</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Spritesheet</strong></td>
+                        <td>动画书里的一页纸上排了多幅连续图</td>
+                        <td>识别层</td>
+                    </tr>
+                    <tr>
+                        <td><strong>帧（Frame）</strong></td>
+                        <td>动画里每一张静止的画面</td>
+                        <td>识别层</td>
+                    </tr>
+                    <tr>
+                        <td><strong>属性预算制</strong></td>
+                        <td>创建角色时只有20个技能点</td>
+                        <td>理解层</td>
+                    </tr>
+                    <tr>
+                        <td><strong>需求可测试性</strong></td>
+                        <td>「字要好看」不可测试；「字体16px」可以</td>
+                        <td>应用层</td>
+                    </tr>
+                    <tr>
+                        <td><strong>打法定位</strong></td>
+                        <td>篮球队里有中锋/控卫/得分手</td>
+                        <td>应用层</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Slide 4: Misconceptions -->
+    <section class="slide">
+        <div class="bg-decoration"></div>
+        <div class="grid-pattern"></div>
+        <div class="slide-content">
+            <h2 class="reveal">⚠️ 典型误概念</h2>
+            <div class="card-grid">
+                <div class="card reveal">
+                    <h3>❌ 需求越多越好</h3>
+                    <p>冗余需求会制造更多歧义和 bug；精准的需求才是关键</p>
+                </div>
+                <div class="card reveal">
+                    <h3>❌ 直接写代码更快</h3>
+                    <p>没有需求文档，验收时无法溯源，只能靠直觉瞎改</p>
+                </div>
+                <div class="card reveal">
+                    <h3>❌ 自己审一遍就行</h3>
+                    <p>新窗口审核：上下文不同的 AI 能发现你看不见的漏洞</p>
+                </div>
+                <div class="card reveal">
+                    <h3>❌ 两帧画一样就行</h3>
+                    <p>帧1待机 + 帧2攻击，差异越大动画越有冲击力</p>
+                </div>
+                <div class="card reveal">
+                    <h3>❌ 属性随便填</h3>
+                    <p>属性是「打法定位」，20分预算是有限资源，决定战斗风格</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 5: Plan Mode 3 Steps -->
+    <section class="slide">
+        <div class="bg-decoration"></div>
+        <div class="grid-pattern"></div>
+        <div class="slide-content">
+            <h2 class="reveal">🔄 Plan Mode 三步法</h2>
+            <div class="reveal">
+                <div class="step-item">
+                    <span class="step-number">A</span>
+                    <div class="step-content">
+                        <h4>窗口A - 整理需求</h4>
+                        <p>打开 Kimi，把6个需求要点告诉 AI，整理成规范文档</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-number">B</span>
+                    <div class="step-content">
+                        <h4>窗口B - 审核需求</h4>
+                        <p>全新 Kimi 对话，发给「审核工程师」，找出描述不清的地方</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-number">C</span>
+                    <div class="step-content">
+                        <h4>窗口C - 执行生成</h4>
+                        <p>再新一个对话，把补充完整的需求文档发给 AI，生成代码</p>
+                    </div>
+                </div>
+            </div>
+            <div class="highlight-box reveal">
+                <p>💡 核心原则：不同上下文的 AI 才能发现你看不见的漏洞</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 6: Draw Tool Features -->
+    <section class="slide">
+        <div class="bg-decoration"></div>
+        <div class="grid-pattern"></div>
+        <div class="slide-content">
+            <h2 class="reveal">🎨 画图工具功能</h2>
+            <div class="card-grid">
+                <div class="card reveal">
+                    <h3>1. 画布大小</h3>
+                    <p>64×64 像素，8倍放大显示（512×512）</p>
+                </div>
+                <div class="card reveal">
+                    <h3>2. 工具</h3>
+                    <p>画笔（涂色）、橡皮（透明）、填充桶（换色）</p>
+                </div>
+                <div class="card reveal">
+                    <h3>3. 调色板</h3>
+                    <p>至少16种颜色，支持自定义颜色</p>
+                </div>
+                <div class="card reveal">
+                    <h3>4. 多帧编辑</h3>
+                    <p>帧1待机 + 帧2攻击，可切换、可复制</p>
+                </div>
+                <div class="card reveal">
+                    <h3>5. 动画预览</h3>
+                    <p>工具内循环播放两帧动画</p>
+                </div>
+                <div class="card reveal">
+                    <h3>6. 导出</h3>
+                    <p>128×64 PNG Spritesheet</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 7: Acceptance Checklist -->
+    <section class="slide">
+        <div class="bg-decoration"></div>
+        <div class="grid-pattern"></div>
+        <div class="slide-content">
+            <h2 class="reveal">✅ 验收清单</h2>
+            <div class="two-column">
+                <div class="reveal">
+                    <div class="step-item">
+                        <span class="step-number">1</span>
+                        <div class="step-content">
+                            <h4>画笔工具</h4>
+                            <p>选颜色，点击画布能涂色</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <span class="step-number">2</span>
+                        <div class="step-content">
+                            <h4>橡皮工具</h4>
+                            <p>点击有颜色的格子，变为透明</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <span class="step-number">3</span>
+                        <div class="step-content">
+                            <h4>填充桶</h4>
+                            <p>点击一片同色区域，整体换色</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="reveal">
+                    <div class="step-item">
+                        <span class="step-number">4</span>
+                        <div class="step-content">
+                            <h4>多帧切换</h4>
+                            <p>点「帧1」「帧2」Tab，画的内容各自独立</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <span class="step-number">5</span>
+                        <div class="step-content">
+                            <h4>动画预览</h4>
+                            <p>点播放，两帧交替显示</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="highlight-box reveal">
+                <p>🔍 每条都要真的去操作一次，不能只「看起来好像对」</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 8: Character Design -->
+    <section class="slide">
+        <div class="bg-decoration"></div>
+        <div class="grid-pattern"></div>
+        <div class="slide-content">
+            <h2 class="reveal">👾 角色设计</h2>
+            <div class="two-column">
+                <div class="card reveal">
+                    <h3>🎯 帧1 - 待机姿势</h3>
+                    <p>角色站在那里，什么都没发生</p>
+                    <p style="margin-top: 1rem; color: var(--accent-electric);">决定整体外形和配色</p>
+                </div>
+                <div class="card reveal">
+                    <h3>⚔️ 帧2 - 攻击姿势</h3>
+                    <p>角色在出击的那一瞬间</p>
+                    <p style="margin-top: 1rem; color: var(--accent-coral);">决定动画的冲击感</p>
+                </div>
+            </div>
+            <div class="highlight-box reveal">
+                <p>💥 <strong>差异越大，冲击感越强！</strong> 帧2复制帧1不修改，等于没有动画</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 9: Attributes -->
+    <section class="slide">
+        <div class="bg-decoration"></div>
+        <div class="grid-pattern"></div>
+        <div class="slide-content">
+            <h2 class="reveal">📊 20分预算制</h2>
+            <div class="attr-grid reveal">
+                <div class="attr-card">
+                    <div class="attr-icon">❤️</div>
+                    <div class="attr-name">HP 生命值</div>
+                    <div class="attr-value">1分=10血</div>
+                </div>
+                <div class="attr-card">
+                    <div class="attr-icon">⚔️</div>
+                    <div class="attr-name">ATK 攻击力</div>
+                    <div class="attr-value">1分=5伤害</div>
+                </div>
+                <div class="attr-card">
+                    <div class="attr-icon">🛡️</div>
+                    <div class="attr-name">DEF 防御力</div>
+                    <div class="attr-value">1分=3减伤</div>
+                </div>
+                <div class="attr-card">
+                    <div class="attr-icon">⚡</div>
+                    <div class="attr-name">SPD 速度</div>
+                    <div class="attr-value">1分=1速度</div>
+                </div>
+            </div>
+            <div class="highlight-box reveal">
+                <p>🎮 你有20分，分配完就没了！怎么分决定了角色的战斗风格</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 10: Build Types -->
+    <section class="slide">
+        <div class="bg-decoration"></div>
+        <div class="grid-pattern"></div>
+        <div class="slide-content">
+            <h2 class="reveal">🎭 四种打法定位</h2>
+            <div class="card-grid">
+                <div class="card reveal">
+                    <h3>🛡️ 坦克型</h3>
+                    <p>HP 8 + ATK 4 + DEF 6 + SPD 2 = 20</p>
+                    <p style="margin-top: 0.5rem; color: var(--accent-neon);">血厚扛伤害，慢慢耗死对方</p>
+                </div>
+                <div class="card reveal">
+                    <h3>🗡️ 刺客型</h3>
+                    <p>HP 4 + ATK 10 + DEF 0 + SPD 6 = 20</p>
+                    <p style="margin-top: 0.5rem; color: var(--accent-coral);">先手高爆发，一击毙命</p>
+                </div>
+                <div class="card reveal">
+                    <h3>⚖️ 平衡型</h3>
+                    <p>HP 5 + ATK 5 + DEF 4 + SPD 6 = 20</p>
+                    <p style="margin-top: 0.5rem; color: var(--accent-electric);">无明显弱点，应对各种对手</p>
+                </div>
+                <div class="card reveal">
+                    <h3>🏃 速攻型</h3>
+                    <p>HP 6 + ATK 7 + DEF 1 + SPD 6 = 20</p>
+                    <p style="margin-top: 0.5rem; color: #ffd700;">先手压制，中等爆发</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 11: Special Skills -->
+    <section class="slide">
+        <div class="bg-decoration"></div>
+        <div class="grid-pattern"></div>
+        <div class="slide-content">
+            <h2 class="reveal">✨ 特技系统</h2>
+            <p style="margin-bottom: var(--content-gap);">每个角色可以选一个特技，<strong style="color: var(--accent-neon);">不占预算</strong></p>
+            <div class="card-grid">
+                <div class="card reveal">
+                    <h3>🔥 燃烧</h3>
+                    <p>每回合额外-5血，持续3回合</p>
+                </div>
+                <div class="card reveal">
+                    <h3>🛡 护甲</h3>
+                    <p>首次受击伤害归零</p>
+                </div>
+                <div class="card reveal">
+                    <h3>⚡ 连击</h3>
+                    <p>25%概率攻击两次</p>
+                </div>
+                <div class="card reveal">
+                    <h3>💉 吸血</h3>
+                    <p>攻击回复伤害30%血量</p>
+                </div>
+                <div class="card reveal">
+                    <h3>❄️ 冰冻</h3>
+                    <p>每场一次，对方跳过下回合</p>
+                </div>
+                <div class="card reveal">
+                    <h3>🎯 穿透</h3>
+                    <p>一次攻击无视防御</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 12: AI Prompts -->
+    <section class="slide">
+        <div class="bg-decoration"></div>
+        <div class="grid-pattern"></div>
+        <div class="slide-content">
+            <h2 class="reveal">🤖 AI 提示词参考</h2>
+            <div class="code-block reveal">
+                <code>
+<span class="code-comment"># 窗口A - 整理需求</span><br>
+你是一个需求分析师。我要做一个HTML5像素画图工具，功能是：<br>
+64×64画布、8倍缩放显示、支持画笔/橡皮/填充桶、有调色板、<br>
+两帧编辑（帧1待机/帧2攻击）、可复制帧1到帧2、有动画预览、<br>
+能导出128×64 Spritesheet PNG。请把这些需求整理成规范的需求文档。<br><br>
+<span class="code-comment"># 窗口B - 审核需求</span><br>
+你是一个挑刺工程师。下面是一份画图工具的需求文档，<br>
+请只提出你觉得描述不清楚或有遗漏的问题，不要给答案。
+                </code>
+            </div>
+            <div class="code-block reveal">
+                <code>
+<span class="code-comment"># 窗口C - 生成代码</span><br>
+请帮我用HTML5 Canvas做一个像素画图工具：64×64像素画布、<br>
+8倍缩放显示、支持画笔/橡皮/填充桶、有颜色调色板（至少16色）、<br>
+有两帧（帧1待机/帧2攻击）可切换编辑、可复制帧1到帧2、<br>
+有动画预览（循环播放）、能导出128×64 Spritesheet PNG。<br>
+单文件HTML，不用任何外部库。
+                </code>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 13: Summary -->
+    <section class="slide">
+        <div class="bg-decoration"></div>
+        <div class="grid-pattern"></div>
+        <div class="slide-content">
+            <h2 class="reveal">📝 今日总结</h2>
+            <div class="card-grid">
+                <div class="card reveal">
+                    <h3>🛠️ 先造工具，再用工具</h3>
+                    <p>不是下载别人的软件，而是自己写一个画图工具</p>
+                </div>
+                <div class="card reveal">
+                    <h3>🔄 流程可迁移</h3>
+                    <p>Plan Mode 三步（整理→审核→执行）适用于任何复杂项目</p>
+                </div>
+                <div class="card reveal">
+                    <h3>🎨 差异产生冲击感</h3>
+                    <p>帧1和帧2差异越大，动画越有冲击感——通用审美原则</p>
+                </div>
+            </div>
+            <div class="highlight-box reveal">
+                <p>🚀 <strong>下节课预告：</strong>涂鸦PK（二）—— 搭建战斗引擎，让你的角色真正对战起来！</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 14: Challenge -->
+    <section class="slide">
+        <div class="bg-decoration"></div>
+        <div class="grid-pattern"></div>
+        <div class="slide-content">
+            <h2 class="reveal">🏆 5分钟挑战</h2>
+            <div class="card reveal" style="max-width: 800px; margin: 0 auto;">
+                <h3 style="text-align: center; margin-bottom: 1.5rem;">本周挑战：帮同学画一个角色</h3>
+                <p style="margin-bottom: 1rem;">用你今天做好的画图工具，帮一个同学（或家人）画一个角色（帧1待机 + 帧2攻击），然后让他自己也画一个版本。</p>
+                <p style="margin-bottom: 1rem;"><strong>对比两个版本的不同：</strong></p>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li style="padding: 0.5rem 0;">▸ 外形有什么不同？</li>
+                    <li style="padding: 0.5rem 0;">▸ 配色有什么不同？</li>
+                    <li style="padding: 0.5rem 0;">▸ 攻击姿势有什么不同？</li>
+                    <li style="padding: 0.5rem 0;">▸ 为什么会不一样？</li>
+                </ul>
+            </div>
+            <p class="reveal" style="text-align: center; margin-top: 2rem; color: var(--accent-neon);">📸 拍照或截图，下节课分享！</p>
+        </div>
+    </section>
+
+    <script>
+        /* ===========================================
+           SLIDE PRESENTATION CONTROLLER
+           =========================================== */
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.currentSlide = 0;
+                this.isScrolling = false;
+                this.setupIntersectionObserver();
+                this.setupKeyboardNav();
+                this.setupTouchNav();
+                this.setupProgressBar();
+                this.setupNavDots();
+            }
+
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            this.currentSlide = Array.from(this.slides).indexOf(entry.target);
+                            this.updateProgressBar();
+                            this.updateNavDots();
+                        }
+                    });
+                }, { threshold: 0.5 });
+
+                this.slides.forEach(slide => observer.observe(slide));
+            }
+
+            setupKeyboardNav() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+                    switch(e.key) {
+                        case 'ArrowRight':
+                        case 'ArrowDown':
+                        case ' ':
+                        case 'PageDown':
+                            e.preventDefault();
+                            this.nextSlide();
+                            break;
+                        case 'ArrowLeft':
+                        case 'ArrowUp':
+                        case 'PageUp':
+                            e.preventDefault();
+                            this.prevSlide();
+                            break;
+                        case 'Home':
+                            e.preventDefault();
+                            this.goToSlide(0);
+                            break;
+                        case 'End':
+                            e.preventDefault();
+                            this.goToSlide(this.slides.length - 1);
+                            break;
+                    }
+                });
+            }
+
+            setupTouchNav() {
+                let touchStartY = 0;
+                let touchEndY = 0;
+
+                document.addEventListener('touchstart', (e) => {
+                    touchStartY = e.changedTouches[0].screenY;
+                }, { passive: true });
+
+                document.addEventListener('touchend', (e) => {
+                    touchEndY = e.changedTouches[0].screenY;
+                    this.handleSwipe(touchStartY, touchEndY);
+                }, { passive: true });
+            }
+
+            handleSwipe(startY, endY) {
+                const threshold = 50;
+                const diff = startY - endY;
+
+                if (Math.abs(diff) > threshold) {
+                    if (diff > 0) {
+                        this.nextSlide();
+                    } else {
+                        this.prevSlide();
+                    }
+                }
+            }
+
+            setupProgressBar() {
+                this.progressBar = document.getElementById('progressBar');
+                this.updateProgressBar();
+            }
+
+            updateProgressBar() {
+                if (this.progressBar) {
+                    const progress = ((this.currentSlide + 1) / this.slides.length) * 100;
+                    this.progressBar.style.width = `${progress}%`;
+                }
+            }
+
+            setupNavDots() {
+                const navDotsContainer = document.getElementById('navDots');
+                if (!navDotsContainer) return;
+
+                navDotsContainer.innerHTML = '';
+
+                this.slides.forEach((_, index) => {
+                    const dot = document.createElement('div');
+                    dot.className = 'nav-dot';
+                    dot.addEventListener('click', () => this.goToSlide(index));
+                    navDotsContainer.appendChild(dot);
+                });
+
+                this.navDots = navDotsContainer.querySelectorAll('.nav-dot');
+                this.updateNavDots();
+            }
+
+            updateNavDots() {
+                if (this.navDots) {
+                    this.navDots.forEach((dot, index) => {
+                        dot.classList.toggle('active', index === this.currentSlide);
+                    });
+                }
+            }
+
+            nextSlide() {
+                if (this.currentSlide < this.slides.length - 1) {
+                    this.goToSlide(this.currentSlide + 1);
+                }
+            }
+
+            prevSlide() {
+                if (this.currentSlide > 0) {
+                    this.goToSlide(this.currentSlide - 1);
+                }
+            }
+
+            goToSlide(index) {
+                if (index >= 0 && index < this.slides.length) {
+                    this.slides[index].scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        }
+
+        // Initialize presentation
+        new SlidePresentation();
+    </script>
+</body>
+</html>
