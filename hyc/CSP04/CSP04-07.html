@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSP04-07 结构体进阶</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+SC:wght@300;400;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* === VIEWPORT BASE (MANDATORY) === */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-snap-type: y mandatory; overflow-x: hidden; }
+body { font-family: 'Noto Sans SC', sans-serif; overflow-x: hidden; background: #f0f4ff; }
+
+.slide {
+  height: 100vh; height: 100dvh; overflow: hidden;
+  scroll-snap-align: start;
+  position: relative;
+  display: flex;
+  color: #2d3561;
+}
+
+/* === CSS VARIABLES === */
+:root {
+  --bg: #f0f4ff;
+  --fg: #2d3561;
+  --accent: #6c63ff;
+  --accent2: #ff6584;
+  --pastel1: #e8d5f5;
+  --pastel2: #d5e8f5;
+  --pastel3: #f5e8d5;
+  --code-bg: rgba(255,255,255,0.75);
+  --card-bg: rgba(255,255,255,0.6);
+  --radius: 16px;
+  --font-display: 'Outfit', sans-serif;
+  --font-body: 'Noto Sans SC', sans-serif;
+  --font-code: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+/* === TYPOGRAPHY === */
+h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 3.2rem);
+  font-weight: 800;
+  line-height: 1.2;
+}
+h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 2.8vw, 2.2rem);
+  font-weight: 700;
+  line-height: 1.3;
+}
+h3 {
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 2vw, 1.5rem);
+  font-weight: 600;
+  line-height: 1.4;
+}
+p, li {
+  font-size: clamp(0.85rem, 1.4vw, 1.1rem);
+  line-height: 1.7;
+}
+code, .code-block {
+  font-family: var(--font-code);
+  font-size: clamp(0.7rem, 1.1vw, 0.9rem);
+  line-height: 1.6;
+}
+
+/* === LAYOUT HELPERS === */
+.center-content {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  width: 100%; padding: clamp(1.5rem, 4vw, 3rem);
+  text-align: center;
+}
+.split-layout {
+  display: flex; width: 100%;
+}
+.split-left {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: clamp(1.5rem, 4vw, 3rem);
+}
+.split-right {
+  width: 42%;
+  background: linear-gradient(160deg, var(--pastel1), var(--pastel2));
+  display: flex; align-items: center; justify-content: center;
+  padding: clamp(1rem, 3vw, 2rem);
+  position: relative; overflow: hidden;
+}
+.split-right::before {
+  content: '';
+  position: absolute; left: -25px; top: 0; bottom: 0; width: 50px;
+  background: var(--bg);
+  border-radius: 0 50% 50% 0;
+}
+.full-slide {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  width: 100%; padding: clamp(1.5rem, 4vw, 3rem);
+}
+.content-box {
+  max-width: 900px; width: 100%;
+}
+
+/* === DECORATIVE ELEMENTS === */
+.circle {
+  position: absolute; border-radius: 50%;
+  animation: float 5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+.dots-pattern {
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(108,99,255,0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+}
+
+/* === CODE BLOCKS === */
+.code-block {
+  background: var(--code-bg);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius);
+  padding: clamp(0.8rem, 1.5vw, 1.2rem) clamp(1rem, 2vw, 1.6rem);
+  box-shadow: 0 4px 20px rgba(108,99,255,0.08);
+  text-align: left;
+  overflow-x: auto;
+  max-width: 100%;
+  border-left: 4px solid var(--accent);
+}
+.code-block.wide { max-width: 700px; }
+.code-block.narrow { max-width: 500px; }
+.kw { color: var(--accent); font-weight: 600; }
+.type { color: #e67e22; }
+.str { color: var(--accent2); }
+.num { color: #27ae60; }
+.cmt { color: rgba(45,53,97,0.35); font-style: italic; }
+.fn { color: #8e44ad; }
+
+/* === CARDS === */
+.card {
+  background: var(--card-bg);
+  backdrop-filter: blur(8px);
+  border-radius: var(--radius);
+  padding: clamp(0.8rem, 1.5vw, 1.2rem) clamp(1rem, 2vw, 1.5rem);
+  box-shadow: 0 2px 12px rgba(108,99,255,0.06);
+}
+
+/* === ANSWER REVEAL (INTERACTIVE) === */
+.answer-toggle {
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  font-size: clamp(0.75rem, 1.1vw, 0.9rem);
+  font-weight: 600;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: none;
+  font-family: var(--font-body);
+}
+.answer-toggle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(108,99,255,0.3);
+}
+.answer-toggle:active { transform: scale(0.98); }
+.answer-toggle .arrow {
+  display: inline-block;
+  transition: transform 0.3s;
+  font-size: 0.8em;
+}
+.answer-toggle.active .arrow { transform: rotate(90deg); }
+
+.answer-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s, margin-top 0.3s;
+  opacity: 0;
+  margin-top: 0;
+}
+.answer-content.show {
+  max-height: 600px;
+  opacity: 1;
+  margin-top: 1rem;
+}
+
+/* === BULLET LISTS === */
+.bullet-list {
+  list-style: none;
+  text-align: left;
+}
+.bullet-list li {
+  position: relative;
+  padding-left: clamp(1.2rem, 2vw, 1.8rem);
+  margin-bottom: clamp(0.4rem, 0.8vw, 0.7rem);
+}
+.bullet-list li::before {
+  content: '';
+  position: absolute; left: 0; top: 0.55em;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+}
+
+/* === NUMBERED LIST === */
+.num-list {
+  list-style: none; counter-reset: item;
+  text-align: left;
+}
+.num-list li {
+  counter-increment: item;
+  position: relative;
+  padding-left: clamp(2rem, 3vw, 2.8rem);
+  margin-bottom: clamp(0.5rem, 1vw, 0.8rem);
+}
+.num-list li::before {
+  content: counter(item);
+  position: absolute; left: 0; top: 0.1em;
+  width: clamp(1.4rem, 2vw, 1.8rem); height: clamp(1.4rem, 2vw, 1.8rem);
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(0.65rem, 1vw, 0.8rem);
+  font-weight: 700;
+  font-family: var(--font-display);
+}
+
+/* === TAG === */
+.tag {
+  font-family: var(--font-display);
+  font-size: clamp(0.6rem, 0.9vw, 0.75rem);
+  color: var(--accent);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+/* === SECTION NUMBER === */
+.section-num {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 6vw, 5rem);
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  opacity: 0.15;
+  position: absolute;
+  top: clamp(0.5rem, 2vw, 1.5rem);
+  left: clamp(1rem, 3vw, 2.5rem);
+  pointer-events: none;
+}
+
+/* === HIGHLIGHT BOX === */
+.highlight-box {
+  background: linear-gradient(135deg, rgba(108,99,255,0.08), rgba(255,101,132,0.06));
+  border-radius: var(--radius);
+  padding: clamp(0.8rem, 1.5vw, 1.2rem) clamp(1rem, 2vw, 1.5rem);
+  border-left: 4px solid var(--accent);
+  text-align: left;
+}
+.highlight-box.warn { border-left-color: #e67e22; }
+.highlight-box.key { border-left-color: var(--accent2); background: linear-gradient(135deg, rgba(255,101,132,0.08), rgba(108,99,255,0.04)); }
+
+/* === COMPARISON TABLE === */
+.compare-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  font-size: clamp(0.75rem, 1.2vw, 0.95rem);
+}
+.compare-table th {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  padding: clamp(0.5rem, 1vw, 0.8rem) clamp(0.6rem, 1.2vw, 1rem);
+  font-weight: 600;
+  text-align: left;
+}
+.compare-table td {
+  padding: clamp(0.4rem, 0.8vw, 0.6rem) clamp(0.6rem, 1.2vw, 1rem);
+  border-bottom: 1px solid rgba(108,99,255,0.08);
+}
+.compare-table tr:nth-child(even) td { background: rgba(108,99,255,0.03); }
+.compare-table tr:last-child td { border-bottom: none; }
+
+/* === QUIZ OPTIONS === */
+.quiz-options {
+  display: flex; flex-direction: column; gap: clamp(0.4rem, 0.8vw, 0.6rem);
+  text-align: left;
+  max-width: 600px; width: 100%;
+}
+.quiz-opt {
+  padding: clamp(0.5rem, 1vw, 0.7rem) clamp(0.8rem, 1.5vw, 1.2rem);
+  border-radius: 10px;
+  background: var(--card-bg);
+  border: 2px solid transparent;
+  font-size: clamp(0.8rem, 1.2vw, 1rem);
+  cursor: default;
+  transition: border-color 0.3s, background 0.3s;
+}
+.quiz-opt.correct { border-color: #27ae60; background: rgba(39,174,96,0.08); }
+.quiz-opt.wrong { border-color: #e74c3c; background: rgba(231,76,60,0.05); }
+
+/* === NAV DOTS === */
+.nav-dots {
+  position: fixed; right: clamp(0.5rem, 1.5vw, 1.5rem);
+  top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 6px;
+  z-index: 100;
+}
+.nav-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(108,99,255,0.2);
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+}
+.nav-dot.active {
+  background: var(--accent);
+  transform: scale(1.4);
+  box-shadow: 0 0 8px rgba(108,99,255,0.4);
+}
+.nav-dot:hover { background: rgba(108,99,255,0.5); }
+
+/* === SLIDE COUNTER === */
+.slide-counter {
+  position: fixed; bottom: 1rem; right: 1.5rem;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  color: rgba(45,53,97,0.3);
+  z-index: 100;
+}
+
+/* === REVEAL ANIMATIONS === */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal-left.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+.reveal-right {
+  opacity: 0;
+  transform: translateX(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal-right.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.reveal-scale.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Stagger delays */
+.delay-1 { transition-delay: 0.1s; }
+.delay-2 { transition-delay: 0.2s; }
+.delay-3 { transition-delay: 0.3s; }
+.delay-4 { transition-delay: 0.4s; }
+.delay-5 { transition-delay: 0.5s; }
+.delay-6 { transition-delay: 0.6s; }
+
+/* === PROGRESS BAR === */
+.progress-bar {
+  position: fixed; top: 0; left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  z-index: 200;
+  transition: width 0.3s;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .split-layout { flex-direction: column; }
+  .split-right { width: 100%; min-height: 35vh; }
+  .split-right::before { display: none; }
+  .nav-dots { right: 0.3rem; gap: 4px; }
+  .nav-dot { width: 6px; height: 6px; }
+}
+@media (max-height: 700px) {
+  .circle { display: none; }
+}
+@media (max-height: 600px) {
+  h1 { font-size: clamp(1.4rem, 3.5vw, 2.2rem); }
+  h2 { font-size: clamp(1.1rem, 2.2vw, 1.6rem); }
+  .code-block { padding: 0.5rem 0.8rem; }
+}
+@media (max-height: 500px) {
+  .dots-pattern { display: none; }
+  .section-num { font-size: 2rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- Nav Dots -->
+<nav class="nav-dots" id="navDots"></nav>
+
+<!-- Slide Counter -->
+<div class="slide-counter" id="slideCounter"></div>
+
+<!-- ==================== SLIDE 1: TITLE ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="circle" style="width:250px;height:250px;background:rgba(108,99,255,0.1);top:8%;right:8%;animation-delay:0s;"></div>
+  <div class="circle" style="width:180px;height:180px;background:rgba(255,101,132,0.08);bottom:12%;left:6%;animation-delay:-2s;"></div>
+  <div class="circle" style="width:100px;height:100px;background:rgba(255,200,87,0.1);top:40%;left:15%;animation-delay:-1s;"></div>
+  <div class="center-content">
+    <div class="tag reveal">CSP04-07 · Struct Advanced</div>
+    <h1 class="reveal delay-1">C++ <em style="font-style:normal;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">结构体</em>进阶</h1>
+    <p class="reveal delay-2" style="color:rgba(45,53,97,0.5);margin-top:1rem;font-size:clamp(0.9rem,1.5vw,1.15rem);">指针 · 嵌套 · 函数参数传递</p>
+    <div class="code-block reveal-scale delay-3" style="margin-top:2rem;max-width:500px;">
+      <span class="kw">Student</span>* p = &stu;<br>
+      p-><span class="type">score</span> = 100; <span class="cmt">// 箭头运算符</span>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 2: COURSE OBJECTIVES ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">01</div>
+  <div class="full-slide">
+    <div class="content-box">
+      <div class="tag reveal">课程目标</div>
+      <h2 class="reveal delay-1" style="margin-bottom:1.5rem;">🎯 今天我们要学什么？</h2>
+      <ul class="num-list">
+        <li class="reveal delay-1">掌握结构体指针的定义与 <code style="color:var(--accent);font-weight:600;">-></code> 运算符的使用</li>
+        <li class="reveal delay-2">理解结构体嵌套的定义与多层访问方式</li>
+        <li class="reveal delay-3">掌握结构体作为函数参数的三种方式及其区别</li>
+        <li class="reveal delay-4">理解 <code style="color:var(--accent);font-weight:600;">const</code> 在结构体函数参数中的使用场景</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 3: CORE KNOWLEDGE ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">01</div>
+  <div class="full-slide">
+    <div class="content-box">
+      <div class="tag reveal">核心知识点</div>
+      <h2 class="reveal delay-1" style="margin-bottom:1.5rem;">📚 五大核心概念</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:clamp(0.6rem,1.2vw,1rem);">
+        <div class="card reveal delay-1"><strong style="color:var(--accent);">结构体指针</strong><br><code>Student* p = &stu;</code></div>
+        <div class="card reveal delay-2"><strong style="color:var(--accent);">箭头运算符</strong><br><code>p->成员名</code></div>
+        <div class="card reveal delay-3"><strong style="color:var(--accent);">结构体嵌套</strong><br><code>stu.addr.city</code></div>
+        <div class="card reveal delay-4"><strong style="color:var(--accent);">函数参数</strong><br>值传递 / 引用 / 指针</div>
+        <div class="card reveal delay-5"><strong style="color:var(--accent);">const 引用</strong><br><code>const Student& s</code></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 4: REVIEW ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">02</div>
+  <div class="full-slide">
+    <div class="content-box">
+      <div class="tag reveal">知识回顾</div>
+      <h2 class="reveal delay-1" style="margin-bottom:1.5rem;">👩‍🏫 上节课学了什么？</h2>
+      <div class="highlight-box reveal delay-2" style="margin-bottom:1rem;">
+        上节课我们学习了<strong>结构体基础</strong>——定义、访问、结构体数组和排序。
+      </div>
+      <div class="highlight-box reveal delay-3" style="margin-bottom:1.5rem;">
+        今天我们来进阶：学习<strong style="color:var(--accent);">结构体指针</strong>和<strong style="color:var(--accent);">结构体嵌套</strong>，以及如何把结构体作为函数参数传递。
+      </div>
+      <div class="reveal delay-4" style="text-align:left;">
+        <p style="font-weight:600;margin-bottom:0.5rem;">💭 互动复习：</p>
+        <ul class="bullet-list">
+          <li>如何定义一个 Student 结构体变量并访问它的 name 成员？</li>
+          <li>普通变量的指针如何定义？（<code>int* p = &a;</code>）解引用如何？（<code>*p</code>）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 5: SECTION DIVIDER - 新知讲解 ==================== -->
+<section class="slide" style="background:linear-gradient(160deg,var(--pastel1),var(--pastel2));">
+  <div class="circle" style="width:300px;height:300px;background:rgba(108,99,255,0.08);top:-5%;right:-5%;"></div>
+  <div class="circle" style="width:200px;height:200px;background:rgba(255,101,132,0.06);bottom:5%;left:5%;animation-delay:-3s;"></div>
+  <div class="center-content">
+    <div class="reveal" style="font-family:var(--font-display);font-size:clamp(4rem,8vw,7rem);font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;opacity:0.2;position:absolute;top:15%;">03</div>
+    <div class="tag reveal" style="color:var(--accent2);">Part 1</div>
+    <h1 class="reveal delay-1" style="font-size:clamp(2rem,5vw,3.5rem);">🎬 新知讲解</h1>
+    <p class="reveal delay-2" style="color:rgba(45,53,97,0.5);margin-top:0.8rem;">结构体指针与箭头运算符</p>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 6: STRUCT POINTER INTRO ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">03</div>
+  <div class="full-slide">
+    <div class="content-box">
+      <div class="tag reveal">新知导入</div>
+      <h2 class="reveal delay-1" style="margin-bottom:1.2rem;">指针如何访问结构体成员？</h2>
+      <div class="highlight-box reveal delay-2" style="margin-bottom:1rem;">
+        上节课我们用 <code>.</code> 访问结构体成员：<code>stu.name</code><br>
+        但当我们使用的是<strong style="color:var(--accent);">结构体指针</strong>时（*p 是一个结构体），怎么访问成员？
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(0.5rem,1vw,1rem);margin-top:1rem;">
+        <div class="card reveal delay-3" style="border-left:4px solid var(--accent);">
+          <strong>方法一：</strong><code>(*p).name</code><br>
+          <span style="font-size:0.85em;color:rgba(45,53,97,0.5);">先解引用，再用 <code>.</code>（括号必须写！）</span>
+        </div>
+        <div class="card reveal delay-4" style="border-left:4px solid var(--accent2);">
+          <strong>方法二：</strong><code>p->name</code><br>
+          <span style="font-size:0.85em;color:rgba(45,53,97,0.5);">箭头运算符，等价且更简洁 ✨</span>
+        </div>
+      </div>
+      <div class="highlight-box reveal delay-5" style="margin-top:1rem;background:linear-gradient(135deg,rgba(255,101,132,0.06),rgba(108,99,255,0.04));border-left-color:#e67e22;">
+        📦 就像快递：<code>.</code> 是直接拿货，<code>-></code> 是先找到地址再拿货！
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 7: DEFINE STRUCT POINTER ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">03</div>
+  <div class="split-layout">
+    <div class="split-left">
+      <div class="tag reveal">2.1 结构体指针</div>
+      <h2 class="reveal delay-1" style="margin-bottom:1rem;">定义结构体指针</h2>
+      <div class="code-block reveal delay-2 wide" style="margin-bottom:1rem;">
+        <span class="kw">Student</span> stu = {<span class="num">1001</span>, <span class="str">"小明"</span>, <span class="num">95</span>};<br>
+        <span class="kw">Student</span>* p = &stu; <span class="cmt">// p 指向 stu</span>
+      </div>
+      <ul class="bullet-list reveal delay-3">
+        <li><code>Student*</code> 表示指向 Student 类型的指针</li>
+        <li><code>&stu</code> 取 stu 的地址赋给 p</li>
+        <li>通过 p 可以间接操作 stu 的所有成员</li>
+      </ul>
+    </div>
+    <div class="split-right">
+      <div class="code-block reveal-right delay-2" style="max-width:95%;">
+        <span class="cmt">// 访问成员</span><br>
+        cout << <span class="kw">(*p)</span>.name; <span class="cmt">// 方法一</span><br>
+        cout << p->name; <span class="cmt">// 方法二 ✨</span><br><br>
+        <span class="cmt">// 修改成员</span><br>
+        p->score = <span class="num">100</span>;<br>
+        cout << stu.score; <span class="cmt">// 输出 100</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 8: FULL EXAMPLE ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">03</div>
+  <div class="full-slide">
+    <div class="content-box">
+      <div class="tag reveal">完整示例</div>
+      <h2 class="reveal delay-1" style="margin-bottom:1rem;">结构体指针完整代码</h2>
+      <div class="code-block reveal-scale delay-2 wide" style="max-width:650px;">
+        <span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span><br>
+        <span class="kw">#include</span> <span class="str">&lt;string&gt;</span><br>
+        <span class="kw">using namespace</span> std;<br><br>
+        <span class="kw">struct</span> <span class="type">Student</span> {<br>
+        &nbsp;&nbsp;<span class="kw">int</span> id; <span class="kw">string</span> name; <span class="kw">int</span> score;<br>
+        };<br><br>
+        <span class="kw">int</span> <span class="fn">main</span>() {<br>
+        &nbsp;&nbsp;Student stu = {<span class="num">1001</span>, <span class="str">"小明"</span>, <span class="num">95</span>};<br>
+        &nbsp;&nbsp;Student* p = &stu;<br><br>
+        &nbsp;&nbsp;cout << p->id << <span class="str">" "</span> << p->name<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; << <span class="str">" "</span> << p->score << endl;<br>
+        &nbsp;&nbsp;p->score = <span class="num">100</span>;<br>
+        &nbsp;&nbsp;cout << <span class="str">"修改后："</span> << stu.score;<br>
+        &nbsp;&nbsp;<span class="kw">return</span> <span class="num">0</span>;<br>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 9: KEY TAKEAWAY -> ==================== -->
+<section class="slide" style="background:linear-gradient(160deg,var(--pastel2),var(--pastel3));">
+  <div class="circle" style="width:200px;height:200px;background:rgba(108,99,255,0.08);bottom:10%;right:10%;"></div>
+  <div class="center-content">
+    <div class="tag reveal" style="color:var(--accent2);">🔑 关键总结</div>
+    <h2 class="reveal delay-1" style="margin-bottom:1.5rem;"><code style="font-size:clamp(1.5rem,3vw,2.5rem);">p->x</code> 等价于 <code style="font-size:clamp(1.5rem,3vw,2.5rem);">(*p).x</code></h2>
+    <div class="highlight-box key reveal delay-2" style="max-width:500px;text-align:center;">
+      箭头运算符 <code style="color:var(--accent);font-weight:700;">-></code> 更常用、更易读<br>
+      是"先解引用，再点运算"的简写
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 10: NESTED STRUCTS ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">03</div>
+  <div class="split-layout">
+    <div class="split-left">
+      <div class="tag reveal">2.2 结构体嵌套</div>
+      <h2 class="reveal delay-1" style="margin-bottom:1rem;">结构体里套结构体</h2>
+      <div class="highlight-box reveal delay-2" style="margin-bottom:1rem;">
+        结构体的成员可以是<strong style="color:var(--accent);">另一个结构体类型</strong>！<br>
+        比如"学生的地址信息包含省份和城市"。
+      </div>
+      <div class="code-block reveal delay-3 wide">
+        <span class="kw">struct</span> <span class="type">Address</span> {<br>
+        &nbsp;&nbsp;<span class="kw">string</span> province; <span class="cmt">// 省份</span><br>
+        &nbsp;&nbsp;<span class="kw">string</span> city; <span class="cmt">// 城市</span><br>
+        };<br><br>
+        <span class="kw">struct</span> <span class="type">Student</span> {<br>
+        &nbsp;&nbsp;<span class="kw">int</span> id; <span class="kw">string</span> name;<br>
+        &nbsp;&nbsp;Address addr; <span class="cmt">// 嵌套！</span><br>
+        };
+      </div>
+    </div>
+    <div class="split-right">
+      <div class="code-block reveal-right delay-3" style="max-width:95%;">
+        <span class="cmt">// 访问嵌套成员</span><br>
+        stu.addr.province = <span class="str">"广东"</span>;<br>
+        stu.addr.city = <span class="str">"广州"</span>;<br><br>
+        cout << stu.addr.city;<br>
+        <span class="cmt">// 输出：广州</span><br><br>
+        <span class="cmt">// 初始化</span><br>
+        Student stu = {<span class="num">1001</span>, <span class="str">"小明"</span>,<br>
+        &nbsp;&nbsp;{<span class="str">"广东"</span>, <span class="str">"广州"</span>}};
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 11: NESTED ACCESS ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">03</div>
+  <div class="full-slide">
+    <div class="content-box">
+      <div class="tag reveal">嵌套访问</div>
+      <h2 class="reveal delay-1" style="margin-bottom:1rem;">用两个 <code>.</code> 分两层访问</h2>
+      <div class="code-block reveal delay-2 wide" style="margin-bottom:1rem;">
+        Student stu;<br>
+        stu.id = <span class="num">1001</span>;<br>
+        stu.name = <span class="str">"小明"</span>;<br>
+        stu.addr.province = <span class="str">"广东"</span>; <span class="cmt">// 第一层 . 第二层</span><br>
+        stu.addr.city = <span class="str">"广州"</span>;<br><br>
+        cout << stu.addr.city; <span class="cmt">// 输出：广州</span>
+      </div>
+      <div class="highlight-box reveal delay-3" style="border-left-color:#e67e22;">
+        💡 初始化嵌套结构体有两种方式：<br>
+        <code>Address addr = {"广东", "广州"}; Student stu = {1001, "小明", addr};</code><br>
+        或直接：<code>Student stu2 = {1001, "小明", {"广东", "广州"}};</code>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 12: SECTION DIVIDER - 函数参数 ==================== -->
+<section class="slide" style="background:linear-gradient(160deg,var(--pastel3),var(--pastel1));">
+  <div class="circle" style="width:250px;height:250px;background:rgba(255,101,132,0.08);top:5%;left:5%;"></div>
+  <div class="circle" style="width:180px;height:180px;background:rgba(108,99,255,0.06);bottom:10%;right:8%;animation-delay:-2s;"></div>
+  <div class="center-content">
+    <div class="reveal" style="font-family:var(--font-display);font-size:clamp(4rem,8vw,7rem);font-weight:800;background:linear-gradient(135deg,var(--accent2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;opacity:0.2;position:absolute;top:15%;">03</div>
+    <div class="tag reveal" style="color:var(--accent);">Part 2</div>
+    <h1 class="reveal delay-1" style="font-size:clamp(2rem,5vw,3.5rem);">🔄 函数参数传递</h1>
+    <p class="reveal delay-2" style="color:rgba(45,53,97,0.5);margin-top:0.8rem;">值传递 · 引用传递 · 指针传递</p>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 13: VALUE PASSING ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">03</div>
+  <div class="split-layout">
+    <div class="split-left">
+      <div class="tag reveal">2.3 方式一</div>
+      <h2 class="reveal delay-1" style="margin-bottom:1rem;">值传递</h2>
+      <div class="highlight-box warn reveal delay-2" style="margin-bottom:1rem;">
+        ⚠️ 传入的是<strong>副本</strong>，修改不影响原变量<br>
+        结构体较大时，复制开销大！
+      </div>
+      <div class="code-block reveal delay-3 wide">
+        <span class="kw">void</span> <span class="fn">printStudent</span>(Student s) {<br>
+        &nbsp;&nbsp;cout << s.name << <span class="str">" "</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; << s.score << endl;<br>
+        &nbsp;&nbsp;s.score = <span class="num">0</span>; <span class="cmt">// 只改副本</span><br>
+        }
+      </div>
+    </div>
+    <div class="split-right">
+      <div class="reveal-right delay-2" style="text-align:center;max-width:90%;">
+        <div style="font-size:clamp(3rem,5vw,4rem);margin-bottom:0.5rem;">📋</div>
+        <h3 style="color:var(--accent);margin-bottom:0.5rem;">特点</h3>
+        <ul class="bullet-list">
+          <li>复制整个结构体</li>
+          <li>函数内修改不影响原变量</li>
+          <li>简单但效率低</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 14: REFERENCE PASSING ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">03</div>
+  <div class="split-layout">
+    <div class="split-left">
+      <div class="tag reveal">2.3 方式二</div>
+      <h2 class="reveal delay-1" style="margin-bottom:1rem;">引用传递</h2>
+      <div class="highlight-box reveal delay-2" style="margin-bottom:1rem;">
+        传入的是<strong style="color:var(--accent);">引用</strong>，不复制，直接操作原变量！
+      </div>
+      <div class="code-block reveal delay-3 wide">
+        <span class="kw">void</span> <span class="fn">addScore</span>(Student& s, <span class="kw">int</span> delta) {<br>
+        &nbsp;&nbsp;s.score += delta; <span class="cmt">// 直接修改原变量</span><br>
+        }<br><br>
+        addScore(stu, <span class="num">5</span>);<br>
+        <span class="cmt">// stu.score 增加了 5</span>
+      </div>
+    </div>
+    <div class="split-right">
+      <div class="reveal-right delay-2" style="text-align:center;max-width:90%;">
+        <div style="font-size:clamp(3rem,5vw,4rem);margin-bottom:0.5rem;">🔗</div>
+        <h3 style="color:var(--accent);margin-bottom:0.5rem;">特点</h3>
+        <ul class="bullet-list">
+          <li>不复制，零开销</li>
+          <li>函数内修改<strong>影响</strong>原变量</li>
+          <li>需要修改时推荐使用</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 15: POINTER PASSING ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">03</div>
+  <div class="split-layout">
+    <div class="split-left">
+      <div class="tag reveal">2.3 方式三</div>
+      <h2 class="reveal delay-1" style="margin-bottom:1rem;">指针传递</h2>
+      <div class="highlight-box reveal delay-2" style="margin-bottom:1rem;">
+        传<strong style="color:var(--accent);">地址</strong>，通过 <code>-></code> 访问成员
+      </div>
+      <div class="code-block reveal delay-3 wide">
+        <span class="kw">void</span> <span class="fn">addScore2</span>(Student* p, <span class="kw">int</span> delta) {<br>
+        &nbsp;&nbsp;p->score += delta;<br>
+        }<br><br>
+        addScore2(&stu, <span class="num">5</span>);<br>
+        <span class="cmt">// 传入 stu 的地址</span>
+      </div>
+    </div>
+    <div class="split-right">
+      <div class="reveal-right delay-2" style="text-align:center;max-width:90%;">
+        <div style="font-size:clamp(3rem,5vw,4rem);margin-bottom:0.5rem;">📍</div>
+        <h3 style="color:var(--accent);margin-bottom:0.5rem;">特点</h3>
+        <ul class="bullet-list">
+          <li>传地址，不复制</li>
+          <li>用 <code>-></code> 访问成员</li>
+          <li>C 语言风格，C++ 更推荐引用</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 16: THREE WAYS COMPARISON ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">03</div>
+  <div class="full-slide">
+    <div class="content-box">
+      <div class="tag reveal">对比总结</div>
+      <h2 class="reveal delay-1" style="margin-bottom:1.2rem;">📊 三种传参方式对比</h2>
+      <table class="compare-table reveal delay-2" style="max-width:750px;">
+        <thead>
+          <tr><th>方式</th><th>语法</th><th>是否复制</th><th>能否修改原变量</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>值传递</strong></td><td><code>Student s</code></td><td>✅ 是</td><td>❌ 否</td></tr>
+          <tr><td><strong>引用传递</strong></td><td><code>Student& s</code></td><td>❌ 否</td><td>✅ 是</td></tr>
+          <tr><td><strong>指针传递</strong></td><td><code>Student* p</code></td><td>❌ 否</td><td>✅ 是</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 17: CONST REFERENCE ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">03</div>
+  <div class="split-layout">
+    <div class="split-left">
+      <div class="tag reveal">2.4 const 引用</div>
+      <h2 class="reveal delay-1" style="margin-bottom:1rem;">只读 + 高效</h2>
+      <div class="highlight-box reveal delay-2" style="margin-bottom:1rem;">
+        当函数<strong>只读</strong>结构体（不修改），应该用 <code>const</code> 引用<br>
+        <strong>既避免拷贝开销，又保护数据不被修改</strong>
+      </div>
+      <div class="code-block reveal delay-3 wide">
+        <span class="cmt">// const 引用：不复制，又保证只读</span><br>
+        <span class="kw">void</span> <span class="fn">printStudent</span>(<span class="kw">const</span> Student& s) {<br>
+        &nbsp;&nbsp;cout << s.name << <span class="str">" "</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; << s.score << endl;<br>
+        &nbsp;&nbsp;<span class="cmt">// s.score = 0; // ❌ 错误！</span><br>
+        }
+      </div>
+    </div>
+    <div class="split-right">
+      <div class="code-block reveal-right delay-3" style="max-width:95%;">
+        <span class="cmt">// sort 的 cmp 推荐</span><br>
+        <span class="kw">bool</span> <span class="fn">cmp</span>(<span class="kw">const</span> Student& a,<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">const</span> Student& b) {<br>
+        &nbsp;&nbsp;<span class="kw">return</span> a.score > b.score;<br>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 18: BEST PRACTICE ==================== -->
+<section class="slide" style="background:linear-gradient(160deg,var(--pastel1),var(--pastel2));">
+  <div class="circle" style="width:200px;height:200px;background:rgba(108,99,255,0.08);top:5%;right:10%;"></div>
+  <div class="center-content">
+    <div class="tag reveal" style="color:var(--accent2);">🔑 最佳实践</div>
+    <h2 class="reveal delay-1" style="margin-bottom:1.5rem;">什么时候用什么？</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:clamp(0.6rem,1.2vw,1rem);max-width:800px;width:100%;">
+      <div class="card reveal delay-2" style="border-top:4px solid #27ae60;">
+        <strong style="color:#27ae60;">只读场景</strong><br>
+        <code style="font-size:0.9em;">const Student& s</code><br>
+        <span style="font-size:0.85em;color:rgba(45,53,97,0.5);">高效且安全 ✅</span>
+      </div>
+      <div class="card reveal delay-3" style="border-top:4px solid var(--accent);">
+        <strong style="color:var(--accent);">需要修改</strong><br>
+        <code style="font-size:0.9em;">Student& s</code><br>
+        <span style="font-size:0.85em;color:rgba(45,53,97,0.5);">引用传递</span>
+      </div>
+      <div class="card reveal delay-4" style="border-top:4px solid #e67e22;">
+        <strong style="color:#e67e22;">不关心效率</strong><br>
+        <code style="font-size:0.9em;">Student s</code><br>
+        <span style="font-size:0.85em;color:rgba(45,53,97,0.5);">值传递，最简单</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 19: QUIZ 1 ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">⚡</div>
+  <div class="full-slide">
+    <div class="content-box">
+      <div class="tag reveal">GESP 真题 · 抢答 1</div>
+      <h2 class="reveal delay-1" style="margin-bottom:1.2rem;">选择题</h2>
+      <div class="highlight-box reveal delay-2" style="margin-bottom:1rem;">
+        设 <code>Student* p = &stu;</code>，以下访问 score 成员<strong>正确</strong>的是（ ）
+      </div>
+      <div class="quiz-options reveal delay-3">
+        <div class="quiz-opt">A. <code>p.score</code></div>
+        <div class="quiz-opt">B. <code>*p.score</code></div>
+        <div class="quiz-opt correct">C. <code>(*p).score</code></div>
+        <div class="quiz-opt">D. <code>p*score</code></div>
+      </div>
+      <div style="margin-top:1rem;" class="reveal delay-4">
+        <button class="answer-toggle" onclick="toggleAnswer(this)">
+          <span class="arrow">▶</span> 查看解析
+        </button>
+        <div class="answer-content">
+          <div class="highlight-box key">
+            <strong>答案：C</strong>（<code>p->score</code> 也正确，但不在选项中）<br><br>
+            p 是指针，不能用 <code>.</code>，需要先解引用 <code>*p</code>，再用 <code>.</code> 访问成员，即 <code>(*p).score</code>。<strong>注意括号不可省</strong>，因为 <code>.</code> 优先级高于 <code>*</code>。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 20: QUIZ 2 ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">⚡</div>
+  <div class="full-slide">
+    <div class="content-box">
+      <div class="tag reveal">GESP 真题 · 判断题 2</div>
+      <h2 class="reveal delay-1" style="margin-bottom:1.2rem;">判断题</h2>
+      <div class="highlight-box reveal delay-2" style="margin-bottom:1.5rem;font-size:clamp(1rem,1.6vw,1.2rem);">
+        <code>p->name</code> 和 <code>(*p).name</code> 完全等价。（ ）
+      </div>
+      <div style="margin-top:1rem;" class="reveal delay-3">
+        <button class="answer-toggle" onclick="toggleAnswer(this)">
+          <span class="arrow">▶</span> 查看答案
+        </button>
+        <div class="answer-content">
+          <div class="highlight-box key">
+            <strong>答案：✓ 正确</strong><br><br>
+            <code>-></code> 运算符就是"先解引用，再点运算"的简写，两种写法<strong>完全等价</strong>。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 21: QUIZ 3 ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">⚡</div>
+  <div class="full-slide">
+    <div class="content-box">
+      <div class="tag reveal">GESP 真题 · 抢答 3</div>
+      <h2 class="reveal delay-1" style="margin-bottom:1.2rem;">选择题</h2>
+      <div class="highlight-box reveal delay-2" style="margin-bottom:1rem;">
+        以下函数参数声明中，<strong>既能避免拷贝开销，又能保证函数内不修改原变量</strong>的是（ ）
+      </div>
+      <div class="quiz-options reveal delay-3">
+        <div class="quiz-opt">A. <code>void f(Student s)</code></div>
+        <div class="quiz-opt">B. <code>void f(Student& s)</code></div>
+        <div class="quiz-opt correct">C. <code>void f(const Student& s)</code></div>
+        <div class="quiz-opt">D. <code>void f(Student* s)</code></div>
+      </div>
+      <div style="margin-top:1rem;" class="reveal delay-4">
+        <button class="answer-toggle" onclick="toggleAnswer(this)">
+          <span class="arrow">▶</span> 查看解析
+        </button>
+        <div class="answer-content">
+          <div class="highlight-box key">
+            <strong>答案：C</strong><br><br>
+            A 是值传递，有拷贝开销；B 是引用传递，可修改原变量；<strong>C 是 const 引用，无拷贝 + 只读</strong>；D 是指针传递，可通过 <code>-></code> 修改原变量。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 22: ADVANCED - ARRAY + POINTER ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">04</div>
+  <div class="full-slide">
+    <div class="content-box">
+      <div class="tag reveal">进阶扩展</div>
+      <h2 class="reveal delay-1" style="margin-bottom:1rem;">结构体数组与指针结合</h2>
+      <div class="code-block reveal delay-2 wide" style="margin-bottom:1rem;">
+        Student stu[<span class="num">5</span>];<br>
+        Student* p = stu + <span class="num">1</span>; <span class="cmt">// 指向 stu[1]</span><br><br>
+        cout << p->name; <span class="cmt">// stu[1].name</span><br>
+        p++; <span class="cmt">// 移动到 stu[2]</span><br>
+        cout << p->score; <span class="cmt">// stu[2].score</span>
+      </div>
+      <div class="highlight-box reveal delay-3">
+        🧠 <strong>黑板推演：</strong>结构体数组在内存中也是连续存储的，每个元素大小为 <code>sizeof(Student)</code>。<br>
+        <code>p + 1</code> = 地址 + <code>sizeof(Student)</code> 字节，这样就移动到了下一个结构体元素。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 23: CONST POINTER PARAM ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">04</div>
+  <div class="full-slide">
+    <div class="content-box">
+      <div class="tag reveal">进阶扩展</div>
+      <h2 class="reveal delay-1" style="margin-bottom:1rem;">const 指针参数</h2>
+      <div class="code-block reveal delay-2 wide" style="margin-bottom:1rem;">
+        <span class="kw">void</span> <span class="fn">print</span>(<span class="kw">const</span> Student* p) {<br>
+        &nbsp;&nbsp;cout << p->name << <span class="str">" "</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; << p->score << endl;<br>
+        &nbsp;&nbsp;<span class="cmt">// p->score = 0; // ❌ 错误！</span><br>
+        }<br><br>
+        print(&stu); <span class="cmt">// 传入地址</span>
+      </div>
+      <div class="highlight-box reveal delay-3">
+        💡 <code>const Student* p</code> 表示指针指向的内容不可修改，但指针本身可以指向其他地址。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 24: PRACTICE 1 ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">🎈</div>
+  <div class="full-slide">
+    <div class="content-box">
+      <div class="tag reveal">课堂练习 1（基础）</div>
+      <h2 class="reveal delay-1" style="margin-bottom:0.8rem;">通过指针访问结构体</h2>
+      <div class="highlight-box reveal delay-2" style="margin-bottom:0.8rem;">
+        定义 Point 结构体（含 x, y），创建一个 Point 变量，用指针操作：输出坐标，然后将 x 和 y 各加 10，再输出。
+      </div>
+      <div style="font-size:clamp(0.8rem,1.2vw,0.95rem);color:rgba(45,53,97,0.5);margin-bottom:0.8rem;" class="reveal delay-2">
+        输入：<code>3 5</code> → 输出：<code>3 5</code> 换行 <code>13 15</code>
+      </div>
+      <div class="reveal delay-3">
+        <button class="answer-toggle" onclick="toggleAnswer(this)">
+          <span class="arrow">▶</span> 查看题解
+        </button>
+        <div class="answer-content">
+          <div class="code-block narrow">
+            <span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span><br>
+            <span class="kw">using namespace</span> std;<br>
+            <span class="kw">struct</span> <span class="type">Point</span> { <span class="kw">int</span> x, y; };<br>
+            <span class="kw">int</span> <span class="fn">main</span>() {<br>
+            &nbsp;&nbsp;Point pt;<br>
+            &nbsp;&nbsp;cin >> pt.x >> pt.y;<br>
+            &nbsp;&nbsp;Point* p = &pt;<br>
+            &nbsp;&nbsp;cout << p->x << <span class="str">" "</span> << p->y << endl;<br>
+            &nbsp;&nbsp;p->x += <span class="num">10</span>; p->y += <span class="num">10</span>;<br>
+            &nbsp;&nbsp;cout << p->x << <span class="str">" "</span> << p->y << endl;<br>
+            &nbsp;&nbsp;<span class="kw">return</span> <span class="num">0</span>;<br>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 25: PRACTICE 2 ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">🎈</div>
+  <div class="full-slide">
+    <div class="content-box">
+      <div class="tag reveal">课堂练习 2（基础）</div>
+      <h2 class="reveal delay-1" style="margin-bottom:0.8rem;">嵌套结构体输入输出</h2>
+      <div class="highlight-box reveal delay-2" style="margin-bottom:0.8rem;">
+        定义 Address（省份、城市）和 Person（姓名、年龄、Address），输入一个人的信息后完整输出。
+      </div>
+      <div style="font-size:clamp(0.8rem,1.2vw,0.95rem);color:rgba(45,53,97,0.5);margin-bottom:0.8rem;" class="reveal delay-2">
+        输入：<code>小明 15 广东 广州</code> → 输出：<code>小明: 15岁, 住址: 广东-广州</code>
+      </div>
+      <div class="reveal delay-3">
+        <button class="answer-toggle" onclick="toggleAnswer(this)">
+          <span class="arrow">▶</span> 查看题解
+        </button>
+        <div class="answer-content">
+          <div class="code-block narrow">
+            <span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span><br>
+            <span class="kw">#include</span> <span class="str">&lt;string&gt;</span><br>
+            <span class="kw">using namespace</span> std;<br>
+            <span class="kw">struct</span> <span class="type">Address</span> { <span class="kw">string</span> province, city; };<br>
+            <span class="kw">struct</span> <span class="type">Person</span> { <span class="kw">string</span> name; <span class="kw">int</span> age; Address addr; };<br>
+            <span class="kw">int</span> <span class="fn">main</span>() {<br>
+            &nbsp;&nbsp;Person p;<br>
+            &nbsp;&nbsp;cin >> p.name >> p.age<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;>> p.addr.province >> p.addr.city;<br>
+            &nbsp;&nbsp;cout << p.name << <span class="str">": "</span> << p.age << <span class="str">"岁, 住址: "</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<< p.addr.province << <span class="str">"-"</span> << p.addr.city << endl;<br>
+            &nbsp;&nbsp;<span class="kw">return</span> <span class="num">0</span>;<br>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 26: PRACTICE 3 ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">🎈</div>
+  <div class="full-slide">
+    <div class="content-box">
+      <div class="tag reveal">课堂练习 3（综合）</div>
+      <h2 class="reveal delay-1" style="margin-bottom:0.8rem;">用引用传参修改结构体</h2>
+      <div class="highlight-box reveal delay-2" style="margin-bottom:0.8rem;">
+        编写 <code>addBonus(Student& s, int b)</code> 和 <code>printInfo(const Student& s)</code>，输入 n 个学生，每个加 5 分奖励后输出。
+      </div>
+      <div style="font-size:clamp(0.8rem,1.2vw,0.95rem);color:rgba(45,53,97,0.5);margin-bottom:0.8rem;" class="reveal delay-2">
+        输入：<code>3 / Alice 85 / Bob 90 / Carol 78</code> → 输出：<code>Alice 90 / Bob 95 / Carol 83</code>
+      </div>
+      <div class="reveal delay-3">
+        <button class="answer-toggle" onclick="toggleAnswer(this)">
+          <span class="arrow">▶</span> 查看题解
+        </button>
+        <div class="answer-content">
+          <div class="code-block narrow">
+            <span class="kw">#include</span> <span class="str">&lt;iostream&gt;</span><br>
+            <span class="kw">#include</span> <span class="str">&lt;string&gt;</span><br>
+            <span class="kw">using namespace</span> std;<br>
+            <span class="kw">struct</span> <span class="type">Student</span> { <span class="kw">string</span> name; <span class="kw">int</span> score; };<br>
+            <span class="kw">void</span> <span class="fn">addBonus</span>(Student& s, <span class="kw">int</span> b) { s.score += b; }<br>
+            <span class="kw">void</span> <span class="fn">printInfo</span>(<span class="kw">const</span> Student& s) {<br>
+            &nbsp;&nbsp;cout << s.name << <span class="str">" "</span> << s.score << endl; }<br>
+            Student stu[<span class="num">105</span>];<br>
+            <span class="kw">int</span> <span class="fn">main</span>() {<br>
+            &nbsp;&nbsp;<span class="kw">int</span> n; cin >> n;<br>
+            &nbsp;&nbsp;<span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">1</span>;i<=n;i++) cin>>stu[i].name>>stu[i].score;<br>
+            &nbsp;&nbsp;<span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">1</span>;i<=n;i++) addBonus(stu[i],<span class="num">5</span>);<br>
+            &nbsp;&nbsp;<span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">1</span>;i<=n;i++) printInfo(stu[i]);<br>
+            &nbsp;&nbsp;<span class="kw">return</span> <span class="num">0</span>; }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 27: PRACTICE 4 ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">🎈</div>
+  <div class="full-slide">
+    <div class="content-box">
+      <div class="tag reveal">课堂练习 4（综合）</div>
+      <h2 class="reveal delay-1" style="margin-bottom:0.8rem;">通过指针传参排序</h2>
+      <div class="highlight-box reveal delay-2" style="margin-bottom:0.8rem;">
+        编写 <code>swapStudent(Student* a, Student* b)</code>，用冒泡排序按成绩升序排列后输出。
+      </div>
+      <div style="font-size:clamp(0.8rem,1.2vw,0.95rem);color:rgba(45,53,97,0.5);margin-bottom:0.8rem;" class="reveal delay-2">
+        输入：<code>3 / Alice 85 / Bob 92 / Carol 78</code> → 输出：<code>Carol 78 / Alice 85 / Bob 92</code>
+      </div>
+      <div class="reveal delay-3">
+        <button class="answer-toggle" onclick="toggleAnswer(this)">
+          <span class="arrow">▶</span> 查看题解
+        </button>
+        <div class="answer-content">
+          <div class="code-block narrow">
+            <span class="kw">void</span> <span class="fn">swapStudent</span>(Student* a, Student* b) {<br>
+            &nbsp;&nbsp;Student tmp = *a; *a = *b; *b = tmp;<br>
+            }<br>
+            <span class="kw">int</span> <span class="fn">main</span>() {<br>
+            &nbsp;&nbsp;<span class="kw">int</span> n; cin >> n;<br>
+            &nbsp;&nbsp;<span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">1</span>;i<=n;i++) cin>>stu[i].name>>stu[i].score;<br>
+            &nbsp;&nbsp;<span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">1</span>;i<n;i++)<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span>(<span class="kw">int</span> j=<span class="num">1</span>;j<=n-i;j++)<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span>(stu[j].score>stu[j+<span class="num">1</span>].score)<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;swapStudent(&stu[j],&stu[j+<span class="num">1</span>]);<br>
+            &nbsp;&nbsp;<span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">1</span>;i<=n;i++)<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;cout<<stu[i].name<< <span class="str">" "</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<<stu[i].score<<endl;<br>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 28: PRACTICE 5 ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">🎈</div>
+  <div class="full-slide">
+    <div class="content-box">
+      <div class="tag reveal">课堂练习 5（进阶）</div>
+      <h2 class="reveal delay-1" style="margin-bottom:0.8rem;">嵌套结构体多关键字排序</h2>
+      <div class="highlight-box reveal delay-2" style="margin-bottom:0.8rem;">
+        每个学生有姓名、城市和成绩，先按城市升序，城市相同按成绩降序排列。
+      </div>
+      <div style="font-size:clamp(0.8rem,1.2vw,0.95rem);color:rgba(45,53,97,0.5);margin-bottom:0.8rem;" class="reveal delay-2">
+        输入：<code>4 / Alice Shanghai 85 / Bob Beijing 92 / Carol Shanghai 90 / Dave Beijing 88</code>
+      </div>
+      <div class="reveal delay-3">
+        <button class="answer-toggle" onclick="toggleAnswer(this)">
+          <span class="arrow">▶</span> 查看题解
+        </button>
+        <div class="answer-content">
+          <div class="code-block narrow">
+            <span class="kw">bool</span> <span class="fn">cmp</span>(<span class="kw">const</span> Student& a, <span class="kw">const</span> Student& b) {<br>
+            &nbsp;&nbsp;<span class="kw">if</span>(a.city != b.city) <span class="kw">return</span> a.city < b.city;<br>
+            &nbsp;&nbsp;<span class="kw">return</span> a.score > b.score;<br>
+            }<br>
+            <span class="kw">int</span> <span class="fn">main</span>() {<br>
+            &nbsp;&nbsp;<span class="kw">int</span> n; cin >> n;<br>
+            &nbsp;&nbsp;<span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">1</span>;i<=n;i++)<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;cin>>stu[i].name>>stu[i].city>>stu[i].score;<br>
+            &nbsp;&nbsp;sort(stu+<span class="num">1</span>, stu+n+<span class="num">1</span>, cmp);<br>
+            &nbsp;&nbsp;<span class="kw">for</span>(<span class="kw">int</span> i=<span class="num">1</span>;i<=n;i++)<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;cout<<stu[i].name<< <span class="str">" "</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<<stu[i].city<< <span class="str">" "</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<<stu[i].score<<endl;<br>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 29: SUMMARY ==================== -->
+<section class="slide" style="background:linear-gradient(160deg,var(--pastel2),var(--pastel1));">
+  <div class="circle" style="width:250px;height:250px;background:rgba(108,99,255,0.08);top:5%;right:5%;"></div>
+  <div class="circle" style="width:180px;height:180px;background:rgba(255,101,132,0.06);bottom:8%;left:8%;animation-delay:-2s;"></div>
+  <div class="center-content">
+    <div class="tag reveal" style="color:var(--accent2);">🌟 课堂总结</div>
+    <h2 class="reveal delay-1" style="margin-bottom:1.5rem;">结构体进阶三大技能</h2>
+    <div style="display:flex;flex-direction:column;gap:clamp(0.5rem,1vw,0.8rem);max-width:650px;width:100%;">
+      <div class="card reveal delay-2" style="border-left:4px solid var(--accent);">
+        <strong>1. 结构体指针</strong><br>
+        <code>Student* p = &stu;</code> → 用 <code>p->成员</code> 访问
+      </div>
+      <div class="card reveal delay-3" style="border-left:4px solid var(--accent2);">
+        <strong>2. 结构体嵌套</strong><br>
+        <code>stu.addr.city</code> — 用两个 <code>.</code> 分两层访问
+      </div>
+      <div class="card reveal delay-4" style="border-left:4px solid #e67e22;">
+        <strong>3. 函数参数三种方式</strong><br>
+        <code>Student s</code> 值传递 / <code>Student& s</code> 引用 / <code>const Student& s</code> 只读引用
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 30: HOMEWORK ==================== -->
+<section class="slide" style="background: var(--bg);">
+  <div class="dots-pattern"></div>
+  <div class="section-num">📝</div>
+  <div class="full-slide">
+    <div class="content-box">
+      <div class="tag reveal">课后作业</div>
+      <h2 class="reveal delay-1" style="margin-bottom:1rem;">📝 3 道课后作业</h2>
+      <ul class="num-list reveal delay-2">
+        <li><strong>指针读写：</strong>定义 Circle 结构体（cx, cy, r），用指针修改半径为原来的两倍后输出</li>
+        <li><strong>嵌套结构体输出：</strong>定义班级结构体（班级名、年级），再定义学生结构体（姓名、班级），输入后按格式输出</li>
+        <li><strong>const 引用函数：</strong>编写 <code>double average(const int* a, int n)</code> 计算数组平均值</li>
+      </ul>
+      <div class="highlight-box reveal delay-3" style="margin-top:1rem;border-left-color:var(--accent2);">
+        🔥 <strong>拓展习题（尖子生挑战）：</strong>结构体链表、嵌套排序、函数返回结构体、二维结构体数组等 7 道挑战题，详见课件原文。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 31: ENDING ==================== -->
+<section class="slide" style="background:linear-gradient(160deg,var(--pastel1),var(--pastel3));">
+  <div class="circle" style="width:300px;height:300px;background:rgba(108,99,255,0.08);top:-5%;left:-5%;"></div>
+  <div class="circle" style="width:200px;height:200px;background:rgba(255,101,132,0.06);bottom:5%;right:5%;animation-delay:-3s;"></div>
+  <div class="center-content">
+    <div class="reveal" style="font-size:clamp(3rem,6vw,5rem);margin-bottom:1rem;">💡</div>
+    <h1 class="reveal delay-1" style="font-size:clamp(2rem,5vw,3.5rem);">下节课预告</h1>
+    <p class="reveal delay-2" style="font-size:clamp(1.1rem,2vw,1.5rem);color:rgba(45,53,97,0.6);margin-top:0.8rem;">
+      自定义函数进阶 — 默认参数和多种传参方式
+    </p>
+    <div class="reveal delay-3" style="margin-top:2rem;font-size:clamp(0.8rem,1.2vw,1rem);color:rgba(45,53,97,0.3);">
+      CSP04-07 · 结构体进阶 · 完
+    </div>
+  </div>
+</section>
+
+<!-- ==================== JAVASCRIPT ==================== -->
+<script>
+// === Answer Toggle ===
+function toggleAnswer(btn) {
+  btn.classList.toggle('active');
+  const content = btn.nextElementSibling;
+  content.classList.toggle('show');
+  const arrow = btn.querySelector('.arrow');
+  arrow.textContent = content.classList.contains('show') ? '▼' : '▶';
+}
+
+// === Scroll Reveal (IntersectionObserver) ===
+const revealElements = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale');
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+revealElements.forEach(el => revealObserver.observe(el));
+
+// === Slide Navigation ===
+const slides = document.querySelectorAll('.slide');
+const totalSlides = slides.length;
+const navDotsContainer = document.getElementById('navDots');
+const progressBar = document.getElementById('progressBar');
+const slideCounter = document.getElementById('slideCounter');
+
+// Create nav dots
+for (let i = 0; i < totalSlides; i++) {
+  const dot = document.createElement('button');
+  dot.className = 'nav-dot';
+  dot.setAttribute('aria-label', `Slide ${i + 1}`);
+  dot.addEventListener('click', () => {
+    slides[i].scrollIntoView({ behavior: 'smooth' });
+  });
+  navDotsContainer.appendChild(dot);
+}
+
+// Update active state on scroll
+function updateActiveSlide() {
+  const scrollPos = window.scrollY;
+  const viewH = window.innerHeight;
+  const currentSlide = Math.round(scrollPos / viewH);
+
+  // Update dots
+  const dots = navDotsContainer.querySelectorAll('.nav-dot');
+  dots.forEach((dot, i) => {
+    dot.classList.toggle('active', i === currentSlide);
+  });
+
+  // Update progress bar
+  const progress = ((currentSlide + 1) / totalSlides) * 100;
+  progressBar.style.width = progress + '%';
+
+  // Update counter
+  slideCounter.textContent = `${currentSlide + 1} / ${totalSlides}`;
+}
+
+window.addEventListener('scroll', updateActiveSlide, { passive: true });
+updateActiveSlide();
+
+// === Keyboard Navigation ===
+document.addEventListener('keydown', (e) => {
+  const scrollPos = window.scrollY;
+  const viewH = window.innerHeight;
+  const currentSlide = Math.round(scrollPos / viewH);
+
+  if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+    e.preventDefault();
+    if (currentSlide < totalSlides - 1) {
+      slides[currentSlide + 1].scrollIntoView({ behavior: 'smooth' });
+    }
+  } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+    e.preventDefault();
+    if (currentSlide > 0) {
+      slides[currentSlide - 1].scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+});
+</script>
+
+</body>
+</html>
