@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AICODE06-09 教师站讲版课堂演示</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+	--red:#ff4d6d;
+	--orange:#ff9f1c;
+	--yellow:#ffd166;
+	--green:#06d6a0;
+	--blue:#118ab2;
+	--purple:#7c3aed;
+	--dark:#111827;
+	--light:#f8fafc;
+}
+body{
+	width:100vw;height:100vh;overflow:hidden;
+	font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;
+	background:#111827;color:#111827;
+}
+button{font-family:inherit}
+.deck{
+	width:100vw;height:100vh;
+	position:relative;
+	background:
+		radial-gradient(circle at 8% 8%,rgba(255,255,255,.24),transparent 18%),
+		linear-gradient(135deg,#fff7ad 0%,#ffd1dc 45%,#c7d2fe 100%);
+}
+.topbar{
+	position:absolute;top:0;left:0;right:0;height:58px;z-index:20;
+	background:rgba(255,255,255,.82);backdrop-filter:blur(16px);
+	display:flex;align-items:center;padding:0 24px;gap:18px;
+	border-bottom:1px solid rgba(17,24,39,.08);
+}
+.brand{font-weight:900;color:var(--red);font-size:18px;white-space:nowrap}
+.stage{
+	display:flex;gap:8px;flex:1;justify-content:center;
+}
+.stage span{
+	padding:6px 12px;border-radius:999px;background:#eef2ff;color:#64748b;
+	font-size:13px;font-weight:800;
+}
+.stage span.active{background:var(--active,#ff4d6d);color:white;box-shadow:0 6px 16px rgba(0,0,0,.16)}
+.counter{
+	background:#111827;color:white;border-radius:12px;padding:7px 13px;
+	font-size:14px;font-weight:900;min-width:72px;text-align:center;
+}
+.progress-wrap{position:absolute;top:58px;left:0;right:0;height:5px;background:rgba(255,255,255,.45);z-index:21}
+.progress{height:100%;width:0;background:linear-gradient(90deg,var(--red),var(--orange),var(--green),var(--blue));transition:.35s}
+
+.slide{
+	position:absolute;inset:63px 0 74px 0;
+	display:grid;grid-template-columns:minmax(0,1fr) 360px;
+	gap:22px;padding:28px;
+	opacity:0;transform:translateX(70px) scale(.985);
+	pointer-events:none;transition:.42s cubic-bezier(.2,.8,.2,1);
+}
+.slide.active{opacity:1;transform:translateX(0) scale(1);pointer-events:auto}
+.slide.prev{transform:translateX(-70px) scale(.985)}
+.student-screen{
+	background:rgba(255,255,255,.88);border-radius:28px;
+	padding:34px;box-shadow:0 24px 60px rgba(17,24,39,.18);
+	overflow:hidden;position:relative;
+	display:flex;flex-direction:column;justify-content:center;
+}
+.teacher-panel{
+	background:#111827;color:white;border-radius:28px;
+	box-shadow:0 24px 60px rgba(17,24,39,.26);
+	padding:22px;display:flex;flex-direction:column;gap:14px;
+	transition:.25s;overflow:auto;
+}
+body.hide-notes .slide{grid-template-columns:1fr}
+body.hide-notes .teacher-panel{display:none}
+.panel-title{font-size:20px;font-weight:900;color:#fde68a;margin-bottom:4px}
+.cue{
+	border-radius:18px;padding:15px;background:rgba(255,255,255,.08);
+	border:1px solid rgba(255,255,255,.08);
+}
+.cue b{display:block;margin-bottom:6px;font-size:15px;color:#93c5fd}
+.cue.say b{color:#fbbf24}
+.cue.ask b{color:#86efac}
+.cue.do b{color:#fca5a5}
+.cue p{line-height:1.62;color:#e5e7eb;font-size:15px}
+.goal-strip{
+	margin-top:auto;background:rgba(255,255,255,.1);
+	border-radius:16px;padding:13px;color:#d1d5db;line-height:1.5;font-size:14px;
+}
+.footer{
+	position:absolute;left:0;right:0;bottom:0;height:74px;z-index:20;
+	background:rgba(255,255,255,.82);backdrop-filter:blur(16px);
+	display:flex;align-items:center;justify-content:space-between;padding:0 26px;
+	border-top:1px solid rgba(17,24,39,.08);
+}
+.help{font-size:14px;color:#475569}
+.nav button{
+	border:none;border-radius:14px;background:#111827;color:white;
+	padding:11px 18px;font-weight:900;margin-left:8px;cursor:pointer;
+	box-shadow:0 5px 0 rgba(0,0,0,.22);transition:.15s;
+}
+.nav button:hover{transform:translateY(-2px)}
+.nav button:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.22)}
+
+h1{font-size:76px;line-height:1.05;letter-spacing:-2px}
+h2{font-size:54px;line-height:1.1;margin-bottom:18px}
+h3{font-size:30px;margin-bottom:12px}
+.big-emoji{font-size:88px;margin-bottom:18px}
+.lead{font-size:30px;line-height:1.35;color:#334155;font-weight:800}
+.sub{font-size:22px;color:#64748b;line-height:1.5;margin-top:14px}
+.center{text-align:center;align-items:center}
+.row{display:flex;gap:18px;align-items:stretch}
+.grid{display:grid;gap:18px}
+.grid-2{grid-template-columns:1fr 1fr}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-4{grid-template-columns:repeat(4,1fr)}
+.card{
+	background:white;border-radius:22px;padding:24px;
+	box-shadow:0 14px 34px rgba(15,23,42,.1);
+	border:1px solid rgba(15,23,42,.06);
+}
+.big-card{
+	background:white;border-radius:28px;padding:30px;
+	box-shadow:0 16px 42px rgba(15,23,42,.12);
+}
+.badge{
+	display:inline-block;padding:8px 16px;border-radius:999px;
+	background:#fff1f2;color:var(--red);font-weight:900;font-size:16px;margin-bottom:14px;
+}
+.kicker{font-size:18px;font-weight:900;color:var(--red);margin-bottom:10px}
+.icon{font-size:54px;margin-bottom:12px}
+ul{padding-left:24px;font-size:22px;line-height:1.8;color:#334155}
+li{margin:3px 0}
+.keyword{
+	display:inline-block;background:#fef3c7;color:#92400e;
+	padding:4px 10px;border-radius:10px;font-weight:900;
+}
+.question{
+	font-size:46px;line-height:1.2;font-weight:900;color:#111827;
+	background:linear-gradient(135deg,#fff7ed,#fed7aa);
+	border:4px solid white;border-radius:28px;padding:34px;
+	box-shadow:0 18px 42px rgba(249,115,22,.18);
+}
+.answer{
+	margin-top:22px;font-size:30px;font-weight:900;color:#065f46;
+	background:#d1fae5;border-radius:22px;padding:20px;
+	display:none;
+}
+.answer.show{display:block;animation:pop .28s ease-out}
+@keyframes pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.reveal-btn{
+	border:none;border-radius:999px;background:var(--purple);color:white;
+	font-size:22px;font-weight:900;padding:14px 24px;cursor:pointer;margin-top:22px;
+	box-shadow:0 7px 0 rgba(0,0,0,.22);
+}
+.reveal-btn:hover{transform:translateY(-2px)}
+.flow{
+	display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:24px;
+}
+.step{
+	background:white;border-radius:24px;padding:24px 20px;min-width:150px;text-align:center;
+	box-shadow:0 16px 36px rgba(15,23,42,.11);border-top:8px solid var(--c);
+}
+.step strong{display:block;font-size:24px;margin:8px 0;color:var(--c)}
+.step small{font-size:15px;color:#64748b}
+.arrow{font-size:34px;color:#94a3b8;animation:arrow 1s infinite alternate}
+@keyframes arrow{to{transform:translateX(7px)}}
+.window-card{
+	background:#0f172a;color:white;border-radius:24px;overflow:hidden;
+	box-shadow:0 16px 34px rgba(15,23,42,.16);
+}
+.win-head{height:38px;background:#1e293b;display:flex;align-items:center;gap:6px;padding:0 12px}
+.dot{width:11px;height:11px;border-radius:50%;background:#ef4444}
+.dot.y{background:#f59e0b}.dot.g{background:#22c55e}
+.win-body{padding:22px}
+.win-body h3{color:var(--c);font-size:28px}
+.win-body p{font-size:18px;line-height:1.5;color:#cbd5e1}
+.module{
+	background:white;border-radius:22px;padding:22px;text-align:center;
+	border-top:7px solid var(--c);box-shadow:0 14px 32px rgba(15,23,42,.1);
+}
+.module .num{font-size:44px;font-weight:900;color:var(--c)}
+.module p{font-size:18px;color:#475569;line-height:1.45}
+.flip-card{
+	perspective:1000px;height:210px;cursor:pointer;
+}
+.flip-inner{position:relative;width:100%;height:100%;transition:.65s;transform-style:preserve-3d}
+.flip-card.flipped .flip-inner{transform:rotateY(180deg)}
+.face{
+	position:absolute;inset:0;backface-visibility:hidden;border-radius:24px;padding:22px;
+	box-shadow:0 14px 32px rgba(15,23,42,.12);
+	display:flex;flex-direction:column;justify-content:center;
+}
+.front{background:linear-gradient(135deg,#fff7ed,#fed7aa);color:#7c2d12}
+.back{background:linear-gradient(135deg,#ecfdf5,#a7f3d0);color:#064e3b;transform:rotateY(180deg)}
+.face b{font-size:24px;margin-bottom:10px}
+.face p{font-size:19px;line-height:1.4}
+.face small{margin-top:12px;color:rgba(0,0,0,.45)}
+.terminal{
+	background:#0f172a;color:#e5e7eb;border-radius:24px;
+	padding:26px;font-family:Consolas,"Microsoft YaHei",monospace;
+	font-size:22px;line-height:1.9;box-shadow:0 18px 44px rgba(15,23,42,.25);
+}
+.pass{color:#4ade80}.fail{color:#fb7185}.cmd{color:#93c5fd}
+.toggle-test{
+	border:none;border-radius:999px;background:#111827;color:white;
+	padding:14px 22px;font-size:20px;font-weight:900;cursor:pointer;margin-top:18px;
+}
+.task-board{
+	display:grid;grid-template-columns:repeat(3,1fr);gap:20px;
+}
+.task{
+	background:white;border-radius:28px;padding:28px;box-shadow:0 18px 42px rgba(15,23,42,.12);
+	border-left:10px solid var(--c);
+}
+.task .time{font-size:42px;font-weight:900;color:var(--c)}
+.task h3{font-size:28px}
+.task p{font-size:20px;line-height:1.5;color:#475569}
+
+/* battle */
+.battle{
+	background:linear-gradient(#8fd3ff 0%,#c6f6d5 60%,#fde68a 60%);
+	border:6px solid white;border-radius:30px;padding:24px;
+	box-shadow:inset 0 0 34px rgba(255,255,255,.6);
+}
+.arena{display:grid;grid-template-columns:1fr 130px 1fr;align-items:center;gap:18px}
+.fighter{text-align:center}
+.sprite{font-size:86px;display:inline-block;filter:drop-shadow(0 10px 8px rgba(0,0,0,.24));animation:idle 1.6s ease-in-out infinite}
+.enemy .sprite{transform:scaleX(-1);animation:idle2 1.6s ease-in-out infinite}
+@keyframes idle{50%{transform:translateY(-9px)}}@keyframes idle2{50%{transform:translateY(-9px) scaleX(-1)}}
+.hit .sprite{animation:hit .35s!important;filter:drop-shadow(0 0 12px red) brightness(1.45)}
+@keyframes hit{25%{transform:translateX(-12px)}50%{transform:translateX(12px)}75%{transform:translateX(-7px)}}
+.vs{font-size:52px;text-align:center;font-weight:900;color:var(--red);animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.15) rotate(5deg)}}
+.hpbox{height:22px;border:3px solid white;border-radius:999px;background:rgba(0,0,0,.25);overflow:hidden;margin:10px auto;width:86%}
+.hp{height:100%;background:linear-gradient(90deg,#22c55e,#86efac);width:100%;transition:.35s}
+.battle-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}
+.battle-actions button{
+	border:none;border-radius:16px;padding:15px;color:white;font-size:18px;font-weight:900;cursor:pointer;
+	box-shadow:0 6px 0 rgba(0,0,0,.22)
+}
+.battle-actions button:disabled{opacity:.45;filter:grayscale(1)}
+.atk{background:#ef4444}.heavy{background:#f97316}.block{background:#2563eb}.skill{background:#9333ea}
+.battle-log{background:#111827;color:#e5e7eb;margin-top:15px;border-radius:18px;padding:15px;height:120px;overflow:auto;font-size:16px;line-height:1.6}
+.blackout{
+	position:fixed;inset:0;background:#000;color:white;z-index:999;
+	display:none;align-items:center;justify-content:center;font-size:48px;font-weight:900;
+}
+.blackout.show{display:flex}
+.confetti{position:fixed;width:12px;height:12px;top:-20px;z-index:1000;animation:fall 3.3s linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(900deg);opacity:0}}
+@media(max-width:1100px){
+	.slide{grid-template-columns:1fr}
+	.teacher-panel{display:none}
+	.stage{display:none}
+	.grid-4,.grid-3{grid-template-columns:1fr 1fr}
+	h1{font-size:54px}h2{font-size:42px}.lead{font-size:24px}
+}
+</style>
+</head>
+<body>
+<div class="deck">
+	<div class="topbar">
+		<div class="brand">🧑‍🏫 教师站讲版 · 涂鸦PK（二）</div>
+		<div class="stage">
+			<span data-stage="0">导入</span>
+			<span data-stage="1">Connect</span>
+			<span data-stage="2">Construct</span>
+			<span data-stage="3">Contemplate</span>
+			<span data-stage="4">Continue</span>
+		</div>
+		<div class="counter"><span id="now">1</span>/<span id="total">14</span></div>
+	</div>
+	<div class="progress-wrap"><div class="progress" id="progress"></div></div>
+
+	<section class="slide active" data-stage="0" data-color="#ff4d6d">
+		<div class="student-screen center">
+			<div class="big-emoji">🎨⚔️🤖</div>
+			<span class="badge">AICODE06-09</span>
+			<h1>今天，让你的角色<br>真的打起来</h1>
+			<p class="sub">不是只做游戏，而是学习：怎样把脑子里的规则变成代码里的规则。</p>
+		</div>
+		<aside class="teacher-panel">
+			<div class="panel-title">第 1 页：开场定调</div>
+			<div class="cue say"><b>老师说</b><p>“上节课我们画了角色、设计了属性。今天，我们要让它真的打起来。”</p></div>
+			<div class="cue ask"><b>问学生</b><p>“你觉得一个角色想赢，最重要的是攻击、防御，还是速度？”</p></div>
+			<div class="cue do"><b>做动作</b><p>站在屏幕侧边，指向标题中的“真的打起来”，制造期待感。</p></div>
+			<div class="goal-strip">目的：先点燃兴趣，不急着讲概念。</div>
+		</aside>
+	</section>
+
+	<section class="slide" data-stage="0" data-color="#ff9f1c">
+		<div class="student-screen">
+			<h2>从“我觉得”到“代码执行”</h2>
+			<div class="flow">
+				<div class="step" style="--c:#ff4d6d"><div class="icon">🧠</div><strong>想法</strong><small>我的角色很强</small></div>
+				<div class="arrow">→</div>
+				<div class="step" style="--c:#ff9f1c"><div class="icon">📝</div><strong>规则</strong><small>写成需求文档</small></div>
+				<div class="arrow">→</div>
+				<div class="step" style="--c:#118ab2"><div class="icon">🤖</div><strong>AI</strong><small>按规则生成代码</small></div>
+				<div class="arrow">→</div>
+				<div class="step" style="--c:#06d6a0"><div class="icon">🎮</div><strong>游戏</strong><small>真的执行规则</small></div>
+			</div>
+			<p class="lead" style="margin-top:32px;text-align:center">今天的关键：<span class="keyword">规则必须写清楚</span></p>
+		</div>
+		<aside class="teacher-panel">
+			<div class="panel-title">第 2 页：解释今天为什么要写需求</div>
+			<div class="cue say"><b>老师说</b><p>“AI 不会读心。你脑子里的公平规则，如果没有写出来，AI 就只能猜。”</p></div>
+			<div class="cue ask"><b>问学生</b><p>“你有没有遇到过游戏规则没写清楚，结果吵起来的情况？”</p></div>
+			<div class="cue do"><b>做动作</b><p>用手沿着四个箭头走一遍：想法 → 规则 → AI → 游戏。</p></div>
+			<div class="goal-strip">目的：把学生从“做游戏”引到“写规则”。</div>
+		</aside>
+	</section>
+
+	<section class="slide" data-stage="1" data-color="#ff4d6d">
+		<div class="student-screen center">
+			<div class="big-emoji">🏃‍♂️💨🏃‍♀️</div>
+			<h2>如果两个角色速度一样快，谁先出手？</h2>
+			<div class="question">SPD = 8 vs SPD = 8<br>谁先？</div>
+			<button class="reveal-btn" onclick="showAnswer('speedAnswer')">点击揭示：这就是边界情况</button>
+			<div class="answer" id="speedAnswer">如果需求里没写，AI 就会自己猜。</div>
+		</div>
+		<aside class="teacher-panel">
+			<div class="panel-title">第 3 页：制造认知冲突</div>
+			<div class="cue say"><b>老师说</b><p>“你说速度快的人先手，这没问题。可是两个角色速度一样呢？”</p></div>
+			<div class="cue ask"><b>问学生</b><p>让学生举手选择：随机 / 玩家先 / 编号小先 / 不知道。</p></div>
+			<div class="cue do"><b>做动作</b><p>先不要立刻给答案，等 3 秒，让学生真的思考，再点“揭示”。</p></div>
+			<div class="goal-strip">目的：用一个问题让学生理解“边界情况”的必要性。</div>
+		</aside>
+	</section>
+
+	<section class="slide" data-stage="1" data-color="#7c3aed">
+		<div class="student-screen">
+			<h2>什么是边界情况？</h2>
+			<p class="lead">边界情况 = 正常流程以外，但真实对战中一定可能发生的场景。</p>
+			<div class="grid grid-3" style="margin-top:28px">
+				<div class="big-card center"><div class="icon">🎲</div><h3>同速</h3><p class="sub">谁先出手？</p></div>
+				<div class="big-card center"><div class="icon">✨</div><h3>特技用完</h3><p class="sub">按钮还能点吗？</p></div>
+				<div class="big-card center"><div class="icon">🛡️</div><h3>格挡 + 重击</h3><p class="sub">先乘还是先减？</p></div>
+			</div>
+		</div>
+		<aside class="teacher-panel">
+			<div class="panel-title">第 4 页：正式定义边界情况</div>
+			<div class="cue say"><b>老师说</b><p>“正常情况很好想：点攻击就扣血。真正容易出 bug 的，是这些边角场景。”</p></div>
+			<div class="cue ask"><b>问学生</b><p>“你觉得这三个问题里，哪个如果不写清楚，最容易出 bug？”</p></div>
+			<div class="cue do"><b>做动作</b><p>分别指向三张卡，语速放慢，让学生知道这三个今天必须写进需求。</p></div>
+			<div class="goal-strip">目的：把抽象概念变成三个学生能记住的场景。</div>
+		</aside>
+	</section>
+
+	<section class="slide" data-stage="2" data-color="#118ab2">
+		<div class="student-screen">
+			<h2>今天只记住一张图：四窗口工作法</h2>
+			<div class="grid grid-4">
+				<div class="window-card" style="--c:#3b82f6"><div class="win-head"><span class="dot"></span><span class="dot y"></span><span class="dot g"></span></div><div class="win-body"><h3>A 写需求</h3><p>把主规则写成文档。</p></div></div>
+				<div class="window-card" style="--c:#8b5cf6"><div class="win-head"><span class="dot"></span><span class="dot y"></span><span class="dot g"></span></div><div class="win-body"><h3>B 找边界</h3><p>新窗口，只负责挑问题。</p></div></div>
+				<div class="window-card" style="--c:#f97316"><div class="win-head"><span class="dot"></span><span class="dot y"></span><span class="dot g"></span></div><div class="win-body"><h3>C 生成代码</h3><p>先做战斗骨架。</p></div></div>
+				<div class="window-card" style="--c:#10b981"><div class="win-head"><span class="dot"></span><span class="dot y"></span><span class="dot g"></span></div><div class="win-body"><h3>D 写测试</h3><p>新窗口，用代码验代码。</p></div></div>
+			</div>
+			<p class="lead" style="margin-top:28px;text-align:center">每个窗口只做一件事，AI 才不容易“自我偏袒”。</p>
+		</div>
+		<aside class="teacher-panel">
+			<div class="panel-title">第 5 页：讲流程，不讲细节</div>
+			<div class="cue say"><b>老师说</b><p>“今天你们不是开一个窗口从头聊到尾，而是开四个窗口，每个窗口有不同角色。”</p></div>
+			<div class="cue ask"><b>问学生</b><p>“为什么测试窗口 D 也要重新开？为什么不能让写代码的 AI 自己测？”</p></div>
+			<div class="cue do"><b>做动作</b><p>从左到右依次指四个窗口，强调 B 和 D 必须是新窗口。</p></div>
+			<div class="goal-strip">目的：让学生先记住流程，后面实操不乱。</div>
+		</aside>
+	</section>
+
+	<section class="slide" data-stage="2" data-color="#ff9f1c">
+		<div class="student-screen">
+			<h2>窗口 A：需求文档写 5 件事</h2>
+			<div class="grid grid-3">
+				<div class="module" style="--c:#3b82f6"><div class="num">1</div><h3>先手</h3><p>SPD 高先；同速怎么办？</p></div>
+				<div class="module" style="--c:#ef4444"><div class="num">2</div><h3>伤害</h3><p>ATK - DEF，最低 1 点。</p></div>
+				<div class="module" style="--c:#f97316"><div class="num">3</div><h3>行动</h3><p>普攻 / 重击 / 格挡 / 特技。</p></div>
+				<div class="module" style="--c:#10b981"><div class="num">4</div><h3>胜负</h3><p>HP≤0 立即结束。</p></div>
+				<div class="module" style="--c:#8b5cf6"><div class="num">5</div><h3>AI</h3><p>低血特技，概率重击。</p></div>
+			</div>
+		</div>
+		<aside class="teacher-panel">
+			<div class="panel-title">第 6 页：窗口 A 学生操作前</div>
+			<div class="cue say"><b>老师说</b><p>“你们不用写很长，只要这 5 件事写清楚，AI 就有方向。”</p></div>
+			<div class="cue ask"><b>问学生</b><p>“这五个模块里，哪一个如果漏掉，游戏最容易乱？”</p></div>
+			<div class="cue do"><b>做动作</b><p>这页讲完后，让学生打开窗口 A，开始写 5 模块需求。</p></div>
+			<div class="goal-strip">目的：把学生的输出范围压小，避免需求文档写散。</div>
+		</aside>
+	</section>
+
+	<section class="slide" data-stage="2" data-color="#7c3aed">
+		<div class="student-screen">
+			<h2>窗口 B：让 AI 专门来“挑刺”</h2>
+			<p class="lead">点击卡片，看需求里应该补什么。</p>
+			<div class="grid grid-3" style="margin-top:24px">
+				<div class="flip-card"><div class="flip-inner"><div class="face front"><b>同速谁先？</b><p>两个角色 SPD 一样，AI 会怎么处理？</p><small>点击翻面</small></div><div class="face back"><b>补进需求</b><p>同速时随机决定，或明确玩家先手。不能空着。</p></div></div></div>
+				<div class="flip-card"><div class="flip-inner"><div class="face front"><b>特技用完？</b><p>再点按钮会怎样？</p><small>点击翻面</small></div><div class="face back"><b>补进需求</b><p>特技每场只能用一次，用后按钮变灰。</p></div></div></div>
+				<div class="flip-card"><div class="flip-inner"><div class="face front"><b>格挡 + 重击？</b><p>先算重击，还是先减半？</p><small>点击翻面</small></div><div class="face back"><b>补进需求</b><p>先计算重击最终伤害，再对最终伤害减半。</p></div></div></div>
+			</div>
+		</div>
+		<aside class="teacher-panel">
+			<div class="panel-title">第 7 页：边界审核示范</div>
+			<div class="cue say"><b>老师说</b><p>“窗口 B 的任务不是夸你写得好，而是专门找你没想到的问题。”</p></div>
+			<div class="cue ask"><b>问学生</b><p>“这三个问题里，如果今天只能补三个边界，够不够？为什么？”</p></div>
+			<div class="cue do"><b>做动作</b><p>依次点击三张卡翻面，形成“问题 → 补进需求”的节奏。</p></div>
+			<div class="goal-strip">目的：让学生知道边界审核的产物要回填到需求文档。</div>
+		</aside>
+	</section>
+
+	<section class="slide" data-stage="2" data-color="#f97316">
+		<div class="student-screen">
+			<h2>窗口 C：先生成骨架，不急着换图</h2>
+			<div class="row">
+				<div class="big-card center" style="flex:1">
+					<div class="big-emoji">⬛</div>
+					<h3>第 1 步</h3>
+					<p class="lead">矩形占位</p>
+					<p class="sub">先验证战斗逻辑</p>
+				</div>
+				<div class="big-card center" style="flex:1">
+					<div class="big-emoji">🖼️</div>
+					<h3>第 2 步</h3>
+					<p class="lead">换 Spritesheet</p>
+					<p class="sub">逻辑通过后再换图</p>
+				</div>
+			</div>
+			<p class="lead" style="text-align:center;margin-top:28px">先排除逻辑 bug，再处理图片问题。</p>
+		</div>
+		<aside class="teacher-panel">
+			<div class="panel-title">第 8 页：防止学生一开始就卡图片</div>
+			<div class="cue say"><b>老师说</b><p>“如果一开始就加图片，出了问题你不知道是图片路径错，还是战斗规则错。”</p></div>
+			<div class="cue ask"><b>问学生</b><p>“如果页面一片黑，是图片问题还是逻辑问题？怎么判断？”</p></div>
+			<div class="cue do"><b>做动作</b><p>用双手表示两个阶段：左手“骨架”，右手“图片”，强调先后顺序。</p></div>
+			<div class="goal-strip">目的：降低课堂技术风险，让学生先成功跑通逻辑。</div>
+		</aside>
+	</section>
+
+	<section class="slide" data-stage="2" data-color="#ef4444">
+		<div class="student-screen center">
+			<h2>遇到 bug，不要只说“它不对”</h2>
+			<div class="flow">
+				<div class="step" style="--c:#3b82f6"><div class="icon">👆</div><strong>步骤</strong><small>我做了什么？</small></div>
+				<div class="arrow">→</div>
+				<div class="step" style="--c:#10b981"><div class="icon">✅</div><strong>预期</strong><small>应该发生什么？</small></div>
+				<div class="arrow">→</div>
+				<div class="step" style="--c:#ef4444"><div class="icon">❌</div><strong>实际</strong><small>结果是什么？</small></div>
+			</div>
+			<div class="question" style="margin-top:28px;font-size:34px">
+				例：我点了格挡 → 预期伤害减半 → 实际 HP 掉得和没格挡一样
+			</div>
+		</div>
+		<aside class="teacher-panel">
+			<div class="panel-title">第 9 页：训练 bug 描述格式</div>
+			<div class="cue say"><b>老师说</b><p>“‘不对’这两个字，AI 不知道从哪里改。你要告诉它：步骤、预期、实际。”</p></div>
+			<div class="cue ask"><b>问学生</b><p>“如果特技用了还能继续按，这个 bug 的三要素怎么写？”</p></div>
+			<div class="cue do"><b>做动作</b><p>让一个学生口头说三要素，全班判断是否具体。</p></div>
+			<div class="goal-strip">目的：把调试从情绪描述变成可执行信息。</div>
+		</aside>
+	</section>
+
+	<section class="slide" data-stage="2" data-color="#06d6a0">
+		<div class="student-screen">
+			<h2>窗口 D：用测试脚本保护代码</h2>
+			<div class="terminal" id="testBox">
+				<div class="cmd">运行 pk-test.html...</div>
+				<div class="pass">✅ 测试1：ATK=15, DEF=5 → 伤害=10</div>
+				<div class="pass">✅ 测试2：ATK=5, DEF=10 → 伤害=1</div>
+				<div class="pass">✅ 测试3：SPD=8 vs SPD=5 → SPD=8 先手</div>
+				<div class="pass">✅ 测试4：重击伤害 = 14</div>
+			</div>
+			<button class="toggle-test" onclick="toggleTest()">切换：故意改错公式后的结果</button>
+		</div>
+		<aside class="teacher-panel">
+			<div class="panel-title">第 10 页：演示测试价值</div>
+			<div class="cue say"><b>老师说</b><p>“测试脚本像护栏。你每改一次代码，它帮你检查旧规则有没有被破坏。”</p></div>
+			<div class="cue ask"><b>问学生</b><p>“如果把 ATK - DEF 改成 ATK × DEF，哪条测试会失败？”</p></div>
+			<div class="cue do"><b>做动作</b><p>先展示全绿，再点击按钮切换成失败结果，制造对比。</p></div>
+			<div class="goal-strip">目的：让学生感受到测试脚本不是额外负担，而是省时间。</div>
+		</aside>
+	</section>
+
+	<section class="slide" data-stage="2" data-color="#ff4d6d">
+		<div class="student-screen">
+			<h2>现场 PK 演示：规则真的在运行</h2>
+			<div class="battle">
+				<div class="arena">
+					<div class="fighter" id="bfPlayer">
+						<div class="sprite">🦸</div>
+						<h3>勇者小明</h3>
+						<div class="hpbox"><div class="hp" id="pHp"></div></div>
+						<p id="pText">HP 100 / 100</p>
+						<p class="sub" style="font-size:16px;margin:0">ATK 15 · DEF 5 · SPD 8</p>
+					</div>
+					<div class="vs">VS</div>
+					<div class="fighter enemy" id="bfEnemy">
+						<div class="sprite">👾</div>
+						<h3>外星怪兽</h3>
+						<div class="hpbox"><div class="hp" id="eHp"></div></div>
+						<p id="eText">HP 100 / 100</p>
+						<p class="sub" style="font-size:16px;margin:0">ATK 13 · DEF 6 · SPD 7</p>
+					</div>
+				</div>
+				<div class="battle-actions">
+					<button class="atk" onclick="battleTurn('attack')">普通攻击</button>
+					<button class="heavy" onclick="battleTurn('heavy')">重击 ×1.8</button>
+					<button class="block" onclick="battleTurn('block')">格挡 -50%</button>
+					<button class="skill" id="skillBtn" onclick="battleTurn('skill')">特技：治疗</button>
+				</div>
+				<div class="battle-log" id="battleLog"></div>
+			</div>
+		</div>
+		<aside class="teacher-panel">
+			<div class="panel-title">第 11 页：边讲边点的演示页</div>
+			<div class="cue say"><b>老师说</b><p>“现在我们不看代码，只看规则有没有被执行。”</p></div>
+			<div class="cue ask"><b>问学生</b><p>“我点重击，伤害为什么比普通攻击高？我点格挡，下一次伤害会怎样？”</p></div>
+			<div class="cue do"><b>做动作</b><p>建议顺序：普通攻击 → 重击 → 格挡 → 特技。每点一次都让学生解释规则。</p></div>
+			<div class="goal-strip">目的：把规则从文字变成可观察的现象。</div>
+		</aside>
+	</section>
+
+	<section class="slide" data-stage="2" data-color="#118ab2">
+		<div class="student-screen">
+			<h2>学生实操任务板</h2>
+			<div class="task-board">
+				<div class="task" style="--c:#3b82f6">
+					<div class="time">8′</div>
+					<h3>生成骨架</h3>
+					<p>窗口 C 生成 pk-battle.html，先用矩形占位。</p>
+				</div>
+				<div class="task" style="--c:#f97316">
+					<div class="time">4′</div>
+					<h3>逐条验收</h3>
+					<p>按 5 条清单点击测试，记录通过 / 不通过。</p>
+				</div>
+				<div class="task" style="--c:#10b981">
+					<div class="time">5′</div>
+					<h3>替换数据</h3>
+					<p>把角色 JSON 替换进去，颜色改成角色代表色。</p>
+				</div>
+			</div>
+		</div>
+		<aside class="teacher-panel">
+			<div class="panel-title">第 12 页：投给学生照着做</div>
+			<div class="cue say"><b>老师说</b><p>“接下来不要自由发挥，先按这三步走。跑通逻辑比做漂亮更重要。”</p></div>
+			<div class="cue ask"><b>问学生</b><p>“谁卡在第 1 步？谁已经进入第 2 步验收？”</p></div>
+			<div class="cue do"><b>做动作</b><p>这页保持投屏，老师下去巡视。学生抬头就能看到下一步。</p></div>
+			<div class="goal-strip">目的：减少重复口头说明，让课堂巡视更顺。</div>
+		</aside>
+	</section>
+
+	<section class="slide" data-stage="3" data-color="#7c3aed">
+		<div class="student-screen">
+			<h2>复盘：今天真正学到什么？</h2>
+			<div class="grid grid-2">
+				<div class="big-card"><div class="icon">🪟</div><h3>4 个窗口分别做什么？</h3></div>
+				<div class="big-card"><div class="icon">⚠️</div><h3>跳过边界审核会怎样？</h3></div>
+				<div class="big-card"><div class="icon">🧪</div><h3>为什么测试脚本要新窗口？</h3></div>
+				<div class="big-card"><div class="icon">🛠️</div><h3>遇到 bug 先找需求还是先改代码？</h3></div>
+			</div>
+		</div>
+		<aside class="teacher-panel">
+			<div class="panel-title">第 13 页：反思，不是总结答案</div>
+			<div class="cue say"><b>老师说</b><p>“我不问你代码写了多少，我问你今天的工作方式有没有变专业。”</p></div>
+			<div class="cue ask"><b>问学生</b><p>逐个问四个问题，让学生用自己的话回答。</p></div>
+			<div class="cue do"><b>做动作</b><p>选 2~3 个学生回答即可，不要拖太久；把回答拉回“需求—边界—测试”。</p></div>
+			<div class="goal-strip">目的：把一节技术课收束成方法论。</div>
+		</aside>
+	</section>
+
+	<section class="slide" data-stage="4" data-color="#06d6a0">
+		<div class="student-screen center">
+			<div class="big-emoji">🚀</div>
+			<h2>下节课：让角色真正“活起来”</h2>
+			<p class="lead">导入 Spritesheet，加攻击帧、受击闪烁、死亡动画。</p>
+			<div class="question" style="margin-top:28px">
+				5 分钟挑战：<br>让 AI 写一条“需求文档里没有的边界测试”
+			</div>
+			<button class="reveal-btn" onclick="confetti()">结课彩纸 🎉</button>
+		</div>
+		<aside class="teacher-panel">
+			<div class="panel-title">第 14 页：收束与延续</div>
+			<div class="cue say"><b>老师说</b><p>“今天逻辑能打起来，下节课我们让角色看起来真的在动。”</p></div>
+			<div class="cue ask"><b>问学生</b><p>“你最想给自己的角色加什么动画？攻击？受击？死亡？”</p></div>
+			<div class="cue do"><b>做动作</b><p>点击结课彩纸，形成课堂结束仪式感。</p></div>
+			<div class="goal-strip">目的：让学生带着期待离开，同时留下一个可完成的小挑战。</div>
+		</aside>
+	</section>
+
+	<div class="footer">
+		<div class="help">控制：→ 下一页 / ← 上一页 / N 隐藏教师提示 / B 黑屏暂停 / F 彩纸</div>
+		<div class="nav">
+			<button onclick="prevSlide()">← 上一页</button>
+			<button onclick="nextSlide()">下一页 →</button>
+		</div>
+	</div>
+</div>
+
+<div class="blackout" id="blackout">暂停一下，听老师说 👀</div>
+
+<script>
+const slides=[...document.querySelectorAll(".slide")];
+const tabs=[...document.querySelectorAll(".stage span")];
+let idx=0;
+document.getElementById("total").textContent=slides.length;
+function update(){
+	slides.forEach((s,i)=>{
+		s.classList.toggle("active",i===idx);
+		s.classList.toggle("prev",i<idx);
+	});
+	document.getElementById("now").textContent=idx+1;
+	document.getElementById("progress").style.width=((idx+1)/slides.length*100)+"%";
+	const stage=slides[idx].dataset.stage;
+	const color=slides[idx].dataset.color||"#ff4d6d";
+	tabs.forEach(t=>{
+		t.classList.toggle("active",t.dataset.stage===stage);
+		t.style.setProperty("--active",color);
+	});
+}
+function nextSlide(){if(idx<slides.length-1){idx++;update();}}
+function prevSlide(){if(idx>0){idx--;update();}}
+document.addEventListener("keydown",e=>{
+	if(e.key==="ArrowRight"||e.key===" "){e.preventDefault();nextSlide();}
+	if(e.key==="ArrowLeft")prevSlide();
+	if(e.key.toLowerCase()==="n")document.body.classList.toggle("hide-notes");
+	if(e.key.toLowerCase()==="b")document.getElementById("blackout").classList.toggle("show");
+	if(e.key.toLowerCase()==="f")confetti();
+});
+document.querySelectorAll(".flip-card").forEach(c=>c.onclick=()=>c.classList.toggle("flipped"));
+function showAnswer(id){document.getElementById(id).classList.add("show");}
+let testWrong=false;
+function toggleTest(){
+	testWrong=!testWrong;
+	document.getElementById("testBox").innerHTML=testWrong?`
+		<div class="cmd">故意把公式改成 ATK × DEF 后...</div>
+		<div class="fail">❌ 测试1失败：期望 10，实际 75</div>
+		<div class="fail">❌ 测试2失败：期望 1，实际 50</div>
+		<div class="pass">✅ 测试3：先手规则仍然通过</div>
+		<div class="fail">❌ 结论：伤害公式被改坏了</div>
+	`:`
+		<div class="cmd">运行 pk-test.html...</div>
+		<div class="pass">✅ 测试1：ATK=15, DEF=5 → 伤害=10</div>
+		<div class="pass">✅ 测试2：ATK=5, DEF=10 → 伤害=1</div>
+		<div class="pass">✅ 测试3：SPD=8 vs SPD=5 → SPD=8 先手</div>
+		<div class="pass">✅ 测试4：重击伤害 = 14</div>
+	`;
+}
+function confetti(){
+	const colors=["#ff4d6d","#ff9f1c","#06d6a0","#118ab2","#7c3aed","#ffd166"];
+	for(let i=0;i<120;i++){
+		const c=document.createElement("div");
+		c.className="confetti";
+		c.style.left=Math.random()*100+"vw";
+		c.style.background=colors[i%colors.length];
+		c.style.animationDelay=Math.random()*1.2+"s";
+		c.style.borderRadius=Math.random()>.5?"50%":"2px";
+		document.body.appendChild(c);
+		setTimeout(()=>c.remove(),4500);
+	}
+}
+
+/* mini battle */
+let bp={hp:100,atk:15,def:5,block:false,skill:false};
+let be={hp:100,atk:13,def:6,block:false};
+let busy=false;
+const logBox=document.getElementById("battleLog");
+function log(t){logBox.innerHTML+="<div>"+t+"</div>";logBox.scrollTop=logBox.scrollHeight;}
+function renderBattle(){
+	document.getElementById("pHp").style.width=bp.hp+"%";
+	document.getElementById("eHp").style.width=be.hp+"%";
+	document.getElementById("pText").textContent=`HP ${bp.hp} / 100`;
+	document.getElementById("eText").textContent=`HP ${be.hp} / 100`;
+}
+function calc(atk,def,mul,block){
+	let d=Math.round((atk-def)*mul);
+	if(block)d=Math.round(d*.5);
+	return Math.max(1,d);
+}
+function flash(id){
+	const el=document.getElementById(id);
+	el.classList.add("hit");
+	setTimeout(()=>el.classList.remove("hit"),350);
+}
+function enemyAct(){
+	if(bp.hp<=0||be.hp<=0)return;
+	const heavy=Math.random()<.25;
+	const d=calc(be.atk,bp.def,heavy?1.8:1,bp.block);
+	bp.hp=Math.max(0,bp.hp-d);
+	flash("bfPlayer");
+	log(`👾 敌人${heavy?"重击":"普通攻击"}，你受到 ${d} 点伤害${bp.block?"（格挡减半）":""}`);
+	bp.block=false;
+	renderBattle();
+	if(bp.hp<=0)log("💀 你失败了。这里可以讲 HP≤0 胜负判定。");
+}
+function battleTurn(action){
+	if(busy)return;
+	busy=true;
+	if(action==="block"){
+		bp.block=true;
+		log("🛡️ 你进入格挡：下一次受伤 -50%");
+		setTimeout(()=>{enemyAct();busy=false},550);
+		return;
+	}
+	if(action==="skill"){
+		if(bp.skill){log("⚠️ 特技已用过：每场只能一次。");busy=false;return;}
+		bp.skill=true;
+		document.getElementById("skillBtn").disabled=true;
+		bp.hp=Math.min(100,bp.hp+25);
+		log("✨ 你使用特技：回复 25 HP，按钮变灰。");
+		renderBattle();
+		setTimeout(()=>{enemyAct();busy=false},550);
+		return;
+	}
+	const d=calc(bp.atk,be.def,action==="heavy"?1.8:1,be.block);
+	be.hp=Math.max(0,be.hp-d);
+	flash("bfEnemy");
+	log(`🦸 你${action==="heavy"?"重击":"普通攻击"}，敌人受到 ${d} 点伤害。`);
+	renderBattle();
+	if(be.hp<=0){log("🏆 你胜利了！HP≤0，游戏结束。");busy=false;return;}
+	setTimeout(()=>{enemyAct();busy=false},650);
+}
+log("🎮 演示建议：先点普通攻击，再点重击，再点格挡。");
+renderBattle();
+update();
+</script>
+</body>
+</html>

@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AICODE06-05 我的个人主页（下）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+<style>
+/* === VIEWPORT BASE (MANDATORY) === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary: #2D9CDB;
+  --primary-light: #E8F4FD;
+  --primary-dark: #1A7AB5;
+  --accent: #F2994A;
+  --accent-light: #FFF3E6;
+  --bg: #FAFCFF;
+  --bg-warm: #FFF9F0;
+  --text: #2C3E50;
+  --text-light: #6B7C8D;
+  --text-lighter: #95A5B6;
+  --card: #FFFFFF;
+  --border: #E8EDF2;
+  --success: #27AE60;
+  --success-light: #E8F8EF;
+  --warning: #F2C94C;
+  --danger: #EB5757;
+  --danger-light: #FDECEC;
+  --shadow-sm: 0 2px 8px rgba(45,156,219,0.08);
+  --shadow-md: 0 4px 20px rgba(45,156,219,0.12);
+  --shadow-lg: 0 8px 40px rgba(45,156,219,0.15);
+  --radius: clamp(8px, 1.5vw, 16px);
+  --font-ui: 'Noto Sans SC', sans-serif;
+  --font-display: 'ZCOOL KuaiLe', 'Noto Sans SC', sans-serif;
+  --font-handwrite: 'Ma Shan Zheng', cursive;
+  --slide-padding: clamp(24px, 5vw, 80px);
+}
+
+html { font-size: clamp(14px, 1.2vw, 18px); scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-ui);
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* === SLIDE SYSTEM === */
+.presentation { position: relative; width: 100vw; height: 100vh; height: 100dvh; overflow: hidden; }
+
+.slide {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100vh; height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: var(--slide-padding);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  transform: translateX(60px);
+}
+.slide.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  z-index: 10;
+}
+.slide.prev {
+  opacity: 0;
+  transform: translateX(-60px);
+}
+
+/* === REVEAL ANIMATIONS === */
+.reveal {
+  opacity: 0;
+  transform: translateY(clamp(15px, 3vh, 30px));
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.slide.active .reveal { opacity: 1; transform: translateY(0); }
+.slide.active .reveal.d1 { transition-delay: 0.15s; }
+.slide.active .reveal.d2 { transition-delay: 0.3s; }
+.slide.active .reveal.d3 { transition-delay: 0.45s; }
+.slide.active .reveal.d4 { transition-delay: 0.6s; }
+.slide.active .reveal.d5 { transition-delay: 0.75s; }
+.slide.active .reveal.d6 { transition-delay: 0.9s; }
+
+/* === NAVIGATION === */
+.nav-dots {
+  position: fixed;
+  right: clamp(12px, 2vw, 24px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1vh, 10px);
+}
+.nav-dot {
+  width: clamp(8px, 1vw, 12px);
+  height: clamp(8px, 1vw, 12px);
+  border-radius: 50%;
+  background: var(--border);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+.nav-dot.active { background: var(--primary); transform: scale(1.3); }
+.nav-dot:hover { background: var(--primary-light); border: 2px solid var(--primary); }
+
+.slide-counter {
+  position: fixed;
+  bottom: clamp(12px, 2vh, 24px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  font-size: clamp(0.7rem, 1vw, 0.85rem);
+  color: var(--text-lighter);
+  font-weight: 500;
+  background: var(--card);
+  padding: 4px 16px;
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* === TYPOGRAPHY === */
+.slide-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 3.2rem);
+  color: var(--text);
+  margin-bottom: clamp(8px, 2vh, 20px);
+  line-height: 1.3;
+}
+.slide-subtitle {
+  font-size: clamp(0.95rem, 1.5vw, 1.2rem);
+  color: var(--text-light);
+  font-weight: 400;
+  margin-bottom: clamp(12px, 2vh, 24px);
+}
+
+/* === BADGE / TAG === */
+.badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: clamp(0.7rem, 0.9vw, 0.85rem);
+  font-weight: 500;
+  margin-bottom: clamp(8px, 1.5vh, 16px);
+}
+.badge-primary { background: var(--primary-light); color: var(--primary-dark); }
+.badge-accent { background: var(--accent-light); color: #D4802E; }
+.badge-success { background: var(--success-light); color: var(--success); }
+
+/* === CARDS === */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: clamp(16px, 2.5vw, 28px);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+/* === GRID LAYOUTS === */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(12px, 2vw, 24px); width: 100%; max-width: 1100px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: clamp(10px, 1.5vw, 20px); width: 100%; max-width: 1100px; }
+.grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: clamp(8px, 1.2vw, 16px); width: 100%; max-width: 1100px; }
+
+/* === LISTS === */
+.bullet-list {
+  list-style: none;
+  text-align: left;
+  width: 100%;
+  max-width: 900px;
+}
+.bullet-list li {
+  padding: clamp(6px, 1vh, 10px) 0;
+  padding-left: clamp(20px, 2.5vw, 32px);
+  position: relative;
+  font-size: clamp(0.85rem, 1.2vw, 1.05rem);
+  line-height: 1.6;
+  color: var(--text);
+}
+.bullet-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: clamp(6px, 0.8vw, 10px);
+  height: clamp(6px, 0.8vw, 10px);
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+/* === TABLE === */
+.styled-table {
+  width: 100%;
+  max-width: 1000px;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  font-size: clamp(0.75rem, 1vw, 0.9rem);
+}
+.styled-table thead { background: var(--primary); color: white; }
+.styled-table th {
+  padding: clamp(8px, 1.2vh, 14px) clamp(10px, 1.5vw, 18px);
+  text-align: left;
+  font-weight: 600;
+}
+.styled-table td {
+  padding: clamp(7px, 1vh, 12px) clamp(10px, 1.5vw, 18px);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.styled-table tbody tr:last-child td { border-bottom: none; }
+.styled-table tbody tr:nth-child(even) { background: var(--primary-light); }
+.styled-table tbody tr:hover { background: #E0F0FB; }
+
+/* === CODE BLOCK === */
+.code-block {
+  background: #1E293B;
+  color: #E2E8F0;
+  border-radius: var(--radius);
+  padding: clamp(14px, 2vw, 24px);
+  font-family: 'Courier New', monospace;
+  font-size: clamp(0.72rem, 0.9vw, 0.85rem);
+  line-height: 1.7;
+  text-align: left;
+  width: 100%;
+  max-width: 800px;
+  overflow-x: auto;
+  box-shadow: var(--shadow-md);
+}
+.code-block .comment { color: #64748B; }
+.code-block .keyword { color: #C084FC; }
+.code-block .string { color: #34D399; }
+
+/* === SECTION HEADER === */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1.5vw, 16px);
+  margin-bottom: clamp(12px, 2vh, 24px);
+  width: 100%;
+  max-width: 1100px;
+}
+.section-icon {
+  width: clamp(36px, 4vw, 52px);
+  height: clamp(36px, 4vw, 52px);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1.2rem, 2vw, 1.8rem);
+  flex-shrink: 0;
+}
+.section-icon.blue { background: var(--primary-light); }
+.section-icon.orange { background: var(--accent-light); }
+.section-icon.green { background: var(--success-light); }
+
+/* === CHECKLIST === */
+.checklist { text-align: left; width: 100%; max-width: 700px; }
+.checklist-item {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(8px, 1vw, 14px);
+  padding: clamp(6px, 1vh, 10px) 0;
+  font-size: clamp(0.82rem, 1.1vw, 0.95rem);
+  line-height: 1.5;
+}
+.checklist-icon {
+  flex-shrink: 0;
+  width: clamp(20px, 2vw, 26px);
+  height: clamp(20px, 2vw, 26px);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.7rem, 0.9vw, 0.8rem);
+}
+.checklist-icon.done { background: var(--success-light); color: var(--success); }
+.checklist-icon.pending { background: #F0F0F0; color: var(--text-lighter); }
+
+/* === SPEECH BUBBLE === */
+.speech {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: clamp(12px, 2vw, 22px);
+  box-shadow: var(--shadow-sm);
+  border-left: 4px solid var(--primary);
+  font-size: clamp(0.82rem, 1.1vw, 0.95rem);
+  line-height: 1.7;
+  text-align: left;
+  max-width: 800px;
+  width: 100%;
+}
+.speech .speaker {
+  font-weight: 700;
+  color: var(--primary-dark);
+  margin-bottom: 4px;
+  font-size: clamp(0.75rem, 0.9vw, 0.85rem);
+}
+
+/* === TIMELINE === */
+.timeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  max-width: 1000px;
+}
+.timeline-step {
+  flex: 1;
+  text-align: center;
+  position: relative;
+  padding: 0 clamp(4px, 0.5vw, 8px);
+}
+.timeline-step::after {
+  content: '';
+  position: absolute;
+  top: clamp(18px, 2.5vh, 28px);
+  right: -50%;
+  width: 100%;
+  height: 2px;
+  background: var(--border);
+  z-index: 0;
+}
+.timeline-step:last-child::after { display: none; }
+.timeline-dot {
+  width: clamp(32px, 3.5vw, 44px);
+  height: clamp(32px, 3.5vw, 44px);
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: clamp(0.75rem, 1vw, 0.9rem);
+  margin: 0 auto clamp(6px, 1vh, 10px);
+  position: relative;
+  z-index: 1;
+}
+.timeline-label {
+  font-size: clamp(0.7rem, 0.85vw, 0.8rem);
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+/* === DECORATIVE ELEMENTS === */
+.deco-circle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.08;
+  pointer-events: none;
+}
+.deco-dots {
+  position: absolute;
+  width: clamp(60px, 8vw, 120px);
+  height: clamp(60px, 8vw, 120px);
+  background-image: radial-gradient(var(--primary) 1.5px, transparent 1.5px);
+  background-size: 12px 12px;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+/* === RESPONSIVE === */
+@media (max-height: 700px) {
+  :root { --slide-padding: clamp(16px, 3vw, 40px); }
+  .slide-title { font-size: clamp(1.4rem, 3vw, 2.2rem); margin-bottom: clamp(4px, 1vh, 10px); }
+  .slide-subtitle { font-size: clamp(0.8rem, 1.2vw, 1rem); margin-bottom: clamp(6px, 1vh, 12px); }
+}
+@media (max-height: 600px) {
+  .slide-title { font-size: clamp(1.2rem, 2.5vw, 1.8rem); }
+  .grid-3 { grid-template-columns: 1fr 1fr; }
+  .grid-4 { grid-template-columns: 1fr 1fr; }
+}
+@media (max-height: 500px) {
+  .slide-title { font-size: clamp(1rem, 2vw, 1.5rem); }
+  .slide-subtitle { font-size: clamp(0.7rem, 1vw, 0.85rem); }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+}
+
+/* === REDUCED MOTION === */
+@media (prefers-reduced-motion: reduce) {
+  .slide { transition: opacity 0.3s ease; transform: none !important; }
+  .slide.active { transform: none !important; }
+  .reveal { transition: opacity 0.3s ease; transform: none !important; }
+  .slide.active .reveal { transform: none !important; }
+}
+
+/* === SLIDE-SPECIFIC BACKGROUNDS === */
+.bg-dots {
+  background-image: radial-gradient(var(--primary) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: 20px 20px;
+}
+.bg-gradient-warm {
+  background: linear-gradient(135deg, #FFF9F0 0%, #E8F4FD 50%, #F0FFF4 100%);
+}
+.bg-gradient-blue {
+  background: linear-gradient(135deg, #E8F4FD 0%, #D6EAF8 100%);
+}
+
+/* === CONTENT CONTAINER === */
+.content-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  max-height: calc(100vh - clamp(48px, 8vh, 100px));
+  overflow: hidden;
+}
+.content-center.scrollable {
+  overflow-y: auto;
+  justify-content: flex-start;
+  padding-top: clamp(20px, 4vh, 60px);
+}
+
+/* === HIGHLIGHT BOX === */
+.highlight-box {
+  background: var(--primary-light);
+  border: 2px solid var(--primary);
+  border-radius: var(--radius);
+  padding: clamp(12px, 2vw, 20px);
+  text-align: center;
+  font-weight: 600;
+  color: var(--primary-dark);
+  font-size: clamp(0.9rem, 1.3vw, 1.1rem);
+  max-width: 800px;
+  width: 100%;
+}
+
+/* === FLOW DIAGRAM === */
+.flow-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 1vw, 12px);
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 1000px;
+}
+.flow-box {
+  background: var(--card);
+  border: 2px solid var(--primary);
+  border-radius: var(--radius);
+  padding: clamp(8px, 1.2vh, 14px) clamp(12px, 1.5vw, 20px);
+  font-size: clamp(0.75rem, 1vw, 0.88rem);
+  font-weight: 600;
+  color: var(--primary-dark);
+  text-align: center;
+  white-space: nowrap;
+}
+.flow-arrow {
+  font-size: clamp(1rem, 1.5vw, 1.4rem);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+/* === MISC === */
+.text-accent { color: var(--accent); }
+.text-primary { color: var(--primary); }
+.text-success { color: var(--success); }
+.text-danger { color: var(--danger); }
+.text-light { color: var(--text-light); }
+.font-bold { font-weight: 700; }
+.mt-sm { margin-top: clamp(6px, 1vh, 12px); }
+.mt-md { margin-top: clamp(12px, 2vh, 20px); }
+.mb-sm { margin-bottom: clamp(6px, 1vh, 12px); }
+.w-full { width: 100%; }
+.text-left { text-align: left; }
+.text-sm { font-size: clamp(0.72rem, 0.9vw, 0.82rem); }
+
+/* === TITLE SLIDE SPECIAL === */
+.title-big {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  background: linear-gradient(135deg, var(--primary) 0%, #6C5CE7 50%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+  margin-bottom: clamp(8px, 2vh, 16px);
+}
+.title-emoji {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  margin-bottom: clamp(8px, 2vh, 16px);
+}
+
+/* === STAGE LABEL === */
+.stage-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--primary);
+  color: white;
+  padding: 6px 18px;
+  border-radius: 24px;
+  font-size: clamp(0.8rem, 1vw, 0.9rem);
+  font-weight: 600;
+  margin-bottom: clamp(10px, 2vh, 20px);
+}
+
+/* === MINI STAT === */
+.mini-stat {
+  text-align: center;
+  padding: clamp(10px, 1.5vw, 18px);
+}
+.mini-stat .num {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  color: var(--primary);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.mini-stat .label {
+  font-size: clamp(0.7rem, 0.85vw, 0.8rem);
+  color: var(--text-light);
+  font-weight: 500;
+}
+</style>
+</head>
+<body>
+
+<div class="presentation" id="presentation">
+
+<!-- ==================== SLIDE 1: TITLE ==================== -->
+<div class="slide bg-gradient-warm active" data-slide="1">
+  <div class="deco-circle" style="width:300px;height:300px;background:var(--primary);top:-80px;right:-60px;"></div>
+  <div class="deco-circle" style="width:200px;height:200px;background:var(--accent);bottom:-60px;left:-40px;"></div>
+  <div class="deco-dots" style="bottom:20px;right:40px;"></div>
+  <div class="content-center">
+    <div class="title-emoji reveal">🚀</div>
+    <div class="badge badge-primary reveal d1">AICODE-06 · 第5课</div>
+    <h1 class="title-big reveal d2">我的个人主页（下）</h1>
+    <p class="slide-subtitle reveal d3">从半成品到完成品 —— 交互升级 · 最终打磨 · 产品路演</p>
+    <div class="grid-4 reveal d4" style="max-width:700px;margin-top:clamp(8px,2vh,16px);">
+      <div class="mini-stat"><div class="num">90</div><div class="label">分钟</div></div>
+      <div class="mini-stat"><div class="num">4</div><div class="label">教学环节</div></div>
+      <div class="mini-stat"><div class="num">3</div><div class="label">交互效果</div></div>
+      <div class="mini-stat"><div class="num">6</div><div class="label">检查清单</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 2: OBJECTIVES ==================== -->
+<div class="slide" data-slide="2">
+  <div class="deco-dots" style="top:20px;left:20px;"></div>
+  <div class="content-center">
+    <div class="badge badge-primary reveal">🎯 课程目标</div>
+    <h2 class="slide-title reveal d1">今天我们要达成什么？</h2>
+    <div class="grid-3 reveal d2" style="max-width:1000px;">
+      <div class="card" style="border-top:4px solid var(--primary);">
+        <div style="font-size:clamp(1.4rem,2vw,1.8rem);margin-bottom:8px;">📖</div>
+        <div style="font-weight:700;margin-bottom:6px;color:var(--primary-dark);">知识目标</div>
+        <ul class="bullet-list" style="max-width:100%;">
+          <li>理解"交互元素"——页面能"动"能"响应"</li>
+          <li>理解"设计一致性"——配色、字体、间距统一</li>
+          <li>理解"发布"——从自己看到全世界看</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:4px solid var(--accent);">
+        <div style="font-size:clamp(1.4rem,2vw,1.8rem);margin-bottom:8px;">💪</div>
+        <div style="font-weight:700;margin-bottom:6px;color:#D4802E;">能力目标</div>
+        <ul class="bullet-list" style="max-width:100%;">
+          <li>根据建议有针对性优化页面（审美力）</li>
+          <li>用自然语言描述交互效果（共创力）</li>
+          <li>3分钟向全班展示个人主页（表达力）</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:4px solid var(--success);">
+        <div style="font-size:clamp(1.4rem,2vw,1.8rem);margin-bottom:8px;">❤️</div>
+        <div style="font-weight:700;margin-bottom:6px;color:var(--success);">情感目标</div>
+        <ul class="bullet-list" style="max-width:100%;">
+          <li>体验从"半成品"到"完整作品"的成就感</li>
+          <li>建立"作品要经得起别人看"的产品意识</li>
+          <li>感受作品即将发布的兴奋与自豪</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 3: KEY CONCEPTS ==================== -->
+<div class="slide" data-slide="3">
+  <div class="content-center scrollable">
+    <div class="badge badge-accent reveal">💡 核心概念</div>
+    <h2 class="slide-title reveal d1">五个关键概念</h2>
+    <table class="styled-table reveal d2">
+      <thead>
+        <tr><th>概念</th><th>学生类比</th><th>认知层级</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>交互效果</strong></td><td>像游乐场——能坐旋转木马，不只是看风景画</td><td>理解层</td></tr>
+        <tr><td><strong>设计一致性</strong></td><td>像穿衣搭配——上衣裤子鞋子要搭配</td><td>应用层</td></tr>
+        <tr><td><strong>同伴反馈</strong></td><td>自己觉得好不算，别人也觉得好才是真的好</td><td>理解层</td></tr>
+        <tr><td><strong>路演</strong></td><td>像参加画展——不只挂画，还要讲为什么这样画</td><td>应用层</td></tr>
+        <tr><td><strong>发布</strong></td><td>像把日记变成公开发表的文章</td><td>迁移层</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 4: MISCONCEPTIONS ==================== -->
+<div class="slide" data-slide="4">
+  <div class="content-center scrollable">
+    <div class="badge badge-accent reveal">⚠️ 典型误概念</div>
+    <h2 class="slide-title reveal d1">这些想法要避开！</h2>
+    <div class="grid-2 reveal d2" style="max-width:1000px;">
+      <div class="card" style="border-left:4px solid var(--danger);">
+        <div class="text-danger font-bold" style="margin-bottom:4px;">❌ "特效越多越好"</div>
+        <div class="text-sm text-light">✅ 好的设计是克制的，3个精致效果胜过10个花哨的</div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--danger);">
+        <div class="text-danger font-bold" style="margin-bottom:4px;">❌ "同学建议不靠谱"</div>
+        <div class="text-sm text-light">✅ 用户（读者）的感受比设计者的想法更重要</div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--danger);">
+        <div class="text-danger font-bold" style="margin-bottom:4px;">❌ "交互效果很难"</div>
+        <div class="text-sm text-light">✅ 用自然语言告诉AI就行，跟改样式一样简单</div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--danger);">
+        <div class="text-danger font-bold" style="margin-bottom:4px;">❌ "能打开就能发布"</div>
+        <div class="text-sm text-light">✅ 发布前要完整检查：文字、图片、手机适配</div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--danger);">
+        <div class="text-danger font-bold" style="margin-bottom:4px;">❌ "路演就是打开页面给大家看"</div>
+        <div class="text-sm text-light">✅ 路演要讲设计思路：为什么这样设计？有什么巧思？</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 5: COURSE FLOW ==================== -->
+<div class="slide" data-slide="5">
+  <div class="content-center">
+    <div class="badge badge-primary reveal">📋 课程流程</div>
+    <h2 class="slide-title reveal d1">90分钟教学安排</h2>
+    <div class="timeline reveal d2" style="margin-bottom:clamp(16px,3vh,30px);">
+      <div class="timeline-step">
+        <div class="timeline-dot">🔗</div>
+        <div class="timeline-label">联系<br><strong>10分钟</strong></div>
+      </div>
+      <div class="timeline-step">
+        <div class="timeline-dot">🛠️</div>
+        <div class="timeline-label">建构<br><strong>60分钟</strong></div>
+      </div>
+      <div class="timeline-step">
+        <div class="timeline-dot">🤔</div>
+        <div class="timeline-label">反思<br><strong>15分钟</strong></div>
+      </div>
+      <div class="timeline-step">
+        <div class="timeline-dot">🚀</div>
+        <div class="timeline-label">延续<br><strong>5分钟</strong></div>
+      </div>
+    </div>
+    <div class="grid-4 reveal d3" style="max-width:1000px;">
+      <div class="card text-center" style="border-top:3px solid var(--primary);">
+        <div style="font-weight:700;color:var(--primary-dark);margin-bottom:4px;">联系</div>
+        <div class="text-sm">回顾上节课<br>Before/After对比<br>激发升级欲望</div>
+      </div>
+      <div class="card text-center" style="border-top:3px solid var(--accent);">
+        <div style="font-weight:700;color:#D4802E;margin-bottom:4px;">建构</div>
+        <div class="text-sm">响应建议<br>交互升级<br>最终打磨+路演准备</div>
+      </div>
+      <div class="card text-center" style="border-top:3px solid var(--success);">
+        <div style="font-weight:700;color:var(--success);margin-bottom:4px;">反思</div>
+        <div class="text-sm">正式路演<br>结构化互评<br>总结亮点</div>
+      </div>
+      <div class="card text-center" style="border-top:3px solid #6C5CE7;">
+        <div style="font-weight:700;color:#6C5CE7;margin-bottom:4px;">延续</div>
+        <div class="text-sm">收集作品<br>发布说明<br>方法论迁移</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 6: ACT 1 - CONNECT ==================== -->
+<div class="slide bg-gradient-blue" data-slide="6">
+  <div class="content-center">
+    <div class="stage-label reveal">🔗 第一幕 · 联系</div>
+    <h2 class="slide-title reveal d1">从"还行"到"惊艳"</h2>
+    <p class="slide-subtitle reveal d2">回顾上节课成果，用 Before/After 对比激发升级欲望</p>
+    <div class="grid-2 reveal d3" style="max-width:800px;">
+      <div class="card" style="background:#F8F9FA;border:2px dashed var(--border);">
+        <div style="font-weight:700;color:var(--text-light);margin-bottom:8px;">⬅️ 上节课的样子</div>
+        <ul class="bullet-list" style="max-width:100%;">
+          <li>鼠标放上去没反应</li>
+          <li>内容一股脑全显示</li>
+          <li>还有AI编的假内容</li>
+          <li>配色有点杂</li>
+        </ul>
+      </div>
+      <div class="card" style="background:var(--primary-light);border:2px solid var(--primary);">
+        <div style="font-weight:700;color:var(--primary-dark);margin-bottom:8px;">➡️ 优化后的样子</div>
+        <ul class="bullet-list" style="max-width:100%;">
+          <li>鼠标悬停照片放大、按钮变色</li>
+          <li>滚动时内容一段段渐入</li>
+          <li>全部替换为真实信息</li>
+          <li>统一色调，整体协调</li>
+        </ul>
+      </div>
+    </div>
+    <div class="highlight-box reveal d4 mt-md">
+      今天的目标：个人主页从 <strong>半成品</strong> 变成 <strong>完成品</strong> —— 一个你愿意让全世界看到的作品！
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 7: SEGMENT 1 - PEER FEEDBACK ==================== -->
+<div class="slide" data-slide="7">
+  <div class="content-center scrollable">
+    <div class="section-header reveal" style="justify-content:center;">
+      <div class="section-icon blue">🛠️</div>
+      <div>
+        <div class="badge badge-primary" style="margin-bottom:2px;">第二幕 · 建构</div>
+        <h2 class="slide-title" style="margin-bottom:0;">分段一：响应同学建议</h2>
+      </div>
+    </div>
+    <p class="slide-subtitle reveal d1">15分钟 · 根据真实用户反馈有针对性地改进作品</p>
+    <div class="grid-2 reveal d2" style="max-width:900px;">
+      <div>
+        <div class="speech mb-sm">
+          <div class="speaker">👨‍🏫 教师演示</div>
+          同学反馈说自我介绍太长了。请把自我介绍板块改成折叠式：默认只显示前两句话，下面有一个"展开阅读更多"的按钮，点击后展开显示全部内容。
+        </div>
+        <div class="card mt-sm" style="background:var(--accent-light);border:1px solid var(--accent);">
+          <div style="font-weight:700;color:#D4802E;font-size:clamp(0.8rem,1vw,0.9rem);">💡 关键方法</div>
+          <div class="text-sm mt-sm">不是简单说"改短"，而是想出<strong>具体解决方案</strong>——用折叠解决太长的问题。把模糊反馈变成明确修改需求。</div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="height:100%;">
+          <div style="font-weight:700;margin-bottom:8px;">📝 学生操作步骤</div>
+          <div class="checklist">
+            <div class="checklist-item"><div class="checklist-icon done">1</div>看同学建议，选1-2条要改的</div>
+            <div class="checklist-item"><div class="checklist-icon done">2</div>想出具体的解决方案</div>
+            <div class="checklist-item"><div class="checklist-icon done">3</div>用 Solo Coder + 智能体描述修改</div>
+            <div class="checklist-item"><div class="checklist-icon done">4</div>Accept → 预览 → 确认效果</div>
+            <div class="checklist-item"><div class="checklist-icon done">5</div>改完一条再改下一条</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 8: INTERACTION EFFECTS ==================== -->
+<div class="slide" data-slide="8">
+  <div class="content-center scrollable">
+    <div class="section-header reveal" style="justify-content:center;">
+      <div class="section-icon orange">⚡</div>
+      <div>
+        <div class="badge badge-accent" style="margin-bottom:2px;">第二幕 · 建构</div>
+        <h2 class="slide-title" style="margin-bottom:0;">分段二：交互升级</h2>
+      </div>
+    </div>
+    <p class="slide-subtitle reveal d1">20分钟 · 用自然语言为页面添加交互效果（本课最核心新技能）</p>
+    <div class="grid-3 reveal d2" style="max-width:1000px;">
+      <div class="card" style="border-top:4px solid var(--primary);">
+        <div style="font-size:clamp(1.3rem,1.8vw,1.6rem);margin-bottom:6px;">👆</div>
+        <div style="font-weight:700;margin-bottom:6px;">Hover 悬停</div>
+        <div class="text-sm text-light mb-sm">成功率 95%+ · 最稳</div>
+        <div class="code-block" style="font-size:clamp(0.65rem,0.75vw,0.72rem);padding:10px;">
+          <span class="comment">鼠标放到卡片上</span><br>
+          卡片放大到1.05倍<br>
+          加一个淡淡的阴影<br>
+          过渡动画0.3秒
+        </div>
+      </div>
+      <div class="card" style="border-top:4px solid var(--accent);">
+        <div style="font-size:clamp(1.3rem,1.8vw,1.6rem);margin-bottom:6px;">📜</div>
+        <div style="font-weight:700;margin-bottom:6px;">滚动渐入</div>
+        <div class="text-sm text-light mb-sm">成功率 75%</div>
+        <div class="code-block" style="font-size:clamp(0.65rem,0.75vw,0.72rem);padding:10px;">
+          <span class="comment">往下滚的时候</span><br>
+          内容从下方淡入出现<br>
+          0.6秒滑入+淡入动画<br>
+          未滚到的先隐藏
+        </div>
+      </div>
+      <div class="card" style="border-top:4px solid var(--success);">
+        <div style="font-size:clamp(1.3rem,1.8vw,1.6rem);margin-bottom:6px;">🏷️</div>
+        <div style="font-weight:700;margin-bottom:6px;">Tab 标签切换</div>
+        <div class="text-sm text-light mb-sm">成功率 70%</div>
+        <div class="code-block" style="font-size:clamp(0.65rem,0.75vw,0.72rem);padding:10px;">
+          <span class="comment">三个标签按钮</span><br>
+          点不同标签显示不同内容<br>
+          选中标签高亮效果<br>
+          切换时淡入过渡
+        </div>
+      </div>
+    </div>
+    <div class="highlight-box reveal d3 mt-md" style="background:var(--accent-light);border-color:var(--accent);color:#D4802E;">
+      ⚡ 核心原则：选 1-2 个最适合的效果，不要贪多！<br><span style="font-weight:400;font-size:clamp(0.75rem,0.9vw,0.82rem);">3个精致的效果胜过10个花哨的</span>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 9: DESIGN PRINCIPLE ==================== -->
+<div class="slide" data-slide="9">
+  <div class="content-center">
+    <div class="badge badge-accent reveal">🎨 设计原则</div>
+    <h2 class="slide-title reveal d1">克制是一种高级的审美能力</h2>
+    <div class="grid-2 reveal d2" style="max-width:800px;">
+      <div class="card" style="border:2px solid var(--danger);background:var(--danger-light);">
+        <div style="font-weight:700;color:var(--danger);margin-bottom:8px;">❌ 特效堆满</div>
+        <div class="text-sm">
+          到处在闪、到处在动<br>
+          眼花缭乱、看不清内容<br>
+          像穿了衣柜里最亮的10件衣服
+        </div>
+      </div>
+      <div class="card" style="border:2px solid var(--success);background:var(--success-light);">
+        <div style="font-weight:700;color:var(--success);margin-bottom:8px;">✅ 精致克制</div>
+        <div class="text-sm">
+          只选最适合内容的1-2个效果<br>
+          跟页面风格完美统一<br>
+          少而精，胜过多而杂
+        </div>
+      </div>
+    </div>
+    <div class="speech reveal d3 mt-md" style="border-left-color:var(--accent);">
+      <div class="speaker" style="color:#D4802E;">👨‍🏫 教师话术</div>
+      "你不会把衣柜里最亮的10件全穿上吧？选1-2个最适合你页面的效果就够了。做得好的同学不是效果最多的，而是效果最合适的。"
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 10: FINAL POLISH ==================== -->
+<div class="slide" data-slide="10">
+  <div class="content-center scrollable">
+    <div class="section-header reveal" style="justify-content:center;">
+      <div class="section-icon green">✨</div>
+      <div>
+        <div class="badge badge-success" style="margin-bottom:2px;">第二幕 · 建构</div>
+        <h2 class="slide-title" style="margin-bottom:0;">分段三：最终打磨</h2>
+      </div>
+    </div>
+    <p class="slide-subtitle reveal d1">12分钟 · 用检查清单进行系统性最终审查</p>
+    <div class="reveal d2" style="width:100%;max-width:700px;">
+      <div class="card" style="background:var(--primary-light);border:2px solid var(--primary);">
+        <div style="font-weight:700;color:var(--primary-dark);margin-bottom:clamp(8px,1.5vh,14px);font-size:clamp(0.95rem,1.2vw,1.05rem);">📋 发布前检查清单</div>
+        <div class="checklist">
+          <div class="checklist-item"><div class="checklist-icon done">✅</div>所有文字都是真实的我的信息（没有AI编的假内容、没有占位文字）</div>
+          <div class="checklist-item"><div class="checklist-icon done">✅</div>图片/emoji都能正常显示（没有方框、没有裂图）</div>
+          <div class="checklist-item"><div class="checklist-icon done">✅</div>每个板块都有内容（没有空白区域）</div>
+          <div class="checklist-item"><div class="checklist-icon done">✅</div>配色看着舒服、统一（不刺眼、不打架）</div>
+          <div class="checklist-item"><div class="checklist-icon done">✅</div>交互效果正常工作（hover有反应、动画能播放）</div>
+          <div class="checklist-item"><div class="checklist-icon done">✅</div>从头到尾浏览一遍，没有明显问题</div>
+        </div>
+      </div>
+    </div>
+    <div class="speech reveal d3 mt-md" style="max-width:700px;">
+      <div class="speaker">👨‍🏫 教师提醒</div>
+      "能打开"和"能发布"是两回事。就像交作业——你不会把草稿纸交上去吧？发布之前，要做一次完整检查！
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 11: PITCH PREP ==================== -->
+<div class="slide" data-slide="11">
+  <div class="content-center scrollable">
+    <div class="section-header reveal" style="justify-content:center;">
+      <div class="section-icon blue">🎤</div>
+      <div>
+        <div class="badge badge-primary" style="margin-bottom:2px;">第二幕 · 建构</div>
+        <h2 class="slide-title" style="margin-bottom:0;">分段四：路演准备与练习</h2>
+      </div>
+    </div>
+    <p class="slide-subtitle reveal d1">13分钟 · 学会结构化表达自己的作品和设计思路</p>
+    <div class="grid-2 reveal d2" style="max-width:900px;">
+      <div class="card" style="border-top:4px solid var(--primary);">
+        <div style="font-weight:700;margin-bottom:clamp(8px,1.5vh,14px);">🎤 路演结构（3分钟）</div>
+        <div class="checklist">
+          <div class="checklist-item">
+            <div class="checklist-icon done" style="background:var(--primary-light);color:var(--primary);">1</div>
+            <div><strong>开场（15秒）</strong><br><span class="text-sm text-light">我是谁，这是我的个人主页</span></div>
+          </div>
+          <div class="checklist-item">
+            <div class="checklist-icon done" style="background:var(--primary-light);color:var(--primary);">2</div>
+            <div><strong>亮点展示（90秒）</strong><br><span class="text-sm text-light">最得意的2-3个板块，讲设计思路</span></div>
+          </div>
+          <div class="checklist-item">
+            <div class="checklist-icon done" style="background:var(--primary-light);color:var(--primary);">3</div>
+            <div><strong>技术分享（45秒）</strong><br><span class="text-sm text-light">用了什么方法？踩了什么坑？</span></div>
+          </div>
+          <div class="checklist-item">
+            <div class="checklist-icon done" style="background:var(--primary-light);color:var(--primary);">4</div>
+            <div><strong>结尾（30秒）</strong><br><span class="text-sm text-light">我最想让大家记住的一点</span></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="speech mb-sm">
+          <div class="speaker">💡 核心区别</div>
+          <strong>展示</strong> = 给你看<br>
+          <strong>路演</strong> = 给你看 + 讲给你听<br><br>
+          "为什么"比"是什么"重要十倍。观众看到你的页面能自己判断好不好看，但他们不知道你为什么这样设计——这才是路演要讲的。
+        </div>
+        <div class="card mt-sm" style="background:var(--accent-light);border:1px solid var(--accent);">
+          <div style="font-weight:700;color:#D4802E;font-size:clamp(0.8rem,1vw,0.9rem);">📝 练习安排</div>
+          <div class="text-sm mt-sm">3分钟列提纲 + 5分钟同桌互练<br>互相计时，3分钟。超了就砍内容，不够就加内容。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 12: ACT 3 - CONTEMPLATE ==================== -->
+<div class="slide" data-slide="12">
+  <div class="content-center">
+    <div class="stage-label reveal" style="background:var(--success);">🤔 第三幕 · 反思</div>
+    <h2 class="slide-title reveal d1">路演展示 + 互评总结</h2>
+    <p class="slide-subtitle reveal d2">15分钟 · 正式路演展示，通过结构化互评巩固表达力和审美力</p>
+    <div class="grid-2 reveal d3" style="max-width:800px;">
+      <div class="card text-center">
+        <div style="font-size:clamp(1.5rem,2vw,2rem);margin-bottom:8px;">🎤</div>
+        <div style="font-weight:700;margin-bottom:6px;">路演规则</div>
+        <ul class="bullet-list" style="max-width:100%;text-align:left;">
+          <li>选4位同学上台，每人3分钟</li>
+          <li>涵盖不同风格和亮点</li>
+          <li>台下准备"一个赞+一个建议"</li>
+        </ul>
+      </div>
+      <div class="card text-center">
+        <div style="font-size:clamp(1.5rem,2vw,2rem);margin-bottom:8px;">🌟</div>
+        <div style="font-weight:700;margin-bottom:6px;">教师点评重点</div>
+        <ul class="bullet-list" style="max-width:100%;text-align:left;">
+          <li>不只看效果，更表扬设计思路</li>
+          <li>解决问题的过程比结果更值得学习</li>
+          <li>克制是一种高级的审美能力</li>
+        </ul>
+      </div>
+    </div>
+    <div class="highlight-box reveal d4 mt-md" style="background:var(--success-light);border-color:var(--success);color:var(--success);">
+      📸 别忘了拍照发家长群！配文字："AI编程创新课第5课，同学们完成了个人主页并进行了产品路演！"
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 13: ACT 4 - CONTINUE ==================== -->
+<div class="slide bg-gradient-warm" data-slide="13">
+  <div class="content-center scrollable">
+    <div class="stage-label reveal" style="background:#6C5CE7;">🚀 第四幕 · 延续</div>
+    <h2 class="slide-title reveal d1">发布 + 方法论迁移</h2>
+    <div class="reveal d2" style="width:100%;max-width:900px;">
+      <div class="card mb-sm" style="background:var(--primary-light);border:2px solid var(--primary);">
+        <div style="font-weight:700;color:var(--primary-dark);margin-bottom:clamp(8px,1.5vh,14px);">🔄 两课完整流程回顾</div>
+        <div class="flow-row">
+          <div class="flow-box">📝 内容清单</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">🤖 设计智能体</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">📄 生成第一版</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">✍️ 填入真实内容</div>
+        </div>
+        <div class="flow-row mt-sm">
+          <div class="flow-box">💬 收集建议</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">🔧 响应修改</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">⚡ 交互升级</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">✅ 打磨发布</div>
+        </div>
+      </div>
+    </div>
+    <div class="reveal d3" style="width:100%;max-width:900px;">
+      <div class="card" style="border-top:4px solid #6C5CE7;">
+        <div style="font-weight:700;color:#6C5CE7;margin-bottom:8px;">🧠 核心方法论（可迁移到任何创作）</div>
+        <div class="flow-row">
+          <div class="flow-box" style="border-color:#6C5CE7;color:#6C5CE7;">先规划</div>
+          <div class="flow-arrow" style="color:#6C5CE7;">→</div>
+          <div class="flow-box" style="border-color:#6C5CE7;color:#6C5CE7;">再创建</div>
+          <div class="flow-arrow" style="color:#6C5CE7;">→</div>
+          <div class="flow-box" style="border-color:#6C5CE7;color:#6C5CE7;">再打磨</div>
+          <div class="flow-arrow" style="color:#6C5CE7;">→</div>
+          <div class="flow-box" style="border-color:#6C5CE7;color:#6C5CE7;">再发布</div>
+        </div>
+        <p class="text-sm text-light mt-sm" style="text-align:center;">适用于：做PPT、写作文、画画、做视频……任何创作场景！</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 14: TECH REFERENCE ==================== -->
+<div class="slide" data-slide="14">
+  <div class="content-center scrollable">
+    <div class="badge badge-primary reveal">📊 教师参考</div>
+    <h2 class="slide-title reveal d1">交互效果技术参考</h2>
+    <table class="styled-table reveal d2">
+      <thead>
+        <tr><th>交互效果</th><th>技术原理</th><th>成功率</th><th>备注</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Hover 悬停</strong></td><td>CSS :hover + transition</td><td class="text-success font-bold">95%+</td><td>最稳，优先推荐</td></tr>
+        <tr><td><strong>CSS 过渡/动画</strong></td><td>transition / animation</td><td class="text-primary font-bold">85-90%</td><td>纯CSS，不需JS</td></tr>
+        <tr><td><strong>滚动渐入</strong></td><td>JS Intersection Observer</td><td class="text-accent font-bold">75%</td><td>偶尔观察器配置不对</td></tr>
+        <tr><td><strong>Tab 标签切换</strong></td><td>JS 控制显隐</td><td class="text-accent font-bold">70%</td><td>偶尔点击不切换</td></tr>
+        <tr><td><strong>图片轮播</strong></td><td>JS 定时器 + 索引</td><td class="text-danger font-bold">60%</td><td>失败就退回hover</td></tr>
+      </tbody>
+    </table>
+    <div class="card reveal d3 mt-md" style="max-width:700px;background:var(--accent-light);border:1px solid var(--accent);">
+      <div style="font-weight:700;color:#D4802E;font-size:clamp(0.85rem,1vw,0.92rem);">🔧 翻车应对顺序</div>
+      <div class="flow-row mt-sm">
+        <div class="flow-box" style="border-color:var(--accent);color:#D4802E;font-size:clamp(0.7rem,0.85vw,0.78rem);">让AI修复</div>
+        <div class="flow-arrow" style="color:var(--accent);">→</div>
+        <div class="flow-box" style="border-color:var(--accent);color:#D4802E;font-size:clamp(0.7rem,0.85vw,0.78rem);">换更简单效果</div>
+        <div class="flow-arrow" style="color:var(--accent);">→</div>
+        <div class="flow-box" style="border-color:var(--accent);color:#D4802E;font-size:clamp(0.7rem,0.85vw,0.78rem);">用保底代码</div>
+        <div class="flow-arrow" style="color:var(--accent);">→</div>
+        <div class="flow-box" style="border-color:var(--accent);color:#D4802E;font-size:clamp(0.7rem,0.85vw,0.78rem);">去掉效果</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 15: CHALLENGE ==================== -->
+<div class="slide" data-slide="15">
+  <div class="content-center">
+    <div class="deco-circle" style="width:250px;height:250px;background:var(--accent);top:-60px;left:-40px;"></div>
+    <div class="deco-dots" style="top:30px;right:30px;"></div>
+    <div class="badge badge-accent reveal">🏠 本周挑战</div>
+    <h2 class="slide-title reveal d1">给未来的自己的一封信</h2>
+    <div class="grid-2 reveal d2" style="max-width:800px;">
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:8px;">📝 操作步骤</div>
+        <div class="checklist">
+          <div class="checklist-item"><div class="checklist-icon done">1</div>打开个人主页项目</div>
+          <div class="checklist-item"><div class="checklist-icon done">2</div>加新板块"给未来的自己"</div>
+          <div class="checklist-item"><div class="checklist-icon done">3</div>写一段话给10年后的自己</div>
+          <div class="checklist-item"><div class="checklist-icon done">4</div>设计特别的视觉效果</div>
+          <div class="checklist-item"><div class="checklist-icon done">5</div>截图保存最终效果</div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:8px;">🏆 评价标准</div>
+        <div class="checklist">
+          <div class="checklist-item"><div class="checklist-icon done" style="background:#FFF3E0;color:var(--accent);">⭐</div><div><strong>基础</strong><br><span class="text-sm text-light">成功加了新板块，内容是真心话</span></div></div>
+          <div class="checklist-item"><div class="checklist-icon done" style="background:#FFF3E0;color:var(--accent);">⭐⭐</div><div><strong>进阶</strong><br><span class="text-sm text-light">视觉效果跟页面整体风格统一</span></div></div>
+          <div class="checklist-item"><div class="checklist-icon done" style="background:#FFF3E0;color:var(--accent);">⭐⭐⭐</div><div><strong>挑战</strong><br><span class="text-sm text-light">让家人读你写的信，记录他们的反应</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 16: ENDING ==================== -->
+<div class="slide bg-gradient-warm" data-slide="16">
+  <div class="deco-circle" style="width:300px;height:300px;background:var(--primary);bottom:-80px;right:-60px;"></div>
+  <div class="deco-circle" style="width:200px;height:200px;background:#6C5CE7;top:-60px;left:-40px;"></div>
+  <div class="content-center">
+    <div class="title-emoji reveal">🎓</div>
+    <h2 class="slide-title reveal d1" style="font-size:clamp(2rem,4.5vw,3.5rem);">下节课见！</h2>
+    <p class="slide-subtitle reveal d2">前五节课：Trae操作 · 三种模式 · 迭代 · 智能体设计 · 个人主页项目</p>
+    <div class="highlight-box reveal d3" style="background:linear-gradient(135deg,var(--primary-light),#F0E6FF);border-color:var(--primary);">
+      接下来要挑战更有野心的东西<br>
+      <strong>不只是展示型页面，而是有真正功能的应用！</strong>
+    </div>
+    <p class="reveal d4 mt-md text-light" style="font-size:clamp(0.8rem,1vw,0.9rem);">
+      好好欣赏你发布在网站上的个人主页 🌐<br>那可是你的第一个真正发布的作品！
+    </p>
+  </div>
+</div>
+
+</div><!-- end .presentation -->
+
+<!-- Navigation Dots -->
+<div class="nav-dots" id="navDots"></div>
+<div class="slide-counter" id="slideCounter">1 / 16</div>
+
+<script>
+/* === SLIDE NAVIGATION === */
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let isAnimating = false;
+
+  // Create nav dots
+  const navDotsContainer = document.getElementById('navDots');
+  for (let i = 0; i < totalSlides; i++) {
+    const dot = document.createElement('button');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+    dot.addEventListener('click', function() { goToSlide(i); });
+    navDotsContainer.appendChild(dot);
+  }
+
+  function updateCounter() {
+    document.getElementById('slideCounter').textContent = (currentSlide + 1) + ' / ' + totalSlides;
+  }
+
+  function goToSlide(index) {
+    if (index === currentSlide || isAnimating || index < 0 || index >= totalSlides) return;
+    isAnimating = true;
+
+    const prevSlide = slides[currentSlide];
+    const nextSlide = slides[index];
+
+    // Determine direction
+    if (index > currentSlide) {
+      nextSlide.style.transform = 'translateX(60px)';
+      prevSlide.classList.remove('active');
+      prevSlide.classList.add('prev');
+    } else {
+      nextSlide.style.transform = 'translateX(-60px)';
+      prevSlide.classList.remove('active');
+    }
+
+    // Small delay for CSS transition setup
+    requestAnimationFrame(function() {
+      nextSlide.classList.add('active');
+      nextSlide.classList.remove('prev');
+      currentSlide = index;
+
+      // Update dots
+      var dots = navDotsContainer.querySelectorAll('.nav-dot');
+      dots.forEach(function(d, i) {
+        d.classList.toggle('active', i === currentSlide);
+      });
+      updateCounter();
+
+      setTimeout(function() { isAnimating = false; }, 600);
+    });
+  }
+
+  function nextSlide() { goToSlide(currentSlide + 1); }
+  function prevSlide() { goToSlide(currentSlide - 1); }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault(); nextSlide();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault(); prevSlide();
+    } else if (e.key === 'Home') {
+      e.preventDefault(); goToSlide(0);
+    } else if (e.key === 'End') {
+      e.preventDefault(); goToSlide(totalSlides - 1);
+    }
+  });
+
+  // Touch/swipe support
+  var touchStartX = 0;
+  var touchStartY = 0;
+  document.addEventListener('touchstart', function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].screenX - touchStartX;
+    var dy = e.changedTouches[0].screenY - touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      if (dx < 0) nextSlide(); else prevSlide();
+    }
+  }, { passive: true });
+
+  // Mouse wheel
+  var wheelTimeout = null;
+  document.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    if (wheelTimeout) return;
+    wheelTimeout = setTimeout(function() { wheelTimeout = null; }, 800);
+    if (e.deltaY > 0) nextSlide(); else prevSlide();
+  }, { passive: false });
+
+  updateCounter();
+})();
+</script>
+
+</body>
+</html>

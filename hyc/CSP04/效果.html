@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>⚔️ 涂鸦 PK 对战演示</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body {
+  font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #a1c4fd 100%);
+  min-height: 100vh;
+  padding: 20px;
+  overflow-x: hidden;
+}
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  background: rgba(255,255,255,0.92);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+h1 {
+  text-align: center;
+  font-size: 32px;
+  color: #ff6b6b;
+  margin-bottom: 8px;
+  text-shadow: 2px 2px 0 #ffe0e0;
+  animation: titleBounce 2s ease-in-out infinite;
+}
+@keyframes titleBounce {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-4px) rotate(1deg); }
+}
+.subtitle { text-align: center; color: #888; margin-bottom: 20px; font-size: 14px; }
+
+.arena {
+  display: grid;
+  grid-template-columns: 1fr 100px 1fr;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 20px;
+  position: relative;
+  background: linear-gradient(180deg, #87ceeb 0%, #b8e6f0 60%, #f4d03f 100%);
+  border-radius: 16px;
+  padding: 24px 20px;
+  border: 4px solid #fff;
+  box-shadow: inset 0 0 30px rgba(255,255,255,0.5);
+  overflow: hidden;
+  min-height: 300px;
+}
+.cloud {
+  position: absolute;
+  top: 12px;
+  font-size: 24px;
+  opacity: 0.7;
+  animation: cloudDrift 22s linear infinite;
+}
+.cloud:nth-child(2) { top: 30px; animation-duration: 30s; animation-delay: -10s; }
+@keyframes cloudDrift {
+  from { transform: translateX(-150px); }
+  to { transform: translateX(calc(900px + 150px)); }
+}
+
+.character {
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+.fighter {
+  font-size: 90px;
+  display: inline-block;
+  filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.3));
+  animation: idle 2s ease-in-out infinite;
+  position: relative;
+}
+.character.enemy .fighter { animation-delay: 0.5s; transform: scaleX(-1); }
+@keyframes idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.character.enemy .fighter { animation-name: idleEnemy; }
+@keyframes idleEnemy {
+  0%, 100% { transform: translateY(0) scaleX(-1); }
+  50% { transform: translateY(-8px) scaleX(-1); }
+}
+
+.character.attacking-right .fighter { animation: lungeRight 0.5s; }
+.character.attacking-left .fighter { animation: lungeLeft 0.5s; }
+@keyframes lungeRight {
+  0% { transform: translateX(0); }
+  40% { transform: translateX(50px) scale(1.15); }
+  100% { transform: translateX(0); }
+}
+@keyframes lungeLeft {
+  0% { transform: translateX(0) scaleX(-1); }
+  40% { transform: translateX(-50px) scale(1.15) scaleX(-1); }
+  100% { transform: translateX(0) scaleX(-1); }
+}
+.character.hit .fighter {
+  animation: hitShake 0.4s !important;
+  filter: drop-shadow(2px 4px 4px rgba(255,0,0,0.8)) brightness(1.5) hue-rotate(-30deg);
+}
+.character.enemy.hit .fighter { animation: hitShakeEnemy 0.4s !important; }
+@keyframes hitShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  50% { transform: translateX(10px); }
+  75% { transform: translateX(-5px); }
+}
+@keyframes hitShakeEnemy {
+  0%, 100% { transform: translateX(0) scaleX(-1); }
+  25% { transform: translateX(-10px) scaleX(-1); }
+  50% { transform: translateX(10px) scaleX(-1); }
+  75% { transform: translateX(-5px) scaleX(-1); }
+}
+.shield-icon {
+  position: absolute;
+  font-size: 70px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  animation: shieldPop 0.4s;
+  pointer-events: none;
+}
+@keyframes shieldPop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+  60% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  100% { opacity: 0.8; transform: translate(-50%, -50%) scale(1); }
+}
+.character.dead .fighter { animation: fallDown 0.8s forwards !important; }
+@keyframes fallDown {
+  0% { transform: rotate(0); opacity: 1; }
+  100% { transform: rotate(90deg) translateY(40px); opacity: 0.3; filter: grayscale(1); }
+}
+
+.name {
+  font-weight: bold;
+  margin-top: 6px;
+  color: #333;
+  font-size: 18px;
+}
+
+.hp-wrap {
+  width: 100%;
+  height: 20px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 10px;
+  margin-top: 8px;
+  overflow: hidden;
+  border: 2px solid #fff;
+  position: relative;
+}
+.hpbar {
+  height: 100%;
+  background: linear-gradient(90deg, #4ade80, #22c55e);
+  width: 100%;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+  border-radius: 8px;
+  box-shadow: inset 0 -3px 0 rgba(0,0,0,0.15);
+}
+.hpbar.mid { background: linear-gradient(90deg, #facc15, #eab308); }
+.hpbar.low {
+  background: linear-gradient(90deg, #f87171, #ef4444);
+  animation: dangerPulse 1s infinite;
+}
+@keyframes dangerPulse {
+  0%, 100% { box-shadow: inset 0 -3px 0 rgba(0,0,0,0.15), 0 0 0 rgba(239,68,68,0); }
+  50% { box-shadow: inset 0 -3px 0 rgba(0,0,0,0.15), 0 0 16px rgba(239,68,68,0.9); }
+}
+.hp-text { font-size: 13px; color: #555; margin-top: 4px; font-weight: bold; }
+.attr { font-size: 12px; color: #777; margin-top: 2px; }
+.skill-name { font-size: 11px; color: #9333ea; margin-top: 2px; font-weight: bold; }
+
+.vs {
+  font-size: 44px;
+  font-weight: bold;
+  color: #ff6b6b;
+  text-shadow: 2px 2px 0 #fff, 4px 4px 0 #ffe0e0;
+  text-align: center;
+  animation: vsZoom 1.5s ease-in-out infinite;
+}
+@keyframes vsZoom {
+  0%, 100% { transform: scale(1) rotate(-5deg); }
+  50% { transform: scale(1.2) rotate(5deg); }
+}
+
+.dmg-num {
+  position: absolute;
+  font-weight: bold;
+  font-size: 32px;
+  pointer-events: none;
+  animation: floatUp 1s forwards;
+  text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff;
+  z-index: 10;
+}
+.dmg-num.normal { color: #ef4444; }
+.dmg-num.heavy { color: #f59e0b; font-size: 42px; }
+.dmg-num.heal { color: #22c55e; }
+@keyframes floatUp {
+  0% { transform: translateY(0) scale(0.5); opacity: 0; }
+  20% { transform: translateY(-10px) scale(1.4); opacity: 1; }
+  100% { transform: translateY(-90px) scale(1); opacity: 0; }
+}
+
+.particle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: particleBurst 0.8s forwards;
+  z-index: 9;
+}
+@keyframes particleBurst {
+  0% { transform: translate(0,0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(0.3); opacity: 0; }
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.btn {
+  padding: 16px 8px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  color: #fff;
+  transition: transform 0.15s, box-shadow 0.15s, filter 0.2s;
+  box-shadow: 0 5px 0 rgba(0,0,0,0.2);
+  font-family: inherit;
+}
+.btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 8px 0 rgba(0,0,0,0.2); }
+.btn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.2); }
+.btn:disabled { filter: grayscale(0.7); opacity: 0.5; cursor: not-allowed; }
+.btn.atk    { background: linear-gradient(135deg, #f87171, #dc2626); }
+.btn.heavy  { background: linear-gradient(135deg, #fb923c, #ea580c); }
+.btn.block  { background: linear-gradient(135deg, #60a5fa, #2563eb); }
+.btn.skill  { background: linear-gradient(135deg, #c084fc, #9333ea); }
+.btn.restart{ background: linear-gradient(135deg, #34d399, #059669); margin: 12px auto 0; display: block; padding: 16px 36px; font-size: 18px; }
+
+.log {
+  background: #1e293b;
+  color: #f1f5f9;
+  padding: 14px 18px;
+  border-radius: 12px;
+  height: 150px;
+  overflow-y: auto;
+  font-size: 14px;
+  line-height: 1.7;
+  font-family: 'Consolas', 'Microsoft YaHei', monospace;
+  border: 2px solid #334155;
+}
+.log .line { animation: logFadeIn 0.3s; }
+.log .line.player { color: #93c5fd; }
+.log .line.enemy  { color: #fca5a5; }
+.log .line.heavy  { color: #fbbf24; font-weight: bold; }
+.log .line.skill  { color: #d8b4fe; font-weight: bold; }
+.log .line.win    { color: #6ee7b7; font-weight: bold; font-size: 16px; }
+.log .line.turn   { color: #cbd5e1; border-top: 1px dashed #475569; padding-top: 4px; margin-top: 4px; }
+@keyframes logFadeIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+
+.shake { animation: screenShake 0.4s; }
+@keyframes screenShake {
+  0%, 100% { transform: translate(0); }
+  20% { transform: translate(-8px, 4px) rotate(-0.5deg); }
+  40% { transform: translate(6px, -6px) rotate(0.5deg); }
+  60% { transform: translate(-4px, 4px) rotate(-0.3deg); }
+  80% { transform: translate(4px, -2px); }
+}
+
+.confetti {
+  position: fixed;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+  animation: confettiFall 3.5s linear forwards;
+  z-index: 999;
+}
+@keyframes confettiFall {
+  0% { transform: translateY(-50px) rotate(0); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(900deg); opacity: 0; }
+}
+
+.banner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  background: linear-gradient(135deg, #ff6b6b, #ffa500);
+  color: #fff;
+  padding: 30px 60px;
+  border-radius: 20px;
+  font-size: 48px;
+  font-weight: bold;
+  text-shadow: 3px 3px 0 rgba(0,0,0,0.3);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  z-index: 1000;
+  pointer-events: none;
+  animation: bannerShow 2.5s forwards;
+}
+.banner.lose { background: linear-gradient(135deg, #6b7280, #374151); }
+@keyframes bannerShow {
+  0%   { transform: translate(-50%, -50%) scale(0) rotate(-180deg); opacity: 0; }
+  20%  { transform: translate(-50%, -50%) scale(1.2) rotate(10deg); opacity: 1; }
+  30%  { transform: translate(-50%, -50%) scale(1) rotate(0); }
+  80%  { transform: translate(-50%, -50%) scale(1) rotate(0); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.8) rotate(0); opacity: 0; }
+}
+</style>
+</head>
+<body>
+<div class="container" id="container">
+  <h1>⚔️ 涂鸦 PK 对战演示 ⚔️</h1>
+  <p class="subtitle">SDDT × 4C｜回合制对战 · 4 个动作 · 全套动画</p>
+
+  <div class="arena" id="arena">
+    <div class="cloud" style="left:-100px">☁️</div>
+    <div class="cloud" style="left:-200px">☁️</div>
+
+    <div class="character player" id="player">
+      <div class="fighter" id="player-fighter">🦡</div>
+      <div class="name">🌟 勇者小明</div>
+      <div class="hp-wrap"><div class="hpbar" id="player-hp"></div></div>
+      <div class="hp-text" id="player-hp-text">100 / 100</div>
+      <div class="attr">ATK 15 · DEF 5 · SPD 8</div>
+      <div class="skill-name">✨ 治愈光环（回复 30 HP）</div>
+    </div>
+
+    <div class="vs">VS</div>
+
+    <div class="character enemy" id="enemy">
+      <div class="fighter" id="enemy-fighter">👾</div>
+      <div class="name">👹 外星怪兽</div>
+      <div class="hp-wrap"><div class="hpbar" id="enemy-hp"></div></div>
+      <div class="hp-text" id="enemy-hp-text">100 / 100</div>
+      <div class="attr">ATK 13 · DEF 6 · SPD 7</div>
+      <div class="skill-name">💀 狂暴撕咬（伤害 × 2.2）</div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn atk"   data-action="attack">⛏️ 普通攻击</button>
+    <button class="btn heavy" data-action="heavy">💥 重击 ×1.8</button>
+    <button class="btn block" data-action="block">🛡️ 格挡 -50%</button>
+    <button class="btn skill" data-action="skill" id="skill-btn">✨ 特技（1次）</button>
+  </div>
+
+  <div class="log" id="log"></div>
+  <button class="btn restart" id="restart-btn" style="display:none">🔄 再来一局</button>
+</div>
+
+<script>
+const PLAYER_TEMPLATE = { name:'勇者小明', hp:100, maxHp:100, atk:15, def:5, spd:8, skill:'治愈光环', skillUsed:false, blocking:false };
+const ENEMY_TEMPLATE  = { name:'外星怪兽', hp:100, maxHp:100, atk:13, def:6, spd:7, skill:'狂暴撕咬', skillUsed:false, blocking:false };
+
+let p, e, gameOver, busy, turnCount;
+
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function init() {
+  p = { ...PLAYER_TEMPLATE };
+  e = { ...ENEMY_TEMPLATE };
+  gameOver = false;
+  busy = false;
+  turnCount = 1;
+  $('log').innerHTML = '';
+  $('restart-btn').style.display = 'none';
+  $('player').classList.remove('dead','hit');
+  $('enemy').classList.remove('dead','hit');
+  document.querySelectorAll('.shield-icon').forEach(s => s.remove());
+  document.querySelectorAll('.btn[data-action]').forEach(b => b.disabled = false);
+  updateUI();
+  log('🎮 战斗开始！选一个动作出手吧～', 'win');
+  log('💡 演示提示：试试「重击」看伤害会大多少？试试「格挡」可以减多少伤害？', 'turn');
+}
+
+function updateUI() {
+  const setBar = (barId, textId, hp, maxHp) => {
+    const pct = (hp / maxHp) * 100;
+    const bar = $(barId);
+    bar.style.width = pct + '%';
+    bar.className = 'hpbar' + (pct < 30 ? ' low' : pct < 60 ? ' mid' : '');
+    $(textId).textContent = hp + ' / ' + maxHp;
+  };
+  setBar('player-hp', 'player-hp-text', p.hp, p.maxHp);
+  setBar('enemy-hp',  'enemy-hp-text',  e.hp, e.maxHp);
+}
+
+function log(msg, cls='') {
+  const div = document.createElement('div');
+  div.className = 'line ' + cls;
+  div.textContent = msg;
+  $('log').appendChild(div);
+  $('log').scrollTop = $('log').scrollHeight;
+}
+
+function calcDamage(atk, def, mult, blocking) {
+  let dmg = (atk - def) * mult;
+  if (blocking) dmg *= 0.5;
+  return Math.max(1, Math.round(dmg));
+}
+
+function spawnDamage(targetEl, num, type='normal') {
+  const rect = targetEl.getBoundingClientRect();
+  const arena = $('arena').getBoundingClientRect();
+  const el = document.createElement('div');
+  el.className = 'dmg-num ' + type;
+  el.textContent = (type === 'heal' ? '+' : '-') + num;
+  el.style.left = (rect.left - arena.left + rect.width/2 - 24) + 'px';
+  el.style.top  = (rect.top  - arena.top  + 24) + 'px';
+  $('arena').appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+}
+
+function spawnParticles(targetEl, color, count=14) {
+  const rect = targetEl.getBoundingClientRect();
+  const arena = $('arena').getBoundingClientRect();
+  const cx = rect.left - arena.left + rect.width/2;
+  const cy = rect.top  - arena.top  + rect.height/2;
+  for (let i = 0; i < count; i++) {
+    const part = document.createElement('div');
+    part.className = 'particle';
+    part.style.background = color;
+    part.style.left = (cx - 5) + 'px';
+    part.style.top  = (cy - 5) + 'px';
+    const angle = (Math.PI * 2 / count) * i + Math.random() * 0.5;
+    const dist = 60 + Math.random() * 50;
+    part.style.setProperty('--dx', Math.cos(angle)*dist + 'px');
+    part.style.setProperty('--dy', Math.sin(angle)*dist + 'px');
+    $('arena').appendChild(part);
+    setTimeout(() => part.remove(), 800);
+  }
+}
+
+function shake() {
+  $('container').classList.remove('shake');
+  void $('container').offsetWidth;
+  $('container').classList.add('shake');
+}
+
+async function lunge(actorEl, isPlayer) {
+  actorEl.classList.add(isPlayer ? 'attacking-right' : 'attacking-left');
+  await sleep(500);
+  actorEl.classList.remove('attacking-right','attacking-left');
+}
+
+async function flashHit(targetEl) {
+  targetEl.classList.add('hit');
+  await sleep(400);
+  targetEl.classList.remove('hit');
+}
+
+function showShield(actorEl) {
+  const old = actorEl.querySelector('.shield-icon');
+  if (old) old.remove();
+  const s = document.createElement('div');
+  s.className = 'shield-icon';
+  s.textContent = '🛡️';
+  actorEl.appendChild(s);
+  setTimeout(() => s.remove(), 1500);
+}
+
+async function executeAction(actor, target, type, isPlayer) {
+  const actorEl  = $(isPlayer ? 'player' : 'enemy');
+  const targetEl = $(isPlayer ? 'enemy' : 'player');
+  const cls = isPlayer ? 'player' : 'enemy';
+
+  if (type === 'block') {
+    actor.blocking = true;
+    showShield(actorEl);
+    spawnParticles(actorEl, '#60a5fa', 10);
+    log(`🛡️ ${actor.name} 摆出格挡姿势，下次受伤 -50%！`, cls);
+    await sleep(600);
+    return;
+  }
+
+  if (type === 'skill') {
+    if (actor.skillUsed) {
+      log(`⚠️ ${actor.name} 的特技已用完，改为普通攻击！`, cls);
+      type = 'attack';
+    } else {
+      actor.skillUsed = true;
+      if (isPlayer) $('skill-btn').disabled = true;
+      if (isPlayer) {
+        const heal = 30;
+        actor.hp = Math.min(actor.maxHp, actor.hp + heal);
+        log(`✨ ${actor.name} 释放【${actor.skill}】，回复 ${heal} HP！`, 'skill');
+        spawnDamage(actorEl, heal, 'heal');
+        spawnParticles(actorEl, '#22c55e', 18);
+        spawnParticles(actorEl, '#fbbf24', 12);
+        updateUI();
+        await sleep(700);
+        return;
+      } else {
+        log(`💀 ${actor.name} 释放【${actor.skill}】，发动毁灭一击！`, 'skill');
+        spawnParticles(actorEl, '#9333ea', 18);
+        await lunge(actorEl, false);
+        const dmg = calcDamage(actor.atk, target.def, 2.2, target.blocking);
+        target.hp = Math.max(0, target.hp - dmg);
+        await flashHit(targetEl);
+        spawnDamage(targetEl, dmg, 'heavy');
+        spawnParticles(targetEl, '#ef4444', 16);
+        shake();
+        log(`   ➜ 造成 ${dmg} 点毁灭伤害！${target.blocking?'（被格挡减半）':''}`, cls);
+        target.blocking = false;
+        updateUI();
+        await sleep(600);
+        return;
+      }
+    }
+  }
+
+  // attack / heavy
+  const mult = type === 'heavy' ? 1.8 : 1;
+  const verb = type === 'heavy' ? '💥 重击' : '⛏️ 普通攻击';
+  log(`${verb}：${actor.name} 出手！`, type === 'heavy' ? 'heavy' : cls);
+  await lunge(actorEl, isPlayer);
+  const dmg = calcDamage(actor.atk, target.def, mult, target.blocking);
+  target.hp = Math.max(0, target.hp - dmg);
+  await flashHit(targetEl);
+  spawnDamage(targetEl, dmg, type === 'heavy' ? 'heavy' : 'normal');
+  spawnParticles(targetEl, type === 'heavy' ? '#f59e0b' : '#ef4444', type === 'heavy' ? 18 : 12);
+  if (type === 'heavy') shake();
+  log(`   ➜ 造成 ${dmg} 点伤害${target.blocking?'（被格挡减半）':''}`, cls);
+  target.blocking = false;
+  updateUI();
+  await sleep(500);
+}
+
+function aiDecide() {
+  const hpRatio = e.hp / e.maxHp;
+  if (hpRatio < 0.3 && !e.skillUsed) return 'skill';
+  const r = Math.random();
+  if (r < 0.25) return 'heavy';
+  if (r < 0.40) return 'block';
+  return 'attack';
+}
+
+function showBanner(text, isWin) {
+  const b = document.createElement('div');
+  b.className = 'banner' + (isWin ? '' : ' lose');
+  b.textContent = text;
+  document.body.appendChild(b);
+  setTimeout(() => b.remove(), 2600);
+}
+
+function celebrate() {
+  const colors = ['#ff6b6b','#fbbf24','#34d399','#60a5fa','#c084fc','#f472b6'];
+  for (let i = 0; i < 100; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.background = colors[i % colors.length];
+    c.style.left = Math.random()*100 + 'vw';
+    c.style.top = '-20px';
+    c.style.animationDelay = (Math.random()*1.5) + 's';
+    c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 5000);
+  }
+}
+
+function checkOver() {
+  if (p.hp <= 0 || e.hp <= 0) {
+    gameOver = true;
+    document.querySelectorAll('.btn[data-action]').forEach(b => b.disabled = true);
+    if (p.hp <= 0) {
+      $('player').classList.add('dead');
+      log('💀 你被击败了……再接再励！', 'enemy');
+      showBanner('💀 失败', false);
+    } else {
+      $('enemy').classList.add('dead');
+      log('🏆 胜利！你打败了外星怪兽！', 'win');
+      showBanner('🏆 胜利！', true);
+      celebrate();
+    }
+    setTimeout(() => $('restart-btn').style.display = 'block', 800);
+    return true;
+  }
+  return false;
+}
+
+async function turn(playerType) {
+  busy = true;
+  document.querySelectorAll('.btn[data-action]').forEach(b => b.disabled = true);
+
+  // 重置本回合頻道的 blocking（格挡只在本回合生效）
+  p.blocking = false;
+  e.blocking = false;
+
+  // 决定先手
+  let pFirst;
+  if (p.spd > e.spd) pFirst = true;
+  else if (p.spd < e.spd) pFirst = false;
+  else { pFirst = Math.random() < 0.5; log(`🎲 同速！随机决定${pFirst?'你':'敌方'}先手`, 'turn'); }
+
+  const enemyType = aiDecide();
+  log(`—— 第 ${turnCount++} 回合 ${pFirst?'(你先手)':'(敌方先手)'} ——`, 'turn');
+
+  if (pFirst) {
+    await executeAction(p, e, playerType, true);
+    if (checkOver()) return;
+    await executeAction(e, p, enemyType, false);
+    if (checkOver()) return;
+  } else {
+    await executeAction(e, p, enemyType, false);
+    if (checkOver()) return;
+    await executeAction(p, e, playerType, true);
+    if (checkOver()) return;
+  }
+
+  busy = false;
+  document.querySelectorAll('.btn[data-action]').forEach(b => b.disabled = false);
+  if (p.skillUsed) $('skill-btn').disabled = true;
+}
+
+document.querySelectorAll('.btn[data-action]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (busy || gameOver) return;
+    const action = btn.dataset.action;
+    if (action === 'skill' && p.skillUsed) return;
+    turn(action);
+  });
+});
+
+$('restart-btn').addEventListener('click', init);
+
+init();
+</script>
+</body>
+</html>

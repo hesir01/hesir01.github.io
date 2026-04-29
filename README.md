@@ -1,13 +1,10 @@
 # 菠萝老师的编程课堂
-
 > 让每个孩子都能享受编程的乐趣 🍍
 
 ## 项目简介
-
 这是菠萝老师的少儿编程教学项目，包含**课程课件**和**学生作品**两大板块。课程涵盖图形化编程（Kitten）、AI 应用、C++ 信息学奥赛等多个方向，学生作品以 HTML 网页为主，展示每位同学的学习成果。
 
 ## 目录结构
-
 ```
 ├── index.html              # 菠萝老师个人主页（项目入口）
 ├── hyc/                    # 课程课件
@@ -43,8 +40,49 @@
 | Python 应用 | — | 10-15岁 | 数据分析、爬虫、游戏开发 |
 | AI 编程 | — | 12岁+ | ChatGPT应用、AI绘画、智能项目 |
 
-## 技术说明
+## 学生作品链接
 
+### AICODE03
+
+| 学生 | 作品 | 链接 |
+|------|------|------|
+| 黄浩 | 个人主页 | [huanghao.html](https://hesir01.github.io/student/AICODE03/huanghao.html) |
+| 李汶浩 | 个人主页 | [liwenhao.html](https://hesir01.github.io/student/AICODE03/liwenhao.html) |
+| 钟佳鑫 | 个人主页 | [zhongjiaoxin.html](https://hesir01.github.io/student/AICODE03/zhongjiaoxin.html) |
+
+### AICODE04
+
+| 学生 | 作品 | 链接 |
+|------|------|------|
+| 刘致远 | 个人主页 | [liuzhiyuan.html](https://hesir01.github.io/student/AICODE04/liuzhiyuan/liuzhiyuan.html) |
+| 刘致远 | 第二次作业 | [lzy02.html](https://hesir01.github.io/student/AICODE04/liuzhiyuan/lzy02.html) |
+| 龙梓奕 | 个人主页 | [longziyi.html](https://hesir01.github.io/student/AICODE04/longziyi/longziyi.html) |
+| 毛威尔 | 个人主页 | [maoweier.html](https://hesir01.github.io/student/AICODE04/maoweier/maoweier.html) |
+| 王立德 | 个人主页 | [wanglide.html](https://hesir01.github.io/student/AICODE04/wanglide/wanglide.html) |
+| 王立德 | 第二次作业 | [wld02.html](https://hesir01.github.io/student/AICODE04/wanglide/wld02.html) |
+| 肖江南 | 个人主页 | [xiaojiangnan.html](https://hesir01.github.io/student/AICODE04/xiajiangnan/xiaojiangnan.html) |
+| 肖江南 | 第二次作业 | [xjn02.html](https://hesir01.github.io/student/AICODE04/xiajiangnan/xjn02.html) |
+| 肖啸 | 个人主页 | [xiaoxiao.html](https://hesir01.github.io/student/AICODE04/xiaoxiao/xiaoxiao.html) |
+| 仰千里 | 个人主页 | [yql.html](https://hesir01.github.io/student/AICODE04/yangqianli/yql.html) |
+| 杨书旭 | 个人主页 | [yangshuxu.html](https://hesir01.github.io/student/AICODE04/yangshuxu/yangshuxu.html) |
+| 周轩宇 | 个人主页 | [zxy.html](https://hesir01.github.io/student/AICODE04/zhouxuanyu/zxy.html) |
+| 周轩宇 | 第二次作业 | [zxy02.html](https://hesir01.github.io/student/AICODE04/zhouxuanyu/zxy02.html) |
+
+#### 通用作品（shared）
+
+| 类型 | 链接 |
+|------|------|
+| 涂鸦PK | [context.html](https://hesir01.github.io/student/AICODE04/shared/context.html) |
+| 跑酷游戏 | [parkour.html](https://hesir01.github.io/student/AICODE04/shared/parkour.html) |
+
+#### 职业介绍（zhiye）
+
+| 类型 | 链接 |
+|------|------|
+| 职业介绍01 | [zhiye01.html](https://hesir01.github.io/student/AICODE04/zhiye/zhiye01.html) |
+| 职业介绍02 | [zhiye02.html](https://hesir01.github.io/student/AICODE04/zhiye/zhiye02.html) |
+
+## 技术说明
 - 所有课件和学生作品均为**纯前端 HTML 文件**，无需后端服务，浏览器直接打开即可
 - 部分页面依赖外部 CDN（Google Fonts、Tailwind CSS、Three.js 等），需联网使用
 - 学生作品中的图片资源与对应 HTML 放在同一目录下
