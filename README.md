@@ -13,9 +13,9 @@
 │   └── CSP04/              # CSP04 - C++ 结构体基础
 └── student/                # 学生作品集
     ├── AICODE03/           # AICODE03 课程作品
-    │   ├── huanghao.html            # 黄浩
-    │   ├── liwenhao.html            # 李汶浩
-    │   └── zhongjiaoxin.html        # 钟佳鑫
+    │   ├── huanghao/               # 黄浩
+    │   ├── liwenhao/               # 李汶浩
+    │   └── zhongjiaoxin/           # 钟佳鑫
     └── AICODE04/           # AICODE04 课程作品
         ├── liuzhiyuan/             # 刘致远
         ├── longziyi/               # 龙梓奕
@@ -46,9 +46,9 @@
 
 | 学生 | 作品 | 链接 |
 |------|------|------|
-| 黄浩 | 个人主页 | [huanghao.html](https://hesir01.github.io/student/AICODE03/huanghao.html) |
-| 李汶浩 | 个人主页 | [liwenhao.html](https://hesir01.github.io/student/AICODE03/liwenhao.html) |
-| 钟佳鑫 | 个人主页 | [zhongjiaoxin.html](https://hesir01.github.io/student/AICODE03/zhongjiaoxin.html) |
+| 黄浩 | 个人主页 | [huanghao.html](https://hesir01.github.io/student/AICODE03/huanghao/huanghao.html) |
+| 李汶浩 | 个人主页 | [liwenhao.html](https://hesir01.github.io/student/AICODE03/liwenhao/liwenhao.html) |
+| 钟佳鑫 | 个人主页 | [zhongjiaoxin.html](https://hesir01.github.io/student/AICODE03/zhongjiaoxin/zhongjiaoxin.html) |
 
 ### AICODE04
 

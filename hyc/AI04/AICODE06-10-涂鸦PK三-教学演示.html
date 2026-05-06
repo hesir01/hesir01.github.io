@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>涂鸦PK（三）— 动画 + 音效 + 特技 | AICODE-06 第10课</title>
+
+<!-- ============================================================
+     Google Fonts: Archivo Black (display) + Space Grotesk (body)
+     ============================================================ -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   CSS RESET & BASE
+   ============================================================ */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: #FF5722 #1a1a1a;
+}
+
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: #1a1a1a;
+  color: #ffffff;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ============================================================
+   CSS CUSTOM PROPERTIES — Bold Signal Color Scheme
+   ============================================================ */
+:root {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #111111;
+  --card-bg: #FF5722;
+  --card-bg-light: #FF7043;
+  --accent: #FF5722;
+  --accent-glow: rgba(255, 87, 34, 0.3);
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --text-on-card: #1a1a1a;
+  --text-muted: #666666;
+  --border-color: rgba(255, 87, 34, 0.2);
+  --code-bg: #0d0d0d;
+  --success: #4CAF50;
+  --warning: #FFC107;
+  --danger: #f44336;
+  --info: #2196F3;
+  --slide-number-font: 'Archivo Black', sans-serif;
+  --heading-font: 'Archivo Black', sans-serif;
+  --body-font: 'Space Grotesk', sans-serif;
+}
+
+/* ============================================================
+   PROGRESS BAR — Fixed top
+   ============================================================ */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #FF5722, #FF7043, #FF5722);
+  z-index: 1000;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px rgba(255, 87, 34, 0.5);
+}
+
+/* ============================================================
+   NAVIGATION DOTS — Fixed right side
+   ============================================================ */
+.nav-dots {
+  position: fixed;
+  right: clamp(8px, 2vw, 20px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.2vh, 12px);
+}
+
+.nav-dot {
+  width: clamp(8px, 1.2vw, 14px);
+  height: clamp(8px, 1.2vw, 14px);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-dot:hover {
+  background: rgba(255, 87, 34, 0.5);
+  transform: scale(1.3);
+}
+
+.nav-dot.active {
+  background: #FF5722;
+  box-shadow: 0 0 8px rgba(255, 87, 34, 0.6);
+  transform: scale(1.3);
+}
+
+/* ============================================================
+   SLIDE BASE STYLES
+   ============================================================ */
+.slide {
+  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: clamp(20px, 4vh, 60px) clamp(20px, 5vw, 80px);
+  scroll-snap-align: start;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ============================================================
+   SECTION NUMBER — Large decorative numbers on content slides
+   ============================================================ */
+.section-number {
+  position: absolute;
+  top: clamp(10px, 3vh, 40px);
+  left: clamp(15px, 4vw, 60px);
+  font-family: var(--slide-number-font);
+  font-size: clamp(60px, 12vw, 180px);
+  color: rgba(255, 87, 34, 0.08);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+/* ============================================================
+   SLIDE CONTENT CONTAINER
+   ============================================================ */
+.slide-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(12px, 2vh, 24px);
+}
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+h1 {
+  font-family: var(--heading-font);
+  font-size: clamp(28px, 5vw, 64px);
+  line-height: 1.15;
+  text-align: center;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-family: var(--heading-font);
+  font-size: clamp(22px, 3.5vw, 48px);
+  line-height: 1.2;
+  text-align: center;
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-family: var(--heading-font);
+  font-size: clamp(16px, 2.2vw, 32px);
+  line-height: 1.3;
+}
+
+p {
+  font-size: clamp(14px, 1.6vw, 22px);
+  color: var(--text-secondary);
+  text-align: center;
+  max-width: 900px;
+}
+
+.subtitle {
+  font-size: clamp(14px, 1.8vw, 24px);
+  color: var(--text-secondary);
+  font-weight: 300;
+}
+
+.accent-text {
+  color: var(--accent);
+}
+
+/* ============================================================
+   TITLE SLIDE SPECIFIC
+   ============================================================ */
+.title-slide {
+  background: radial-gradient(ellipse at center, rgba(255, 87, 34, 0.1) 0%, var(--bg-primary) 70%);
+}
+
+.title-slide h1 {
+  font-size: clamp(24px, 4.5vw, 56px);
+  margin-bottom: clamp(4px, 1vh, 12px);
+}
+
+.title-meta {
+  display: flex;
+  gap: clamp(12px, 3vw, 32px);
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: clamp(8px, 2vh, 20px);
+}
+
+.title-meta span {
+  font-size: clamp(12px, 1.4vw, 18px);
+  color: var(--text-secondary);
+  padding: clamp(4px, 0.6vh, 8px) clamp(12px, 1.5vw, 24px);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: rgba(255, 87, 34, 0.05);
+}
+
+.title-divider {
+  width: clamp(60px, 10vw, 120px);
+  height: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+  margin: clamp(4px, 1vh, 12px) 0;
+}
+
+/* ============================================================
+   CARDS — Bold Signal style
+   ============================================================ */
+.card {
+  background: var(--card-bg);
+  color: var(--text-on-card);
+  padding: clamp(12px, 2vh, 24px) clamp(14px, 2vw, 28px);
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: clamp(13px, 1.4vw, 20px);
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(255, 87, 34, 0.3);
+}
+
+.card-dark {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.card-dark:hover {
+  background: rgba(255, 87, 34, 0.1);
+  border-color: var(--accent);
+}
+
+/* ============================================================
+   GRID LAYOUTS
+   ============================================================ */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(10px, 2vw, 20px);
+  width: 100%;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(10px, 2vw, 20px);
+  width: 100%;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(8px, 1.5vw, 16px);
+  width: 100%;
+}
+
+.grid-5 {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: clamp(8px, 1.2vw, 14px);
+  width: 100%;
+}
+
+.grid-6 {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: clamp(6px, 1vw, 12px);
+  width: 100%;
+}
+
+/* ============================================================
+   TABLES — Bold Signal themed
+   ============================================================ */
+.styled-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: clamp(12px, 1.3vw, 18px);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.styled-table thead th {
+  background: var(--card-bg);
+  color: var(--text-on-card);
+  font-family: var(--heading-font);
+  font-size: clamp(11px, 1.2vw, 16px);
+  padding: clamp(8px, 1.2vh, 16px) clamp(8px, 1.2vw, 16px);
+  text-align: left;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.styled-table tbody td {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+  padding: clamp(6px, 1vh, 14px) clamp(8px, 1.2vw, 16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: top;
+}
+
+.styled-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.styled-table tbody tr:hover td {
+  background: rgba(255, 87, 34, 0.08);
+}
+
+.styled-table .highlight-cell {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ============================================================
+   CODE BLOCKS — Dark background styled
+   ============================================================ */
+.code-block {
+  background: var(--code-bg);
+  border: 1px solid rgba(255, 87, 34, 0.15);
+  border-radius: 10px;
+  padding: clamp(12px, 2vh, 24px) clamp(14px, 2vw, 24px);
+  font-family: 'Courier New', monospace;
+  font-size: clamp(11px, 1.2vw, 16px);
+  line-height: 1.7;
+  color: #e0e0e0;
+  overflow-x: auto;
+  width: 100%;
+  text-align: left;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.code-block .keyword { color: #FF5722; }
+.code-block .string { color: #4CAF50; }
+.code-block .comment { color: #666; font-style: italic; }
+.code-block .function { color: #FFC107; }
+.code-block .number { color: #2196F3; }
+
+/* ============================================================
+   TIMELINE — Teaching flow
+   ============================================================ */
+.timeline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.timeline-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(4px, 0.8vh, 10px);
+  padding: clamp(10px, 1.5vh, 20px) clamp(12px, 2vw, 24px);
+  position: relative;
+}
+
+.timeline-dot {
+  width: clamp(16px, 2.5vw, 28px);
+  height: clamp(16px, 2.5vw, 28px);
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 15px rgba(255, 87, 34, 0.4);
+}
+
+.timeline-label {
+  font-family: var(--heading-font);
+  font-size: clamp(12px, 1.4vw, 20px);
+  color: var(--accent);
+}
+
+.timeline-sub {
+  font-size: clamp(10px, 1.1vw, 15px);
+  color: var(--text-secondary);
+}
+
+.timeline-arrow {
+  font-size: clamp(16px, 2.5vw, 32px);
+  color: var(--accent);
+  opacity: 0.5;
+  margin-bottom: clamp(16px, 3vh, 30px);
+}
+
+/* ============================================================
+   COMPARISON LAYOUT — Side by side
+   ============================================================ */
+.comparison {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: clamp(10px, 2vw, 24px);
+  width: 100%;
+  align-items: center;
+}
+
+.comparison-side {
+  padding: clamp(12px, 2vh, 24px);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.comparison-bad {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.comparison-good {
+  background: rgba(255, 87, 34, 0.1);
+  border: 1px solid var(--accent);
+}
+
+.comparison-vs {
+  font-family: var(--heading-font);
+  font-size: clamp(18px, 2.5vw, 36px);
+  color: var(--text-muted);
+}
+
+/* ============================================================
+   FAQ CARDS
+   ============================================================ */
+.faq-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(8px, 1.5vw, 16px);
+  width: 100%;
+}
+
+.faq-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: clamp(10px, 1.5vh, 20px) clamp(12px, 1.5vw, 20px);
+  transition: all 0.3s ease;
+}
+
+.faq-card:hover {
+  border-color: var(--accent);
+  background: rgba(255, 87, 34, 0.05);
+}
+
+.faq-q {
+  font-family: var(--heading-font);
+  font-size: clamp(11px, 1.2vw, 16px);
+  color: var(--accent);
+  margin-bottom: clamp(4px, 0.6vh, 8px);
+}
+
+.faq-a {
+  font-size: clamp(11px, 1.1vw, 15px);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* ============================================================
+   MISC ELEMENTS
+   ============================================================ */
+.tag {
+  display: inline-block;
+  padding: clamp(2px, 0.4vh, 6px) clamp(8px, 1vw, 16px);
+  border-radius: 999px;
+  font-size: clamp(10px, 1vw, 14px);
+  font-weight: 600;
+}
+
+.tag-orange {
+  background: var(--accent);
+  color: var(--text-on-card);
+}
+
+.tag-outline {
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  background: transparent;
+}
+
+.icon-emoji {
+  font-size: clamp(20px, 3vw, 40px);
+  display: block;
+  margin-bottom: clamp(4px, 0.5vh, 8px);
+}
+
+.key-question {
+  font-family: var(--heading-font);
+  font-size: clamp(16px, 2.5vw, 32px);
+  color: var(--accent);
+  text-align: center;
+  padding: clamp(10px, 2vh, 20px) clamp(16px, 3vw, 40px);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  background: rgba(255, 87, 34, 0.05);
+  max-width: 800px;
+}
+
+.summary-box {
+  background: rgba(255, 87, 34, 0.08);
+  border-left: 4px solid var(--accent);
+  padding: clamp(10px, 1.5vh, 20px) clamp(14px, 2vw, 24px);
+  border-radius: 0 10px 10px 0;
+  text-align: left;
+  width: 100%;
+  max-width: 900px;
+}
+
+.summary-box p {
+  text-align: left;
+  margin-bottom: clamp(4px, 0.5vh, 8px);
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 1vw, 12px);
+  font-size: clamp(12px, 1.3vw, 18px);
+  color: var(--text-primary);
+}
+
+.check-icon {
+  color: var(--accent);
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   REVEAL ANIMATIONS — Scroll-triggered
+   ============================================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(clamp(15px, 3vh, 40px));
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Staggered reveal for list items */
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(clamp(10px, 2vh, 25px));
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.reveal-stagger.visible > *:nth-child(1) { transition-delay: 0.05s; opacity: 1; transform: translateY(0); }
+.reveal-stagger.visible > *:nth-child(2) { transition-delay: 0.12s; opacity: 1; transform: translateY(0); }
+.reveal-stagger.visible > *:nth-child(3) { transition-delay: 0.19s; opacity: 1; transform: translateY(0); }
+.reveal-stagger.visible > *:nth-child(4) { transition-delay: 0.26s; opacity: 1; transform: translateY(0); }
+.reveal-stagger.visible > *:nth-child(5) { transition-delay: 0.33s; opacity: 1; transform: translateY(0); }
+.reveal-stagger.visible > *:nth-child(6) { transition-delay: 0.40s; opacity: 1; transform: translateY(0); }
+.reveal-stagger.visible > *:nth-child(7) { transition-delay: 0.47s; opacity: 1; transform: translateY(0); }
+.reveal-stagger.visible > *:nth-child(8) { transition-delay: 0.54s; opacity: 1; transform: translateY(0); }
+.reveal-stagger.visible > *:nth-child(9) { transition-delay: 0.61s; opacity: 1; transform: translateY(0); }
+
+/* ============================================================
+   SPECIAL EFFECTS — Visual markers for special moves
+   ============================================================ */
+.effect-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(8px, 1.5vw, 16px);
+  width: 100%;
+}
+
+.effect-item {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1vw, 14px);
+  padding: clamp(8px, 1.2vh, 16px) clamp(10px, 1.2vw, 18px);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  font-size: clamp(12px, 1.2vw, 17px);
+  transition: all 0.3s ease;
+}
+
+.effect-item:hover {
+  border-color: var(--accent);
+  background: rgba(255, 87, 34, 0.06);
+}
+
+.effect-icon {
+  font-size: clamp(22px, 2.8vw, 36px);
+  flex-shrink: 0;
+}
+
+.effect-name {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.effect-desc {
+  font-size: clamp(10px, 1vw, 14px);
+  color: var(--text-secondary);
+}
+
+/* ============================================================
+   SLIDE COUNTER — Bottom left
+   ============================================================ */
+.slide-counter {
+  position: absolute;
+  bottom: clamp(10px, 2vh, 24px);
+  left: clamp(15px, 3vw, 40px);
+  font-size: clamp(10px, 1vw, 14px);
+  color: var(--text-muted);
+  font-family: var(--body-font);
+  z-index: 10;
+}
+
+/* ============================================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================================ */
+@media (max-width: 768px) {
+  .grid-3 { grid-template-columns: 1fr; }
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-5 { grid-template-columns: repeat(2, 1fr); }
+  .grid-6 { grid-template-columns: repeat(2, 1fr); }
+  .comparison { grid-template-columns: 1fr; }
+  .comparison-vs { display: none; }
+  .faq-grid { grid-template-columns: 1fr; }
+  .effect-grid { grid-template-columns: repeat(2, 1fr); }
+  .timeline { flex-direction: column; }
+  .timeline-arrow { transform: rotate(90deg); margin-bottom: 0; }
+  .nav-dots { right: 6px; gap: 5px; }
+  .nav-dot { width: 6px; height: 6px; }
+}
+
+@media (max-width: 480px) {
+  .grid-2 { grid-template-columns: 1fr; }
+  .grid-4 { grid-template-columns: 1fr; }
+  .grid-5 { grid-template-columns: 1fr; }
+  .grid-6 { grid-template-columns: 1fr; }
+  .effect-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   PREFERS-REDUCED-MOTION — Accessibility
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .reveal-stagger > * { opacity: 1; transform: none; transition: none; }
+  .card:hover { transform: none; }
+  .nav-dot:hover { transform: none; }
+  .faq-card:hover { border-color: inherit; background: inherit; }
+  .effect-item:hover { border-color: inherit; background: inherit; }
+  .progress-bar { transition: none; }
+}
+
+/* ============================================================
+   MISC UTILITY CLASSES
+   ============================================================ */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.mt-sm { margin-top: clamp(4px, 0.8vh, 10px); }
+.mt-md { margin-top: clamp(8px, 1.5vh, 18px); }
+.mt-lg { margin-top: clamp(12px, 2.5vh, 30px); }
+.mb-sm { margin-bottom: clamp(4px, 0.8vh, 10px); }
+.w-full { width: 100%; }
+.flex-center { display: flex; justify-content: center; align-items: center; }
+.gap-sm { gap: clamp(6px, 1vw, 12px); }
+.gap-md { gap: clamp(10px, 2vw, 20px); }
+
+/* ============================================================
+   ACT BADGE — For act labels
+   ============================================================ */
+.act-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(4px, 0.6vw, 10px);
+  padding: clamp(4px, 0.6vh, 8px) clamp(12px, 1.5vw, 24px);
+  border-radius: 999px;
+  font-family: var(--heading-font);
+  font-size: clamp(11px, 1.2vw, 16px);
+  margin-bottom: clamp(4px, 0.8vh, 10px);
+}
+
+.act-connect { background: rgba(33, 150, 243, 0.15); color: #64B5F6; border: 1px solid rgba(33, 150, 243, 0.3); }
+.act-construct { background: rgba(255, 87, 34, 0.15); color: #FF7043; border: 1px solid rgba(255, 87, 34, 0.3); }
+.act-contemplate { background: rgba(76, 175, 80, 0.15); color: #81C784; border: 1px solid rgba(76, 175, 80, 0.3); }
+.act-continue { background: rgba(156, 39, 176, 0.15); color: #CE93D8; border: 1px solid rgba(156, 39, 176, 0.3); }
+
+/* ============================================================
+   EXPANSION TASK CARDS
+   ============================================================ */
+.expansion-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: clamp(14px, 2vh, 28px) clamp(16px, 2vw, 28px);
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.expansion-card:hover {
+  border-color: var(--accent);
+  background: rgba(255, 87, 34, 0.05);
+}
+
+.expansion-card.recommended {
+  border-color: rgba(255, 87, 34, 0.3);
+  background: rgba(255, 87, 34, 0.05);
+}
+
+.expansion-title {
+  font-family: var(--heading-font);
+  font-size: clamp(14px, 1.6vw, 22px);
+  color: var(--text-primary);
+  margin-bottom: clamp(4px, 0.6vh, 10px);
+}
+
+.expansion-desc {
+  font-size: clamp(12px, 1.2vw, 17px);
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     PROGRESS BAR
+     ============================================================ -->
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- ============================================================
+     NAVIGATION DOTS
+     ============================================================ -->
+<div class="nav-dots" id="navDots"></div>
+
+<!-- ============================================================
+     SLIDE 01: TITLE SLIDE
+     ============================================================ -->
+<section class="slide title-slide" id="slide-1">
+  <div class="slide-content">
+    <div class="reveal">
+      <span class="tag tag-orange mb-sm">AICODE-06</span>
+    </div>
+    <h1 class="reveal">涂鸦PK（三）</h1>
+    <h2 class="reveal accent-text" style="font-size:clamp(18px,3vw,40px);">动画 + 音效 + 特技</h2>
+    <div class="title-divider reveal"></div>
+    <p class="subtitle reveal">第10课 &middot; 90分钟</p>
+    <div class="title-meta reveal">
+      <span>核心能力：审美力 &middot; 提问力</span>
+      <span>核心工具：Trae IDE &middot; Kimi</span>
+    </div>
+  </div>
+  <div class="slide-counter">01 / 18</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 02: 课程目标
+     ============================================================ -->
+<section class="slide" id="slide-2">
+  <span class="section-number">02</span>
+  <div class="slide-content">
+    <h2 class="reveal">课程目标</h2>
+    <div class="grid-3 reveal-stagger mt-md">
+      <div class="card">
+        <div style="font-size:clamp(18px,2.5vw,32px);margin-bottom:clamp(4px,0.6vh,8px);">&#x1F4D6;</div>
+        <div style="font-size:clamp(12px,1.2vw,16px);opacity:0.7;margin-bottom:clamp(4px,0.5vh,8px);">知识目标</div>
+        <ul style="text-align:left;font-size:clamp(11px,1.1vw,15px);line-height:1.8;">
+          <li>理解「游戏感」的概念</li>
+          <li>理解「增量需求」思维</li>
+          <li>了解 Web Audio API 基本原理</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div style="font-size:clamp(18px,2.5vw,32px);margin-bottom:clamp(4px,0.6vh,8px);">&#x1F3AF;</div>
+        <div style="font-size:clamp(12px,1.2vw,16px);opacity:0.7;margin-bottom:clamp(4px,0.5vh,8px);">能力目标</div>
+        <ul style="text-align:left;font-size:clamp(11px,1.1vw,15px);line-height:1.8;">
+          <li>用感觉语言描述动画效果</li>
+          <li>编写增量需求 Prompt</li>
+          <li>判断动画效果是否合理</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div style="font-size:clamp(18px,2.5vw,32px);margin-bottom:clamp(4px,0.6vh,8px);">&#x2764;&#xFE0F;</div>
+        <div style="font-size:clamp(12px,1.2vw,16px);opacity:0.7;margin-bottom:clamp(4px,0.5vh,8px);">情感目标</div>
+        <ul style="text-align:left;font-size:clamp(11px,1.1vw,15px);line-height:1.8;">
+          <li>视觉反馈是游戏的灵魂</li>
+          <li>自然语言驱动开发的自信</li>
+          <li>期待班级对战</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="slide-counter">02 / 18</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 03: 核心概念一览
+     ============================================================ -->
+<section class="slide" id="slide-3">
+  <span class="section-number">03</span>
+  <div class="slide-content">
+    <h2 class="reveal">核心概念一览</h2>
+    <table class="styled-table reveal mt-md">
+      <thead>
+        <tr>
+          <th style="width:22%;">概念</th>
+          <th style="width:38%;">一句话解释</th>
+          <th style="width:40%;">生活类比</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="highlight-cell">游戏感<br><small>Game Feel</small></td>
+          <td>每次操作都有看得见、听得到的反馈</td>
+          <td>打篮球投篮时「嗖」一声进框</td>
+        </tr>
+        <tr>
+          <td class="highlight-cell">增量需求</td>
+          <td>只告诉AI新加什么，已有代码不动</td>
+          <td>装修房子只说「加一个书架」</td>
+        </tr>
+        <tr>
+          <td class="highlight-cell">感觉语言<br>&rarr; 参数翻译</td>
+          <td>用人话描述效果，让AI翻译成代码</td>
+          <td>给厨师说「辣一点」而不是「加3g辣椒」</td>
+        </tr>
+        <tr>
+          <td class="highlight-cell">Web Audio<br>合成音效</td>
+          <td>不需要音频文件，纯代码生成声音</td>
+          <td>用嘴巴「嗖」地发声，不需要乐器</td>
+        </tr>
+        <tr>
+          <td class="highlight-cell">特技视觉标记</td>
+          <td>每个特技有专属的视觉标识</td>
+          <td>超市商品上的彩色标签</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="slide-counter">03 / 18</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 04: 常见误概念
+     ============================================================ -->
+<section class="slide" id="slide-4">
+  <span class="section-number">04</span>
+  <div class="slide-content">
+    <h2 class="reveal">常见误概念</h2>
+    <div class="grid-5 reveal-stagger mt-md" style="align-items:start;">
+      <div class="card-dark" style="text-align:left;">
+        <div style="color:var(--danger);font-weight:700;font-size:clamp(11px,1.1vw,14px);margin-bottom:clamp(2px,0.4vh,6px);">M1</div>
+        <div style="font-size:clamp(11px,1.1vw,15px);font-weight:600;margin-bottom:clamp(2px,0.3vh,4px);">动画只是装饰</div>
+        <div style="font-size:clamp(10px,1vw,13px);color:var(--text-secondary);">&#x2714; 动画是游戏体验的核心，不是锦上添花</div>
+      </div>
+      <div class="card-dark" style="text-align:left;">
+        <div style="color:var(--danger);font-weight:700;font-size:clamp(11px,1.1vw,14px);margin-bottom:clamp(2px,0.4vh,6px);">M2</div>
+        <div style="font-size:clamp(11px,1.1vw,15px);font-weight:600;margin-bottom:clamp(2px,0.3vh,4px);">音效需要音频文件</div>
+        <div style="font-size:clamp(10px,1vw,13px);color:var(--text-secondary);">&#x2714; Web Audio API 可以纯代码合成</div>
+      </div>
+      <div class="card-dark" style="text-align:left;">
+        <div style="color:var(--danger);font-weight:700;font-size:clamp(11px,1.1vw,14px);margin-bottom:clamp(2px,0.4vh,6px);">M3</div>
+        <div style="font-size:clamp(11px,1.1vw,15px);font-weight:600;margin-bottom:clamp(2px,0.3vh,4px);">增量需求要重写</div>
+        <div style="font-size:clamp(10px,1vw,13px);color:var(--text-secondary);">&#x2714; 只描述新增内容，不要重头写</div>
+      </div>
+      <div class="card-dark" style="text-align:left;">
+        <div style="color:var(--danger);font-weight:700;font-size:clamp(11px,1.1vw,14px);margin-bottom:clamp(2px,0.4vh,6px);">M4</div>
+        <div style="font-size:clamp(11px,1.1vw,15px);font-weight:600;margin-bottom:clamp(2px,0.3vh,4px);">动画必须用技术参数</div>
+        <div style="font-size:clamp(10px,1vw,13px);color:var(--text-secondary);">&#x2714; 用「感觉语言」描述即可</div>
+      </div>
+      <div class="card-dark" style="text-align:left;">
+        <div style="color:var(--danger);font-weight:700;font-size:clamp(11px,1.1vw,14px);margin-bottom:clamp(2px,0.4vh,6px);">M5</div>
+        <div style="font-size:clamp(11px,1.1vw,15px);font-weight:600;margin-bottom:clamp(2px,0.3vh,4px);">特技只要触发就行</div>
+        <div style="font-size:clamp(10px,1vw,13px);color:var(--text-secondary);">&#x2714; 必须有专属视觉标记</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-counter">04 / 18</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 05: 教学流程总览
+     ============================================================ -->
+<section class="slide" id="slide-5">
+  <span class="section-number">05</span>
+  <div class="slide-content">
+    <h2 class="reveal">教学流程总览</h2>
+    <div class="timeline reveal mt-lg">
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-label">联系</div>
+        <div class="timeline-sub">Connect</div>
+        <div class="tag tag-outline" style="font-size:clamp(10px,1vw,14px);">10 min</div>
+      </div>
+      <div class="timeline-arrow">&rarr;</div>
+      <div class="timeline-item">
+        <div class="timeline-dot" style="width:clamp(20px,3vw,36px);height:clamp(20px,3vw,36px);"></div>
+        <div class="timeline-label">建构</div>
+        <div class="timeline-sub">Construct</div>
+        <div class="tag tag-orange" style="font-size:clamp(10px,1vw,14px);">65 min</div>
+      </div>
+      <div class="timeline-arrow">&rarr;</div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-label">反思</div>
+        <div class="timeline-sub">Contemplate</div>
+        <div class="tag tag-outline" style="font-size:clamp(10px,1vw,14px);">10 min</div>
+      </div>
+      <div class="timeline-arrow">&rarr;</div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-label">延续</div>
+        <div class="timeline-sub">Continue</div>
+        <div class="tag tag-outline" style="font-size:clamp(10px,1vw,14px);">5 min</div>
+      </div>
+    </div>
+    <p class="reveal mt-md" style="font-size:clamp(12px,1.2vw,17px);">建构阶段分为三段：动画系统 &rarr; 音效系统 &rarr; 特技视觉效果</p>
+  </div>
+  <div class="slide-counter">05 / 18</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 06: 第一幕 — 联系
+     ============================================================ -->
+<section class="slide" id="slide-6">
+  <span class="section-number">06</span>
+  <div class="slide-content">
+    <div class="act-badge act-connect reveal">
+      <span>&#x1F517;</span> 第一幕：联系 Connect
+    </div>
+    <h2 class="reveal">无动画 vs 有动画</h2>
+    <div class="key-question reveal mt-md">
+      「你们觉得现在这个游戏，好玩吗？好看吗？」
+    </div>
+    <div class="comparison reveal mt-lg">
+      <div class="comparison-side comparison-bad">
+        <div style="font-size:clamp(12px,1.2vw,16px);color:var(--text-muted);margin-bottom:clamp(4px,0.5vh,8px);">demo-2</div>
+        <div style="font-family:var(--heading-font);font-size:clamp(16px,2vw,28px);">无动画</div>
+        <div style="font-size:clamp(11px,1.1vw,15px);color:var(--text-secondary);margin-top:clamp(4px,0.5vh,8px);">角色瞬间移动<br>没有视觉反馈<br>像在操作表格</div>
+      </div>
+      <div class="comparison-vs">VS</div>
+      <div class="comparison-side comparison-good">
+        <div style="font-size:clamp(12px,1.2vw,16px);color:var(--accent);margin-bottom:clamp(4px,0.5vh,8px);">demo-3</div>
+        <div style="font-family:var(--heading-font);font-size:clamp(16px,2vw,28px);">有动画</div>
+        <div style="font-size:clamp(11px,1.1vw,15px);color:var(--text-secondary);margin-top:clamp(4px,0.5vh,8px);">角色流畅移动<br>每次操作有反馈<br>像在玩游戏</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-counter">06 / 18</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 07: 游戏感 Game Feel
+     ============================================================ -->
+<section class="slide" id="slide-7">
+  <span class="section-number">07</span>
+  <div class="slide-content">
+    <div class="act-badge act-connect reveal">
+      <span>&#x1F517;</span> 第一幕：联系 Connect
+    </div>
+    <h2 class="reveal">游戏感 <span class="accent-text">Game Feel</span></h2>
+    <div class="summary-box reveal mt-md">
+      <p style="font-size:clamp(14px,1.6vw,22px);color:var(--text-primary);font-weight:600;">
+        每次操作都有看得见、听得到的反馈
+      </p>
+    </div>
+    <div class="comparison reveal mt-lg">
+      <div class="comparison-side comparison-bad">
+        <div style="font-size:clamp(28px,4vw,48px);margin-bottom:clamp(4px,0.5vh,8px);">&#x1F4CB;</div>
+        <div style="font-family:var(--heading-font);font-size:clamp(14px,1.8vw,24px);margin-bottom:clamp(4px,0.5vh,8px);">没有游戏感</div>
+        <div style="font-size:clamp(11px,1.1vw,15px);color:var(--text-secondary);">
+          = 操作表格<br>
+          点击了，但不知道有没有生效<br>
+          枯燥、无聊、没有沉浸感
+        </div>
+      </div>
+      <div class="comparison-vs">VS</div>
+      <div class="comparison-side comparison-good">
+        <div style="font-size:clamp(28px,4vw,48px);margin-bottom:clamp(4px,0.5vh,8px);">&#x1F3AE;</div>
+        <div style="font-family:var(--heading-font);font-size:clamp(14px,1.8vw,24px);margin-bottom:clamp(4px,0.5vh,8px);">有游戏感</div>
+        <div style="font-size:clamp(11px,1.1vw,15px);color:var(--text-secondary);">
+          = 每次操作都「生效了」<br>
+          看到动画、听到音效<br>
+          沉浸、爽快、停不下来
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-counter">07 / 18</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 08: 第二幕·分段一 — 动画系统
+     ============================================================ -->
+<section class="slide" id="slide-8">
+  <span class="section-number">08</span>
+  <div class="slide-content">
+    <div class="act-badge act-construct reveal">
+      <span>&#x1F3D7;&#xFE0F;</span> 第二幕：建构 Construct &middot; 分段一
+    </div>
+    <h2 class="reveal">动画系统</h2>
+    <div class="summary-box reveal mt-md">
+      <p style="font-size:clamp(14px,1.5vw,20px);color:var(--text-primary);font-weight:600;">
+        增量需求：只告诉AI新加什么，已有代码不动
+      </p>
+    </div>
+    <div class="grid-2 reveal mt-lg">
+      <div class="card-dark" style="text-align:left;">
+        <div style="font-family:var(--heading-font);font-size:clamp(13px,1.4vw,18px);color:var(--accent);margin-bottom:clamp(4px,0.5vh,8px);">&#x1F3E0; 装修类比</div>
+        <div style="font-size:clamp(12px,1.2vw,16px);color:var(--text-secondary);line-height:1.8;">
+          装修房子时，你不会说「把整个房子重新设计一遍」。<br><br>
+          你只会说：<br>
+          <span style="color:var(--text-primary);font-weight:600;">「在客厅加一个书架」</span>
+        </div>
+      </div>
+      <div class="card-dark" style="text-align:left;">
+        <div style="font-family:var(--heading-font);font-size:clamp(13px,1.4vw,18px);color:var(--accent);margin-bottom:clamp(4px,0.5vh,8px);">&#x26A0;&#xFE0F; 为什么要这样做？</div>
+        <div style="font-size:clamp(12px,1.2vw,16px);color:var(--text-secondary);line-height:1.8;">
+          避免 AI 「误改」已验收的代码。<br><br>
+          你的战斗逻辑已经跑通了，<br>
+          <span style="color:var(--text-primary);font-weight:600;">不要让AI重新写一遍！</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-counter">08 / 18</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 09: 感觉语言 vs 技术参数
+     ============================================================ -->
+<section class="slide" id="slide-9">
+  <span class="section-number">09</span>
+  <div class="slide-content">
+    <div class="act-badge act-construct reveal">
+      <span>&#x1F3D7;&#xFE0F;</span> 第二幕：建构 Construct &middot; 分段一
+    </div>
+    <h2 class="reveal">感觉语言 vs 技术参数</h2>
+    <div class="comparison reveal mt-lg">
+      <div class="comparison-side comparison-bad" style="text-align:left;">
+        <div style="font-size:clamp(14px,1.6vw,22px);margin-bottom:clamp(6px,1vh,12px);">&#x274C; 技术参数</div>
+        <div class="code-block" style="font-size:clamp(10px,1vw,14px);padding:clamp(8px,1.2vh,16px);">
+<span class="comment">// 这样写太技术了</span>
+x += <span class="number">100</span>
+duration: <span class="number">200</span>
+ease: <span class="string">'Power2'</span>
+yoyo: <span class="keyword">true</span></div>
+        <div style="font-size:clamp(10px,1vw,13px);color:var(--text-muted);margin-top:clamp(4px,0.5vh,8px);">需要懂编程才能写</div>
+      </div>
+      <div class="comparison-vs">VS</div>
+      <div class="comparison-side comparison-good" style="text-align:left;">
+        <div style="font-size:clamp(14px,1.6vw,22px);margin-bottom:clamp(6px,1vh,12px);">&#x2705; 感觉描述</div>
+        <div class="code-block" style="font-size:clamp(10px,1vw,14px);padding:clamp(8px,1.2vh,16px);">
+<span class="comment">// 用人话描述效果</span>
+攻击方<span class="keyword">快速冲向</span>对方，
+然后<span class="keyword">弹回</span>原位，
+感觉<span class="string">轻快有力</span></div>
+        <div style="font-size:clamp(10px,1vw,13px);color:var(--accent);margin-top:clamp(4px,0.5vh,8px);">谁都能写，AI来翻译</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-counter">09 / 18</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 10: 动画感觉练习
+     ============================================================ -->
+<section class="slide" id="slide-10">
+  <span class="section-number">10</span>
+  <div class="slide-content">
+    <div class="act-badge act-construct reveal">
+      <span>&#x1F3D7;&#xFE0F;</span> 第二幕：建构 Construct &middot; 分段一
+    </div>
+    <h2 class="reveal">动画感觉练习</h2>
+    <p class="reveal" style="font-size:clamp(12px,1.2vw,17px);">用「感觉语言」描述每种攻击的动画效果</p>
+    <table class="styled-table reveal mt-md">
+      <thead>
+        <tr>
+          <th style="width:20%;">攻击类型</th>
+          <th style="width:55%;">你的感觉描述</th>
+          <th style="width:25%;">关键词</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="highlight-cell">普通攻击</td>
+          <td>快速冲向对方，然后弹回原位</td>
+          <td>快速、弹回、轻快</td>
+        </tr>
+        <tr>
+          <td class="highlight-cell">重击</td>
+          <td>先蓄力（后退一点），然后猛冲过去</td>
+          <td>蓄力、后退、猛冲</td>
+        </tr>
+        <tr>
+          <td style="color:var(--warning);">格挡 <small>（你来填）</small></td>
+          <td style="color:var(--text-muted);">???</td>
+          <td style="color:var(--text-muted);">???</td>
+        </tr>
+        <tr>
+          <td style="color:var(--warning);">受击 <small>（你来填）</small></td>
+          <td style="color:var(--text-muted);">???</td>
+          <td style="color:var(--text-muted);">???</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="slide-counter">10 / 18</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 11: 增量需求模板
+     ============================================================ -->
+<section class="slide" id="slide-11">
+  <span class="section-number">11</span>
+  <div class="slide-content">
+    <div class="act-badge act-construct reveal">
+      <span>&#x1F3D7;&#xFE0F;</span> 第二幕：建构 Construct &middot; 分段一
+    </div>
+    <h2 class="reveal">增量需求模板</h2>
+    <p class="reveal" style="font-size:clamp(12px,1.2vw,17px);">复制这个模板，填入你的感觉描述，发给 AI</p>
+    <div class="code-block reveal mt-md" style="font-size:clamp(10px,1.1vw,15px);">
+<span class="comment">## 增量需求：新增动画系统</span>
+
+<span class="string">我已有一个涂鸦PK战斗游戏，战斗逻辑已经完成。
+现在需要新增动画系统，请只添加动画代码，不要修改已有的战斗逻辑。</span>
+
+<span class="keyword">普通攻击动画：</span><span class="string">攻击方快速冲向对方，然后弹回原位，感觉轻快有力</span>
+
+<span class="keyword">重击动画：</span><span class="string">先蓄力后退一点，然后猛冲过去，感觉沉重有冲击力</span>
+
+<span class="keyword">格挡动画：</span><span class="string">[你的感觉描述]</span>
+
+<span class="keyword">受击动画：</span><span class="string">[你的感觉描述]</span>
+
+<span class="keyword">死亡动画：</span><span class="string">[你的感觉描述]</span>
+
+<span class="comment">## 要求</span>
+<span class="string">- 使用 Canvas 动画
+- 动画期间禁止重复操作
+- 已有代码不要改动</span></div>
+  </div>
+  <div class="slide-counter">11 / 18</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 12: 第二幕·分段二 — 音效系统
+     ============================================================ -->
+<section class="slide" id="slide-12">
+  <span class="section-number">12</span>
+  <div class="slide-content">
+    <div class="act-badge act-construct reveal">
+      <span>&#x1F3D7;&#xFE0F;</span> 第二幕：建构 Construct &middot; 分段二
+    </div>
+    <h2 class="reveal">音效系统</h2>
+    <div class="summary-box reveal mt-md">
+      <p style="font-size:clamp(14px,1.5vw,20px);color:var(--text-primary);font-weight:600;">
+        Web Audio API：不需要任何音频文件，纯代码合成声音
+      </p>
+    </div>
+    <div class="code-block reveal mt-md" style="font-size:clamp(10px,1.1vw,15px);">
+<span class="comment">// 三行代码就能发出声音！</span>
+
+<span class="keyword">const</span> ctx = <span class="keyword">new</span> <span class="function">AudioContext</span>()        <span class="comment">// 1. 创建音频上下文</span>
+<span class="keyword">const</span> osc = ctx.<span class="function">createOscillator</span>()      <span class="comment">// 2. 创建振荡器（发声器）</span>
+osc.<span class="function">connect</span>(ctx.destination)               <span class="comment">// 3. 连接到扬声器</span>
+
+<span class="comment">// 调整参数</span>
+osc.frequency.value = <span class="number">300</span>   <span class="comment">// 频率：越高越尖锐</span>
+osc.type = <span class="string">'sawtooth'</span>       <span class="comment">// 波形：sawtooth/square/sine/triangle</span>
+osc.<span class="function">start</span>()                   <span class="comment">// 开始发声</span>
+osc.<span class="function">stop</span>(ctx.currentTime + <span class="number">0.08</span>)  <span class="comment">// 80ms后停止</span></div>
+  </div>
+  <div class="slide-counter">12 / 18</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 13: 音效感觉描述
+     ============================================================ -->
+<section class="slide" id="slide-13">
+  <span class="section-number">13</span>
+  <div class="slide-content">
+    <div class="act-badge act-construct reveal">
+      <span>&#x1F3D7;&#xFE0F;</span> 第二幕：建构 Construct &middot; 分段二
+    </div>
+    <h2 class="reveal">音效感觉描述</h2>
+    <table class="styled-table reveal mt-md">
+      <thead>
+        <tr>
+          <th style="width:15%;">场景</th>
+          <th style="width:35%;">感觉描述</th>
+          <th style="width:50%;">技术参数</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="highlight-cell">普通攻击</td>
+          <td>短促有力，像轻拍一下</td>
+          <td><code>300Hz 锯齿波 80ms</code></td>
+        </tr>
+        <tr>
+          <td class="highlight-cell">重击</td>
+          <td>低沉震撼，像爆炸</td>
+          <td><code>150Hz 锯齿波 150ms</code></td>
+        </tr>
+        <tr>
+          <td class="highlight-cell">格挡</td>
+          <td>硬邦邦，像金属碰撞</td>
+          <td><code>800Hz 方波 50ms</code></td>
+        </tr>
+        <tr>
+          <td class="highlight-cell">受击</td>
+          <td>痛感短促，「嗷」的一声</td>
+          <td><code>400&rarr;150Hz 扫频 120ms</code></td>
+        </tr>
+        <tr>
+          <td class="highlight-cell">胜利</td>
+          <td>欢快叮叮叮</td>
+          <td><code>三音符上升 C-E-G</code></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="reveal mt-sm" style="font-size:clamp(11px,1.1vw,15px);color:var(--text-muted);">提示：先用感觉描述，再让 AI 帮你选择合适的频率和波形</p>
+  </div>
+  <div class="slide-counter">13 / 18</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 14: 第二幕·分段三 — 特技视觉效果
+     ============================================================ -->
+<section class="slide" id="slide-14">
+  <span class="section-number">14</span>
+  <div class="slide-content">
+    <div class="act-badge act-construct reveal">
+      <span>&#x1F3D7;&#xFE0F;</span> 第二幕：建构 Construct &middot; 分段三
+    </div>
+    <h2 class="reveal">特技视觉效果</h2>
+    <div class="key-question reveal" style="font-size:clamp(14px,2vw,26px);">
+      「让玩家感受到，而不是告诉玩家」
+    </div>
+    <div class="effect-grid reveal mt-md">
+      <div class="effect-item">
+        <span class="effect-icon">&#x1F525;</span>
+        <div>
+          <div class="effect-name">燃烧</div>
+          <div class="effect-desc">橙红色粒子持续飘散</div>
+        </div>
+      </div>
+      <div class="effect-item">
+        <span class="effect-icon">&#x1F6E1;&#xFE0F;</span>
+        <div>
+          <div class="effect-name">护甲</div>
+          <div class="effect-desc">蓝色光圈环绕角色</div>
+        </div>
+      </div>
+      <div class="effect-item">
+        <span class="effect-icon">&#x26A1;</span>
+        <div>
+          <div class="effect-name">连击</div>
+          <div class="effect-desc">黄色闪光 + 屏幕震动</div>
+        </div>
+      </div>
+      <div class="effect-item">
+        <span class="effect-icon">&#x1F489;</span>
+        <div>
+          <div class="effect-name">吸血</div>
+          <div class="effect-desc">绿色光线从对方流向自己</div>
+        </div>
+      </div>
+      <div class="effect-item">
+        <span class="effect-icon">&#x2744;&#xFE0F;</span>
+        <div>
+          <div class="effect-name">冰冻</div>
+          <div class="effect-desc">角色变蓝 + 碎冰粒子</div>
+        </div>
+      </div>
+      <div class="effect-item">
+        <span class="effect-icon">&#x1F3AF;</span>
+        <div>
+          <div class="effect-name">穿透</div>
+          <div class="effect-desc">红色攻击线贯穿对方</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-counter">14 / 18</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 15: 常见问题 FAQ
+     ============================================================ -->
+<section class="slide" id="slide-15">
+  <span class="section-number">15</span>
+  <div class="slide-content">
+    <h2 class="reveal">常见问题 FAQ</h2>
+    <div class="faq-grid reveal-stagger mt-md">
+      <div class="faq-card">
+        <div class="faq-q">Q1: 动画加进去后血条不显示了？</div>
+        <div class="faq-a">动画层可能遮挡了血条。检查 z-index 或 Canvas 绘制顺序，确保血条在最上层。</div>
+      </div>
+      <div class="faq-card">
+        <div class="faq-q">Q2: 音效每次攻击响很多次？</div>
+        <div class="faq-a">事件监听器被重复绑定。确保只绑定一次，或在播放前检查是否已在播放。</div>
+      </div>
+      <div class="faq-card">
+        <div class="faq-q">Q3: 死亡动画后角色还在？</div>
+        <div class="faq-a">动画结束回调里没有更新游戏状态。需要在动画完成后设置 isDead = true。</div>
+      </div>
+      <div class="faq-card">
+        <div class="faq-q">Q4: 特技粒子一直不消失？</div>
+        <div class="faq-a">粒子系统缺少生命周期管理。每个粒子需要设置存活时间，到期后移除。</div>
+      </div>
+      <div class="faq-card">
+        <div class="faq-q">Q5: 重击蓄力动画太慢？</div>
+        <div class="faq-a">调整蓄力阶段的持续时间。用感觉描述：「蓄力很快，0.3秒就冲出去」。</div>
+      </div>
+      <div class="faq-card">
+        <div class="faq-q">Q6: Chrome 没有声音？</div>
+        <div class="faq-a">Chrome 要求用户先交互才能播放音频。确保 AudioContext 在点击事件中创建。</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-counter">15 / 18</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 16: 第三幕 — 反思·成果展示
+     ============================================================ -->
+<section class="slide" id="slide-16">
+  <span class="section-number">16</span>
+  <div class="slide-content">
+    <div class="act-badge act-contemplate reveal">
+      <span>&#x1F4AD;</span> 第三幕：反思 Contemplate
+    </div>
+    <h2 class="reveal">成果展示</h2>
+    <div class="grid-3 reveal-stagger mt-md">
+      <div class="card-dark" style="text-align:left;">
+        <div style="font-family:var(--heading-font);font-size:clamp(13px,1.4vw,18px);color:var(--success);margin-bottom:clamp(4px,0.6vh,8px);">&#x1F3AF; 展示要求</div>
+        <div style="font-size:clamp(11px,1.1vw,15px);color:var(--text-secondary);line-height:1.8;">
+          1. 你的角色是谁？<br>
+          2. 什么样的动画效果？<br>
+          3. 什么特技视觉效果？
+        </div>
+      </div>
+      <div class="card-dark" style="text-align:left;">
+        <div style="font-family:var(--heading-font);font-size:clamp(13px,1.4vw,18px);color:var(--info);margin-bottom:clamp(4px,0.6vh,8px);">&#x1F50D; 互评规则</div>
+        <div style="font-size:clamp(11px,1.1vw,15px);color:var(--text-secondary);line-height:1.8;">
+          说出一个<span style="color:var(--success);font-weight:600;">优点</span><br>
+          + 一个<span style="color:var(--warning);font-weight:600;">改进建议</span>
+        </div>
+      </div>
+      <div class="card-dark" style="text-align:left;">
+        <div style="font-family:var(--heading-font);font-size:clamp(13px,1.4vw,18px);color:var(--accent);margin-bottom:clamp(4px,0.6vh,8px);">&#x1F4A1; 核心能力回顾</div>
+        <div style="font-size:clamp(11px,1.1vw,15px);color:var(--text-secondary);line-height:1.8;">
+          <span style="color:var(--accent);font-weight:600;">审美力</span> = 用感觉描述<br>好不好看、爽不爽
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-counter">16 / 18</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 17: 第四幕 — 总结 + 下节预告
+     ============================================================ -->
+<section class="slide" id="slide-17">
+  <span class="section-number">17</span>
+  <div class="slide-content">
+    <div class="act-badge act-continue reveal">
+      <span>&#x1F680;</span> 第四幕：延续 Continue
+    </div>
+    <h2 class="reveal">总结 + 下节预告</h2>
+    <div class="reveal-stagger mt-md">
+      <div class="check-item">
+        <span class="check-icon">&#x2714;</span>
+        <span>用<span class="accent-text">感觉语言</span>描述需求，让 AI 翻译成代码</span>
+      </div>
+      <div class="check-item">
+        <span class="check-icon">&#x2714;</span>
+        <span><span class="accent-text">Web Audio</span> 零文件合成音效，三行代码搞定</span>
+      </div>
+      <div class="check-item">
+        <span class="check-icon">&#x2714;</span>
+        <span>让玩家<span class="accent-text">感受到</span>特技，而不是告诉玩家</span>
+      </div>
+    </div>
+    <div class="title-divider reveal mt-lg"></div>
+    <div class="grid-2 reveal mt-md">
+      <div class="card" style="text-align:center;">
+        <div style="font-size:clamp(12px,1.2vw,16px);opacity:0.7;margin-bottom:clamp(2px,0.3vh,4px);">下节课</div>
+        <div style="font-family:var(--heading-font);font-size:clamp(16px,2vw,28px);">&#x1F525; 班级大乱斗 &#x1F525;</div>
+      </div>
+      <div class="card-dark" style="text-align:center;">
+        <div style="font-size:clamp(12px,1.2vw,16px);color:var(--accent);margin-bottom:clamp(2px,0.3vh,4px);">5分钟挑战</div>
+        <div style="font-size:clamp(13px,1.3vw,18px);">给你的特技设计一个全新的视觉特效</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-counter">17 / 18</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 18: 课后拓展任务
+     ============================================================ -->
+<section class="slide" id="slide-18">
+  <span class="section-number">18</span>
+  <div class="slide-content">
+    <h2 class="reveal">课后拓展任务</h2>
+    <div class="grid-2 reveal-stagger mt-md" style="gap:clamp(12px,2vw,24px);">
+      <div class="expansion-card recommended">
+        <div style="display:flex;align-items:center;gap:clamp(6px,1vw,12px);margin-bottom:clamp(6px,1vh,12px);">
+          <span class="tag tag-orange">推荐</span>
+          <span class="expansion-title">拓展一：屏幕震动特效</span>
+        </div>
+        <div class="expansion-desc">
+          重击命中时，整个画布产生震动效果。<br><br>
+          <span style="color:var(--text-primary);font-weight:600;">感觉描述参考：</span><br>
+          「重击命中时，整个画面猛地抖一下，然后慢慢恢复，像被地震波击中一样。」<br><br>
+          <span style="color:var(--text-muted);font-size:clamp(10px,1vw,13px);">提示：用 Canvas translate 实现画布偏移</span>
+        </div>
+      </div>
+      <div class="expansion-card">
+        <div style="display:flex;align-items:center;gap:clamp(6px,1vw,12px);margin-bottom:clamp(6px,1vh,12px);">
+          <span class="tag tag-outline">挑战</span>
+          <span class="expansion-title">拓展二：行动预判音效</span>
+        </div>
+        <div class="expansion-desc">
+          蓄力阶段发出低频嗡声，命中时播放冲击音效。<br><br>
+          <span style="color:var(--text-primary);font-weight:600;">感觉描述参考：</span><br>
+          「蓄力时发出低沉的嗡嗡声，越来越响，命中瞬间爆发一声巨响。」<br><br>
+          <span style="color:var(--text-muted);font-size:clamp(10px,1vw,13px);">提示：用频率渐变实现蓄力音效</span>
+        </div>
+      </div>
+    </div>
+    <p class="reveal mt-lg" style="font-size:clamp(12px,1.2vw,17px);color:var(--text-muted);">
+      下课！期待下次班级大乱斗 &#x1F3AE;
+    </p>
+  </div>
+  <div class="slide-counter">18 / 18</div>
+</section>
+
+<!-- ============================================================
+     JAVASCRIPT — Navigation, Progress, Reveal, Touch
+     ============================================================ -->
+<script>
+(function() {
+  'use strict';
+
+  // ---- Slide & Navigation Setup ----
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  const progressBar = document.getElementById('progressBar');
+  const navDotsContainer = document.getElementById('navDots');
+  let currentSlide = 0;
+
+  // Create navigation dots
+  for (let i = 0; i < totalSlides; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('data-slide', i);
+    dot.addEventListener('click', function() {
+      slides[i].scrollIntoView({ behavior: 'smooth' });
+    });
+    navDotsContainer.appendChild(dot);
+  }
+
+  const navDots = document.querySelectorAll('.nav-dot');
+
+  // Update progress bar and active dot
+  function updateProgress(slideIndex) {
+    const progress = ((slideIndex + 1) / totalSlides) * 100;
+    progressBar.style.width = progress + '%';
+    navDots.forEach(function(dot, idx) {
+      dot.classList.toggle('active', idx === slideIndex);
+    });
+  }
+
+  // ---- Intersection Observer for slide tracking ----
+  const slideObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        const index = Array.from(slides).indexOf(entry.target);
+        if (index !== -1) {
+          currentSlide = index;
+          updateProgress(currentSlide);
+        }
+      }
+    });
+  }, {
+    threshold: 0.5
+  });
+
+  slides.forEach(function(slide) {
+    slideObserver.observe(slide);
+  });
+
+  // ---- Intersection Observer for .reveal animations ----
+  const revealElements = document.querySelectorAll('.reveal, .reveal-stagger');
+  const revealObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, {
+    threshold: 0.15,
+    rootMargin: '0px 0px -50px 0px'
+  });
+
+  revealElements.forEach(function(el) {
+    revealObserver.observe(el);
+  });
+
+  // ---- Keyboard Navigation ----
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+      e.preventDefault();
+      if (currentSlide < totalSlides - 1) {
+        slides[currentSlide + 1].scrollIntoView({ behavior: 'smooth' });
+      }
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      if (currentSlide > 0) {
+        slides[currentSlide - 1].scrollIntoView({ behavior: 'smooth' });
+      }
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      slides[0].scrollIntoView({ behavior: 'smooth' });
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      slides[totalSlides - 1].scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+
+  // ---- Touch / Swipe Support ----
+  let touchStartY = 0;
+  let touchStartX = 0;
+  let touchEndY = 0;
+  let touchEndX = 0;
+  const minSwipeDistance = 50;
+
+  document.addEventListener('touchstart', function(e) {
+    touchStartY = e.changedTouches[0].screenY;
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  document.addEventListener('touchend', function(e) {
+    touchEndY = e.changedTouches[0].screenY;
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+  }, { passive: true });
+
+  function handleSwipe() {
+    const diffY = touchStartY - touchEndY;
+    const diffX = touchStartX - touchEndX;
+
+    // Determine if swipe is vertical or horizontal
+    if (Math.abs(diffY) > Math.abs(diffX)) {
+      // Vertical swipe
+      if (diffY > minSwipeDistance && currentSlide < totalSlides - 1) {
+        // Swipe up — next slide
+        slides[currentSlide + 1].scrollIntoView({ behavior: 'smooth' });
+      } else if (diffY < -minSwipeDistance && currentSlide > 0) {
+        // Swipe down — previous slide
+        slides[currentSlide - 1].scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      // Horizontal swipe
+      if (diffX > minSwipeDistance && currentSlide < totalSlides - 1) {
+        slides[currentSlide + 1].scrollIntoView({ behavior: 'smooth' });
+      } else if (diffX < -minSwipeDistance && currentSlide > 0) {
+        slides[currentSlide - 1].scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }
+
+  // Initial state
+  updateProgress(0);
+})();
+</script>
+
+</body>
+</html>
