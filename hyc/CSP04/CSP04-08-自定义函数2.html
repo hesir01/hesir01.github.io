@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSP04-08 自定义函数2</title>
+    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=archivo-black@400&f[]=space-grotesk@400,500,600,700&display=swap">
+    <style>
+        /* ===========================================
+           CSS CUSTOM PROPERTIES (BOLD SIGNAL THEME)
+           =========================================== */
+        :root {
+            /* Colors - Bold Signal */
+            --bg-primary: #1a1a1a;
+            --bg-gradient: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+            --card-bg: #FF5722;
+            --card-bg-alt: #2196F3;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-on-card: #1a1a1a;
+            --accent-warm: #FF5722;
+            --accent-cool: #2196F3;
+            --accent-green: #4CAF50;
+            --accent-purple: #9C27B0;
+
+            /* Typography */
+            --font-display: "Archivo Black", sans-serif;
+            --font-body: "Space Grotesk", sans-serif;
+            --title-size: clamp(1.5rem, 5vw, 4rem);
+            --h2-size: clamp(1.25rem, 3.5vw, 2.5rem);
+            --h3-size: clamp(1rem, 2.5vw, 1.75rem);
+            --body-size: clamp(0.75rem, 1.5vw, 1.125rem);
+            --small-size: clamp(0.65rem, 1vw, 0.875rem);
+            --code-size: clamp(0.7rem, 1.2vw, 0.9rem);
+
+            /* Spacing */
+            --slide-padding: clamp(1rem, 4vw, 4rem);
+            --content-gap: clamp(0.5rem, 2vw, 2rem);
+            --element-gap: clamp(0.25rem, 1vw, 1rem);
+
+            /* Animation */
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration-normal: 0.6s;
+        }
+
+        /* ===========================================
+           VIEWPORT FITTING: MANDATORY BASE STYLES
+           =========================================== */
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-gradient);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Each slide = exact viewport height */
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: var(--bg-gradient);
+        }
+
+        /* Content container */
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+            padding: var(--slide-padding);
+        }
+
+        /* ===========================================
+           NAVIGATION & PROGRESS
+           =========================================== */
+        .nav-dots {
+            position: fixed;
+            right: clamp(1rem, 2vw, 2rem);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.5rem, 1vh, 1rem);
+            z-index: 1000;
+        }
+
+        .nav-dot {
+            width: clamp(8px, 1vw, 12px);
+            height: clamp(8px, 1vw, 12px);
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-dot.active {
+            background: var(--card-bg);
+            transform: scale(1.3);
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: var(--card-bg);
+            width: 0%;
+            z-index: 1000;
+            transition: width 0.3s ease;
+        }
+
+        .keyboard-hint {
+            position: fixed;
+            bottom: clamp(1rem, 2vh, 2rem);
+            right: clamp(1rem, 2vw, 2rem);
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+            opacity: 0.6;
+            z-index: 1000;
+        }
+
+        /* ===========================================
+           ANIMATIONS
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity var(--duration-normal) var(--ease-out-expo),
+                        transform var(--duration-normal) var(--ease-out-expo);
+        }
+
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal:nth-child(1) { transition-delay: 0.1s; }
+        .reveal:nth-child(2) { transition-delay: 0.2s; }
+        .reveal:nth-child(3) { transition-delay: 0.3s; }
+        .reveal:nth-child(4) { transition-delay: 0.4s; }
+        .reveal:nth-child(5) { transition-delay: 0.5s; }
+
+        /* ===========================================
+           SLIDE LAYOUTS & COMPONENTS
+           =========================================== */
+        
+        /* Title Slide */
+        .title-slide {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .title-slide .slide-number {
+            position: absolute;
+            top: var(--slide-padding);
+            left: var(--slide-padding);
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 8vw, 6rem);
+            color: rgba(255, 255, 255, 0.1);
+            line-height: 1;
+        }
+
+        .title-slide h1 {
+            font-family: var(--font-display);
+            font-size: var(--title-size);
+            margin: 0 0 var(--element-gap) 0;
+            line-height: 1.2;
+        }
+
+        .title-slide .subtitle {
+            font-size: var(--h2-size);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .title-slide .meta {
+            margin-top: var(--content-gap);
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+        }
+
+        /* Section Card */
+        .section-card {
+            background: var(--card-bg);
+            color: var(--text-on-card);
+            padding: clamp(1.5rem, 3vw, 3rem);
+            border-radius: clamp(8px, 1.5vw, 16px);
+            max-width: min(90vw, 800px);
+            margin: 0 auto;
+        }
+
+        .section-card h2 {
+            font-family: var(--font-display);
+            font-size: var(--h2-size);
+            margin: 0 0 var(--element-gap) 0;
+        }
+
+        .section-card p {
+            font-size: var(--body-size);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* Content Slide */
+        .content-slide h2 {
+            font-family: var(--font-display);
+            font-size: var(--h2-size);
+            margin: 0 0 var(--content-gap) 0;
+            color: var(--text-primary);
+        }
+
+        .content-slide h3 {
+            font-size: var(--h3-size);
+            color: var(--accent-warm);
+            margin: var(--element-gap) 0 calc(var(--element-gap) / 2) 0;
+        }
+
+        /* Lists */
+        .bullet-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: var(--element-gap);
+        }
+
+        .bullet-list li {
+            font-size: var(--body-size);
+            padding-left: clamp(1.5rem, 2vw, 2rem);
+            position: relative;
+        }
+
+        .bullet-list li::before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: var(--card-bg);
+            font-weight: bold;
+        }
+
+        /* Code Blocks */
+        .code-block {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: clamp(0.75rem, 1.5vw, 1.25rem);
+            font-family: "JetBrains Mono", "Fira Code", monospace;
+            font-size: var(--code-size);
+            overflow-x: auto;
+            margin: var(--element-gap) 0;
+            border-left: 4px solid var(--card-bg);
+        }
+
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .code-block .keyword { color: #ff7b72; }
+        .code-block .type { color: #79c0ff; }
+        .code-block .function { color: #d2a8ff; }
+        .code-block .string { color: #a5d6ff; }
+        .code-block .number { color: #79c0ff; }
+        .code-block .comment { color: #8b949e; }
+
+        /* Comparison Table */
+        .compare-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--body-size);
+            margin: var(--element-gap) 0;
+        }
+
+        .compare-table th,
+        .compare-table td {
+            padding: clamp(0.5rem, 1vw, 1rem);
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .compare-table th {
+            background: rgba(255, 87, 34, 0.2);
+            color: var(--accent-warm);
+            font-weight: 600;
+        }
+
+        .compare-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Two Column Layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--content-gap);
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Highlight Box */
+        .highlight-box {
+            background: rgba(255, 87, 34, 0.1);
+            border-left: 4px solid var(--accent-warm);
+            padding: clamp(0.75rem, 1.5vw, 1.25rem);
+            border-radius: 0 8px 8px 0;
+            margin: var(--element-gap) 0;
+        }
+
+        .highlight-box.info {
+            background: rgba(33, 150, 243, 0.1);
+            border-left-color: var(--accent-cool);
+        }
+
+        .highlight-box.success {
+            background: rgba(76, 175, 80, 0.1);
+            border-left-color: var(--accent-green);
+        }
+
+        /* Question Card */
+        .question-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: clamp(1rem, 2vw, 1.5rem);
+            margin: var(--element-gap) 0;
+        }
+
+        .question-card .q-number {
+            display: inline-block;
+            background: var(--card-bg);
+            color: var(--text-on-card);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: var(--small-size);
+            font-weight: 600;
+            margin-bottom: var(--element-gap);
+        }
+
+        .question-card .options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--element-gap);
+            margin-top: var(--element-gap);
+        }
+
+        @media (max-width: 600px) {
+            .question-card .options {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .question-card .option {
+            background: rgba(255, 255, 255, 0.05);
+            padding: clamp(0.5rem, 1vw, 0.75rem);
+            border-radius: 8px;
+            font-size: var(--body-size);
+        }
+
+        .question-card .answer {
+            margin-top: var(--element-gap);
+            padding: var(--element-gap);
+            background: rgba(76, 175, 80, 0.15);
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-green);
+        }
+
+        /* Exercise Card */
+        .exercise-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: clamp(1rem, 2vw, 1.5rem);
+        }
+
+        .exercise-card .ex-title {
+            font-size: var(--h3-size);
+            color: var(--accent-warm);
+            margin: 0 0 var(--element-gap) 0;
+        }
+
+        .exercise-card .ex-meta {
+            display: flex;
+            gap: var(--element-gap);
+            margin-bottom: var(--element-gap);
+        }
+
+        .exercise-card .tag {
+            background: rgba(255, 87, 34, 0.2);
+            color: var(--accent-warm);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: var(--small-size);
+        }
+
+        /* Summary Grid */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--content-gap);
+        }
+
+        @media (max-width: 700px) {
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .summary-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: clamp(1rem, 2vw, 1.5rem);
+            border-radius: 12px;
+            border-left: 4px solid var(--card-bg);
+        }
+
+        .summary-item h4 {
+            margin: 0 0 var(--element-gap) 0;
+            color: var(--accent-warm);
+            font-size: var(--h3-size);
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+            html { scroll-behavior: auto; }
+        }
+
+        /* Short viewports */
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 3vw, 2rem);
+                --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+            }
+            .nav-dots, .keyboard-hint { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Navigation Dots -->
+    <nav class="nav-dots" id="navDots"></nav>
+
+    <!-- Keyboard Hint -->
+    <div class="keyboard-hint">↑↓ 或 空格键 切换幻灯片</div>
+
+    <!-- ===========================================
+         SLIDE 1: 封面
+         =========================================== -->
+    <section class="slide title-slide" data-slide="1">
+        <div class="slide-number">08</div>
+        <div class="slide-content">
+            <h1 class="reveal">自定义函数2</h1>
+            <p class="subtitle reveal">默认参数 · 三种传参方式 · 函数应用</p>
+            <div class="meta reveal">
+                <span>CSP04 信息学奥赛课程</span> · <span>第8课时</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 2: 课程目标
+         =========================================== -->
+    <section class="slide content-slide" data-slide="2">
+        <div class="slide-content">
+            <div class="section-card reveal">
+                <h2>🎯 课程目标</h2>
+                <ul class="bullet-list" style="margin-top: var(--element-gap);">
+                    <li>掌握函数<strong>默认参数</strong>的定义与使用规则</li>
+                    <li>深入理解三种<strong>参数传递方式</strong>的本质区别</li>
+                    <li>能够在实际题目中选择合适的参数传递方式</li>
+                    <li>巩固函数在算法题目中的实际应用能力</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 3: 知识回顾
+         =========================================== -->
+    <section class="slide content-slide" data-slide="3">
+        <div class="slide-content">
+            <h2 class="reveal">👩‍🏫 知识回顾</h2>
+            
+            <div class="highlight-box reveal">
+                <strong>思考问题：</strong>下面代码输出什么？
+            </div>
+
+            <div class="code-block reveal">
+<pre><span class="keyword">void</span> <span class="function">addOne</span>(<span class="type">int</span> x) { x++; }
+<span class="type">int</span> a = <span class="number">5</span>;
+<span class="function">addOne</span>(a);
+cout << a;   <span class="comment">// 输出？</span></pre>
+            </div>
+
+            <div class="highlight-box info reveal">
+                <strong>答案：5，不是6！</strong><br>
+                因为是<strong>值传递</strong>，函数操作的是 a 的副本！<br>
+                如果想让函数真正修改外部变量，需要用<strong>引用传递</strong>或<strong>指针传递</strong>！
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 4: 新知导入
+         =========================================== -->
+    <section class="slide content-slide" data-slide="4">
+        <div class="slide-content">
+            <h2 class="reveal">🎬 新知导入：三种传参方式</h2>
+            
+            <div class="two-col">
+                <div class="summary-item reveal">
+                    <h4>📄 值传递</h4>
+                    <p>老师把题目的<strong>复印件</strong>发给你</p>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">你在复印件上写错了，原题没有影响</p>
+                </div>
+                <div class="summary-item reveal" style="border-left-color: var(--accent-cool);">
+                    <h4 style="color: var(--accent-cool);">📋 引用传递</h4>
+                    <p>老师把<strong>原题</strong>直接交给你</p>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">你在原题上写，改动永久留下来</p>
+                </div>
+            </div>
+
+            <div class="summary-item reveal" style="border-left-color: var(--accent-green); margin-top: var(--element-gap);">
+                <h4 style="color: var(--accent-green);">📍 指针传递</h4>
+                <p>老师告诉你题目放在哪个<strong>书架</strong>上（地址）。你去找到它，直接在上面写。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 5: 默认参数
+         =========================================== -->
+    <section class="slide content-slide" data-slide="5">
+        <div class="slide-content">
+            <h2 class="reveal">1️⃣ 函数默认参数</h2>
+            
+            <p class="reveal" style="margin-bottom: var(--element-gap);">函数参数可以有<strong>默认值</strong>，调用时可以省略：</p>
+
+            <div class="code-block reveal">
+<pre><span class="comment">// 定义：有默认值的参数必须放在最后面</span>
+<span class="type">int</span> <span class="function">add</span>(<span class="type">int</span> a, <span class="type">int</span> b = <span class="number">10</span>, <span class="type">int</span> c = <span class="number">0</span>) {
+    <span class="keyword">return</span> a + b + c;
+}
+
+<span class="comment">// 调用：</span>
+<span class="function">add</span>(<span class="number">5</span>);          <span class="comment">// a=5, b=10, c=0   → 15</span>
+<span class="function">add</span>(<span class="number">5</span>, <span class="number">3</span>);       <span class="comment">// a=5, b=3,  c=0   → 8</span>
+<span class="function">add</span>(<span class="number">5</span>, <span class="number">3</span>, <span class="number">2</span>);    <span class="comment">// a=5, b=3,  c=2   → 10</span></pre>
+            </div>
+
+            <div class="highlight-box reveal">
+                ⚠️ <strong>规则：</strong>默认参数必须从<strong>右向左连续</strong>设置！不能跳过——如果 b 有默认值但 c 没有，则不合法。
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 6: 默认参数应用
+         =========================================== -->
+    <section class="slide content-slide" data-slide="6">
+        <div class="slide-content">
+            <h2 class="reveal">默认参数：常见用法</h2>
+            
+            <p class="reveal">输出分隔符（默认空格，可指定换行）：</p>
+
+            <div class="code-block reveal">
+<pre><span class="keyword">void</span> <span class="function">printArr</span>(<span class="type">int</span>* a, <span class="type">int</span> n, <span class="type">char</span> sep = <span class="string">' '</span>) {
+    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i < n; i++) {
+        cout << a[i];
+        <span class="keyword">if</span> (i < n - <span class="number">1</span>) cout << sep;
+    }
+    cout << endl;
+}
+
+<span class="function">printArr</span>(a, n);        <span class="comment">// 空格分隔（默认）</span>
+<span class="function">printArr</span>(a, n, <span class="string">'\n'</span>);  <span class="comment">// 换行分隔</span></pre>
+            </div>
+
+            <div class="highlight-box success reveal">
+                💡 <strong>好处：</strong>一个函数实现多种输出格式，代码复用性更高！
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 7: 三种传参方式对比
+         =========================================== -->
+    <section class="slide content-slide" data-slide="7">
+        <div class="slide-content">
+            <h2 class="reveal">2️⃣ 三种参数传递方式对比</h2>
+            
+            <div class="code-block reveal">
+<pre><span class="comment">// 值传递：修改的是副本</span>
+<span class="keyword">void</span> <span class="function">doubleVal</span>(<span class="type">int</span> x) { x = x * <span class="number">2</span>; }
+
+<span class="comment">// 引用传递：直接修改原变量</span>
+<span class="keyword">void</span> <span class="function">doubleRef</span>(<span class="type">int</span>& x) { x = x * <span class="number">2</span>; }
+
+<span class="comment">// 指针传递：通过地址修改原变量</span>
+<span class="keyword">void</span> <span class="function">doublePtr</span>(<span class="type">int</span>* x) { *x = (*x) * <span class="number">2</span>; }</pre>
+            </div>
+
+            <table class="compare-table reveal">
+                <thead>
+                    <tr>
+                        <th>方式</th>
+                        <th>语法</th>
+                        <th>是否复制</th>
+                        <th>能否修改原变量</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>值传递</td>
+                        <td><code>f(int x)</code></td>
+                        <td>✅ 复制</td>
+                        <td>❌ 不能</td>
+                    </tr>
+                    <tr>
+                        <td>引用传递</td>
+                        <td><code>f(int& x)</code></td>
+                        <td>❌ 不复制</td>
+                        <td>✅ 能</td>
+                    </tr>
+                    <tr>
+                        <td>指针传递</td>
+                        <td><code>f(int* x)</code></td>
+                        <td>❌ 不复制</td>
+                        <td>✅ 能（通过 *）</td>
+                    </tr>
+                    <tr>
+                        <td>const 引用</td>
+                        <td><code>f(const int& x)</code></td>
+                        <td>❌ 不复制</td>
+                        <td>❌ 不能</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 8: swap 函数
+         =========================================== -->
+    <section class="slide content-slide" data-slide="8">
+        <div class="slide-content">
+            <h2 class="reveal">3️⃣ 经典应用：swap 函数</h2>
+            
+            <div class="two-col">
+                <div class="reveal">
+                    <h3 style="color: #ff4444;">❌ 值传递版（错误！）</h3>
+                    <div class="code-block">
+<pre><span class="keyword">void</span> <span class="function">swapWrong</span>(<span class="type">int</span> a, <span class="type">int</span> b) {
+    <span class="type">int</span> t = a; 
+    a = b; 
+    b = t;   <span class="comment">// 只交换了副本！</span>
+}</pre>
+                    </div>
+                </div>
+                <div class="reveal">
+                    <h3 style="color: var(--accent-green);">✅ 引用传递版（正确）</h3>
+                    <div class="code-block">
+<pre><span class="keyword">void</span> <span class="function">mySwap</span>(<span class="type">int</span>& a, <span class="type">int</span>& b) {
+    <span class="type">int</span> t = a; 
+    a = b; 
+    b = t;   <span class="comment">// 交换原变量！</span>
+}
+<span class="function">mySwap</span>(x, y);  <span class="comment">// x 和 y 被真正交换</span></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight-box info reveal" style="margin-top: var(--element-gap);">
+                <strong>指针传递版（C 风格）：</strong>
+                <div class="code-block" style="margin: 0.5rem 0 0 0;">
+<pre><span class="keyword">void</span> <span class="function">mySwapPtr</span>(<span class="type">int</span>* a, <span class="type">int</span>* b) {
+    <span class="type">int</span> t = *a; *a = *b; *b = t;
+}
+<span class="function">mySwapPtr</span>(&x, &y);  <span class="comment">// 传地址</span></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 9: 函数在竞赛中的应用
+         =========================================== -->
+    <section class="slide content-slide" data-slide="9">
+        <div class="slide-content">
+            <h2 class="reveal">4️⃣ 函数在竞赛题目中的应用</h2>
+            
+            <h3 class="reveal">封装常用操作（代码复用）</h3>
+
+            <div class="code-block reveal">
+<pre><span class="comment">// 封装：判断一个数是否是素数</span>
+<span class="type">bool</span> <span class="function">isPrime</span>(<span class="type">int</span> n) {
+    <span class="keyword">if</span> (n < <span class="number">2</span>) <span class="keyword">return</span> <span class="keyword">false</span>;
+    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">2</span>; i * i <= n; i++)
+        <span class="keyword">if</span> (n % i == <span class="number">0</span>) <span class="keyword">return</span> <span class="keyword">false</span>;
+    <span class="keyword">return</span> <span class="keyword">true</span>;
+}
+
+<span class="comment">// 在主程序中多次调用</span>
+<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">2</span>; i <= <span class="number">100</span>; i++)
+    <span class="keyword">if</span> (<span class="function">isPrime</span>(i)) cout << i << <span class="string">" "</span>;</pre>
+            </div>
+
+            <div class="highlight-box success reveal">
+                💡 <strong>好处：</strong>把复杂逻辑封装起来，主程序简洁清晰，易于调试和维护！
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 10: GESP 真题演练 1
+         =========================================== -->
+    <section class="slide content-slide" data-slide="10">
+        <div class="slide-content">
+            <h2 class="reveal">⚡ GESP 真题演练</h2>
+            
+            <div class="question-card reveal">
+                <span class="q-number">抢答题 1</span>
+                <p style="font-size: var(--body-size);">函数定义 <code>void f(int a, int b=5, int c)</code> 的问题是（ ）</p>
+                
+                <div class="options">
+                    <div class="option">A. 函数名不合法</div>
+                    <div class="option">B. 默认参数必须从右到左连续，c 没有默认值不能放在 b 后面</div>
+                    <div class="option">C. 参数个数太多</div>
+                    <div class="option">D. 返回值类型错误</div>
+                </div>
+
+                <div class="answer">
+                    <strong>答案：B</strong><br>
+                    解析：默认参数必须从右到左连续——如果 b 有默认值，那 b 右边的所有参数（c）也必须有默认值，否则调用时二义性。
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 11: GESP 真题演练 2 & 3
+         =========================================== -->
+    <section class="slide content-slide" data-slide="11">
+        <div class="slide-content">
+            <h2 class="reveal">⚡ GESP 真题演练</h2>
+            
+            <div class="question-card reveal">
+                <span class="q-number">判断题 2</span>
+                <p style="font-size: var(--body-size);">引用传递和值传递的区别在于：引用传递函数内的修改会影响原变量，值传递不会。（ ）</p>
+                
+                <div class="answer">
+                    <strong>答案：✓（正确）</strong><br>
+                    解析：引用 <code>int& x</code> 是原变量的别名，任何对 x 的修改等同于修改原变量；值传递 <code>int x</code> 是副本，修改副本不影响原变量。
+                </div>
+            </div>
+
+            <div class="question-card reveal" style="margin-top: var(--content-gap);">
+                <span class="q-number">抢答题 3</span>
+                <p style="font-size: var(--body-size);">以下哪种参数类型最适合"只需读取一个很大的结构体，不需要修改它"的场景？</p>
+                
+                <div class="options">
+                    <div class="option">A. <code>Student s</code>（值传递）</div>
+                    <div class="option">B. <code>Student& s</code>（引用传递）</div>
+                    <div class="option">C. <code>const Student& s</code>（const 引用）</div>
+                    <div class="option">D. <code>Student* s</code>（指针传递）</div>
+                </div>
+
+                <div class="answer">
+                    <strong>答案：C</strong><br>
+                    解析：A 有拷贝开销；B 可修改原变量（不符合"只读"）；C 无拷贝开销且只读，最合适；D 也无拷贝但需要传地址，语义不如 C 直观。
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 12: 函数重载
+         =========================================== -->
+    <section class="slide content-slide" data-slide="12">
+        <div class="slide-content">
+            <h2 class="reveal">📚 进阶扩展：函数重载</h2>
+            
+            <p class="reveal">同名函数因参数类型或数量不同而共存：</p>
+
+            <div class="code-block reveal">
+<pre><span class="type">int</span> <span class="function">add</span>(<span class="type">int</span> a, <span class="type">int</span> b) { <span class="keyword">return</span> a + b; }
+<span class="type">double</span> <span class="function">add</span>(<span class="type">double</span> a, <span class="type">double</span> b) { <span class="keyword">return</span> a + b; }
+<span class="type">int</span> <span class="function">add</span>(<span class="type">int</span> a, <span class="type">int</span> b, <span class="type">int</span> c) { <span class="keyword">return</span> a + b + c; }
+
+<span class="function">add</span>(<span class="number">1</span>, <span class="number">2</span>);        <span class="comment">// 调用 int 版本</span>
+<span class="function">add</span>(<span class="number">1.5</span>, <span class="number">2.5</span>);    <span class="comment">// 调用 double 版本</span>
+<span class="function">add</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>);     <span class="comment">// 调用三参数版本</span></pre>
+            </div>
+
+            <div class="highlight-box info reveal">
+                <strong>静态多态：</strong>编译器根据参数的<strong>类型和数量</strong>自动选择合适的重载版本。
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 13: 课堂练习 1 & 2
+         =========================================== -->
+    <section class="slide content-slide" data-slide="13">
+        <div class="slide-content">
+            <h2 class="reveal">🎈 课堂练习</h2>
+            
+            <div class="exercise-card reveal">
+                <div class="ex-title">练习 1：默认参数函数</div>
+                <div class="ex-meta">
+                    <span class="tag">基础</span>
+                </div>
+                <p style="font-size: var(--body-size);">编写函数 <code>void printLine(int n, char c = '*')</code> 输出 n 个字符 c，调用两次：一次用默认字符，一次用 <code>#</code>。</p>
+                
+                <div class="code-block" style="margin-top: var(--element-gap);">
+<pre><span class="keyword">void</span> <span class="function">printLine</span>(<span class="type">int</span> n, <span class="type">char</span> c = <span class="string">'*'</span>) {
+    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i < n; i++) cout << c;
+    cout << endl;
+}
+<span class="function">printLine</span>(n);      <span class="comment">// 默认 *</span>
+<span class="function">printLine</span>(n, <span class="string">'#'</span>); <span class="comment">// 使用 #</span></pre>
+                </div>
+            </div>
+
+            <div class="exercise-card reveal" style="margin-top: var(--content-gap);">
+                <div class="ex-title">练习 2：引用传参</div>
+                <div class="ex-meta">
+                    <span class="tag">基础</span>
+                </div>
+                <p style="font-size: var(--body-size);">编写函数 <code>void addToAll(int* a, int n, int delta)</code> 将数组每个元素加上 delta。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 14: 课堂练习 3 & 4
+         =========================================== -->
+    <section class="slide content-slide" data-slide="14">
+        <div class="slide-content">
+            <h2 class="reveal">🎈 课堂练习</h2>
+            
+            <div class="exercise-card reveal">
+                <div class="ex-title">练习 3：用引用传参返回多个值</div>
+                <div class="ex-meta">
+                    <span class="tag">综合</span>
+                </div>
+                <p style="font-size: var(--body-size);">编写函数 <code>void findMinMax(int* a, int n, int& minVal, int& maxVal)</code> 同时返回数组的最小值和最大值。</p>
+                
+                <div class="code-block" style="margin-top: var(--element-gap);">
+<pre><span class="keyword">void</span> <span class="function">findMinMax</span>(<span class="type">int</span>* a, <span class="type">int</span> n, <span class="type">int</span>& minVal, <span class="type">int</span>& maxVal) {
+    minVal = maxVal = a[<span class="number">0</span>];
+    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">1</span>; i < n; i++) {
+        <span class="keyword">if</span> (a[i] < minVal) minVal = a[i];
+        <span class="keyword">if</span> (a[i] > maxVal) maxVal = a[i];
+    }
+}</pre>
+                </div>
+            </div>
+
+            <div class="exercise-card reveal" style="margin-top: var(--content-gap);">
+                <div class="ex-title">练习 4：函数封装统计素数</div>
+                <div class="ex-meta">
+                    <span class="tag">综合</span>
+                </div>
+                <p style="font-size: var(--body-size);">编写函数 <code>bool isPrime(int n)</code> 判断 n 是否为素数，用它统计 [2, m] 中素数的个数。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 15: 课堂总结
+         =========================================== -->
+    <section class="slide content-slide" data-slide="15">
+        <div class="slide-content">
+            <h2 class="reveal">🌟 课堂总结</h2>
+            
+            <div class="summary-grid">
+                <div class="summary-item reveal">
+                    <h4>1️⃣ 默认参数</h4>
+                    <ul class="bullet-list" style="font-size: var(--body-size);">
+                        <li>有默认值的参数必须放在右边</li>
+                        <li>调用时从右往左可以省略</li>
+                        <li>必须从右向左连续设置</li>
+                    </ul>
+                </div>
+                <div class="summary-item reveal" style="border-left-color: var(--accent-cool);">
+                    <h4 style="color: var(--accent-cool);">2️⃣ 三种传参方式</h4>
+                    <ul class="bullet-list" style="font-size: var(--body-size);">
+                        <li>只读小数据 → 值传递</li>
+                        <li>需要修改 → 引用传递</li>
+                        <li>只读大数据 → const 引用</li>
+                        <li>传数组 → 指针传递</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight-box success reveal" style="margin-top: var(--content-gap);">
+                <strong>掌握这些，你就能写出更高质量的函数代码！</strong><br>
+                下节课：递推算法——发现数列规律，用代码推出答案！🔢
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 16: 课后作业
+         =========================================== -->
+    <section class="slide content-slide" data-slide="16">
+        <div class="slide-content">
+            <h2 class="reveal">📝 课后作业</h2>
+            
+            <div class="exercise-card reveal">
+                <div class="ex-title">作业 1：默认参数打印</div>
+                <p style="font-size: var(--body-size);"><code>void repeat(string s, int n = 3)</code> 将字符串 s 重复输出 n 次，调用时可选重复次数。</p>
+            </div>
+
+            <div class="exercise-card reveal" style="margin-top: var(--element-gap);">
+                <div class="ex-title">作业 2：引用交换两个字符串</div>
+                <p style="font-size: var(--body-size);">编写 <code>void swapStr(string& a, string& b)</code> 交换两个字符串，调用后输出。</p>
+            </div>
+
+            <div class="exercise-card reveal" style="margin-top: var(--element-gap);">
+                <div class="ex-title">作业 3：数组最大值（指针版）</div>
+                <p style="font-size: var(--body-size);">编写 <code>int findMax(int* a, int n)</code> 用指针遍历找到数组最大值并返回。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 17: 拓展习题
+         =========================================== -->
+    <section class="slide content-slide" data-slide="17">
+        <div class="slide-content">
+            <h2 class="reveal">🔥 拓展习题（尖子生挑战）</h2>
+            
+            <div class="summary-grid">
+                <div class="summary-item reveal">
+                    <h4>挑战 1</h4>
+                    <p style="font-size: var(--body-size);">递归函数（阶乘）</p>
+                </div>
+                <div class="summary-item reveal" style="border-left-color: var(--accent-cool);">
+                    <h4 style="color: var(--accent-cool);">挑战 2</h4>
+                    <p style="font-size: var(--body-size);">递归函数（斐波那契）</p>
+                </div>
+                <div class="summary-item reveal" style="border-left-color: var(--accent-green);">
+                    <h4 style="color: var(--accent-green);">挑战 3</h4>
+                    <p style="font-size: var(--body-size);">函数指针数组</p>
+                </div>
+                <div class="summary-item reveal" style="border-left-color: var(--accent-purple);">
+                    <h4 style="color: var(--accent-purple);">挑战 4</h4>
+                    <p style="font-size: var(--body-size);">模板函数（泛型）</p>
+                </div>
+            </div>
+
+            <div class="highlight-box reveal" style="margin-top: var(--content-gap);">
+                <strong>更多挑战：</strong>递归二分搜索 · 可变参数 · 内联函数与宏的区别
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 18: 结束页
+         =========================================== -->
+    <section class="slide title-slide" data-slide="18">
+        <div class="slide-content">
+            <h1 class="reveal">感谢聆听</h1>
+            <p class="subtitle reveal">CSP04-08 自定义函数2</p>
+            <div class="meta reveal">
+                <span>下节课预告：递推算法</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         JAVASCRIPT
+         =========================================== -->
+    <script>
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll(".slide");
+                this.currentSlide = 0;
+                this.totalSlides = this.slides.length;
+                this.navDotsContainer = document.getElementById("navDots");
+                this.progressBar = document.getElementById("progressBar");
+                
+                this.setupNavDots();
+                this.setupIntersectionObserver();
+                this.setupKeyboardNav();
+                this.setupTouchNav();
+                this.updateProgress();
+            }
+
+            setupNavDots() {
+                this.navDotsContainer.innerHTML = "";
+                this.slides.forEach((_, index) => {
+                    const dot = document.createElement("div");
+                    dot.className = "nav-dot";
+                    dot.addEventListener("click", () => this.goToSlide(index));
+                    this.navDotsContainer.appendChild(dot);
+                });
+                this.updateNavDots();
+            }
+
+            updateNavDots() {
+                const dots = this.navDotsContainer.querySelectorAll(".nav-dot");
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle("active", index === this.currentSlide);
+                });
+            }
+
+            updateProgress() {
+                const progress = ((this.currentSlide + 1) / this.totalSlides) * 100;
+                this.progressBar.style.width = progress + "%";
+            }
+
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver(
+                    (entries) => {
+                        entries.forEach((entry) => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add("visible");
+                                const slideNum = parseInt(entry.target.dataset.slide) - 1;
+                                this.currentSlide = slideNum;
+                                this.updateNavDots();
+                                this.updateProgress();
+                            }
+                        });
+                    },
+                    { threshold: 0.5 }
+                );
+
+                this.slides.forEach((slide) => observer.observe(slide));
+            }
+
+            setupKeyboardNav() {
+                document.addEventListener("keydown", (e) => {
+                    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+
+                    switch (e.key) {
+                        case "ArrowDown":
+                        case "ArrowRight":
+                        case "PageDown":
+                        case " ":
+                            e.preventDefault();
+                            this.nextSlide();
+                            break;
+                        case "ArrowUp":
+                        case "ArrowLeft":
+                        case "PageUp":
+                            e.preventDefault();
+                            this.prevSlide();
+                            break;
+                        case "Home":
+                            e.preventDefault();
+                            this.goToSlide(0);
+                            break;
+                        case "End":
+                            e.preventDefault();
+                            this.goToSlide(this.totalSlides - 1);
+                            break;
+                    }
+                });
+            }
+
+            setupTouchNav() {
+                let touchStartY = 0;
+                let touchEndY = 0;
+
+                document.addEventListener("touchstart", (e) => {
+                    touchStartY = e.changedTouches[0].screenY;
+                }, { passive: true });
+
+                document.addEventListener("touchend", (e) => {
+                    touchEndY = e.changedTouches[0].screenY;
+                    this.handleSwipe(touchStartY, touchEndY);
+                }, { passive: true });
+            }
+
+            handleSwipe(startY, endY) {
+                const threshold = 50;
+                const diff = startY - endY;
+
+                if (Math.abs(diff) > threshold) {
+                    if (diff > 0) {
+                        this.nextSlide();
+                    } else {
+                        this.prevSlide();
+                    }
+                }
+            }
+
+            goToSlide(index) {
+                if (index >= 0 && index < this.totalSlides) {
+                    this.slides[index].scrollIntoView({ behavior: "smooth" });
+                }
+            }
+
+            nextSlide() {
+                if (this.currentSlide < this.totalSlides - 1) {
+                    this.goToSlide(this.currentSlide + 1);
+                }
+            }
+
+            prevSlide() {
+                if (this.currentSlide > 0) {
+                    this.goToSlide(this.currentSlide - 1);
+                }
+            }
+        }
+
+        // Initialize
+        document.addEventListener("DOMContentLoaded", () => {
+            new SlidePresentation();
+        });
+    </script>
+</body>
+</html>
