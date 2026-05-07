@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>角色动画展示</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    background: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px;
+    font-family: Arial, sans-serif;
+    color: #fff;
+    gap: 20px;
+}
+h1 { color: #ffd700; font-size: 20px; letter-spacing: 2px; }
+canvas { border: 1px solid #333; border-radius: 8px; }
+.controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.anim-btn {
+    padding: 10px 18px;
+    border: 2px solid #555;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    background: #16213e;
+    color: #fff;
+    transition: all 0.1s;
+}
+.anim-btn:hover { border-color: #ffd700; color: #ffd700; transform: translateY(-2px); }
+.import-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #16213e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 12px 20px;
+}
+.import-area label { font-size: 13px; color: #aaa; }
+.import-area input { display: none; }
+.import-btn {
+    padding: 8px 16px;
+    background: #0f3460;
+    border: 1px solid #1a5276;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #adf;
+    font-size: 13px;
+}
+.desc { font-size: 12px; color: #667; text-align: center; max-width: 600px; line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<h1>🎬 角色动画展示</h1>
+
+<div class="import-area">
+    <label>导入你画的角色：</label>
+    <button class="import-btn" onclick="document.getElementById('img-input').click()">📂 选择 PNG</button>
+    <input type="file" id="img-input" accept="image/png" onchange="loadCustomChar(this)">
+    <label id="import-hint" style="color:#ffd700;font-size:12px;">（不导入则使用默认角色）</label>
+</div>
+
+<canvas id="c" width="600" height="300"></canvas>
+
+<div class="controls">
+    <button class="anim-btn" onclick="playAnim('idle')">🌀 待机</button>
+    <button class="anim-btn" onclick="playAnim('attack')">⚔️ 普通攻击</button>
+    <button class="anim-btn" onclick="playAnim('heavy')">💥 重击</button>
+    <button class="anim-btn" onclick="playAnim('block')">🛡 格挡</button>
+    <button class="anim-btn" onclick="playAnim('hit')">😵 受击</button>
+    <button class="anim-btn" onclick="playAnim('skill')">✨ 释放特技</button>
+    <button class="anim-btn" onclick="playAnim('death')">💀 死亡</button>
+    <button class="anim-btn" onclick="playAnim('victory')">🏆 胜利</button>
+</div>
+
+<div class="desc">
+    点击按钮查看不同的动画效果。<br>
+    所有动画都用 <strong>Phaser Tween</strong> 实现，只需要一张图片，不需要多帧素材。<br>
+    可以导入你在画图工具里画的角色 PNG，看看它配上动画是什么效果。
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+const CX = canvas.width  / 2;
+const CY = canvas.height / 2 - 20;
+
+// Web Audio
+const AC = new (window.AudioContext || window.webkitAudioContext)();
+function playSound(type) {
+    const R = {
+        hit:     [300, 50,  0.08, 'sawtooth', 0.35],
+        heavy:   [160, 25,  0.20, 'sawtooth', 0.55],
+        block:   [600, 400, 0.10, 'square',   0.25],
+        skill:   [200, 900, 0.30, 'triangle', 0.40],
+        death:   [350, 40,  0.55, 'sine',     0.30],
+        victory: null,
+    };
+    if (type === 'victory') {
+        [523,659,784,1047].forEach((f,i) => setTimeout(() => {
+            const o=AC.createOscillator(), g=AC.createGain();
+            o.connect(g); g.connect(AC.destination);
+            o.type='sine'; o.frequency.value=f;
+            g.gain.setValueAtTime(0.3, AC.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime+0.12);
+            o.start(); o.stop(AC.currentTime+0.12);
+        }, i*140));
+        return;
+    }
+    const r = R[type]; if (!r) return;
+    const o=AC.createOscillator(), g=AC.createGain();
+    o.connect(g); g.connect(AC.destination);
+    o.type=r[3]; o.frequency.setValueAtTime(r[0], AC.currentTime);
+    o.frequency.exponentialRampToValueAtTime(r[1], AC.currentTime+r[2]);
+    g.gain.setValueAtTime(r[4], AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime+r[2]);
+    o.start(); o.stop(AC.currentTime+r[2]);
+}
+
+// 角色状态
+let charImg = null;
+let charFrameCount = 1;   // 总帧数（导入 spritesheet 时自动检测）
+let charFrameW = 0;       // 每帧宽度（像素）
+let currentCharFrame = 0; // 当前显示第几帧
+const char = {
+    x: CX, y: CY,
+    scale: 1, scaleY: 1,
+    rotation: 0,
+    alpha: 1,
+    shakeX: 0,
+    tint: null,  // 'red' | 'blue' | null
+    glow: 0,
+    particles: [],
+};
+
+// 默认角色：用 canvas 画一个可爱的涂鸦怪
+const defaultChar = (() => {
+    const c = document.createElement('canvas');
+    c.width = 80; c.height = 80;
+    const cx = c.getContext('2d');
+    // 身体
+    cx.fillStyle = '#39ff14';
+    cx.beginPath(); cx.ellipse(40,45,32,28,0,0,Math.PI*2); cx.fill();
+    // 眼睛
+    cx.fillStyle = '#fff';
+    cx.beginPath(); cx.arc(28,35,9,0,Math.PI*2); cx.fill();
+    cx.beginPath(); cx.arc(52,35,9,0,Math.PI*2); cx.fill();
+    cx.fillStyle = '#000';
+    cx.beginPath(); cx.arc(30,36,5,0,Math.PI*2); cx.fill();
+    cx.beginPath(); cx.arc(54,36,5,0,Math.PI*2); cx.fill();
+    // 嘴巴
+    cx.strokeStyle = '#000'; cx.lineWidth = 2;
+    cx.beginPath(); cx.arc(40,50,10,0.2,Math.PI-0.2); cx.stroke();
+    // 手臂
+    cx.strokeStyle = '#39ff14'; cx.lineWidth = 5;
+    cx.beginPath(); cx.moveTo(10,50); cx.lineTo(30,40); cx.stroke();
+    cx.beginPath(); cx.moveTo(70,50); cx.lineTo(50,40); cx.stroke();
+    // 轮廓
+    cx.strokeStyle = 'rgba(0,0,0,0.3)'; cx.lineWidth = 2;
+    cx.beginPath(); cx.ellipse(40,45,32,28,0,0,Math.PI*2); cx.stroke();
+    return c;
+})();
+
+function loadCustomChar(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+            charImg = img;
+            // 自动检测是否是 Spritesheet（宽度 >= 高度×1.5 就认为是多帧）
+            charFrameCount = (img.width >= img.height * 1.5)
+                ? Math.round(img.width / img.height)
+                : 1;
+            charFrameW = img.width / charFrameCount;
+            currentCharFrame = 0;
+            document.getElementById('import-hint').textContent =
+                `✅ 已加载：${file.name}（检测到 ${charFrameCount} 帧）`;
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+// ============================================================
+// 动画系统
+// ============================================================
+function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+let isPlaying = false;
+
+async function playAnim(type) {
+    if (isPlaying) return;
+    isPlaying = true;
+    resetChar();
+    await animMap[type]();
+    if (type !== 'death') resetChar();
+    isPlaying = false;
+}
+
+function resetChar() {
+    Object.assign(char, {
+        x: CX, y: CY,
+        scale: 1, scaleY: 1,
+        rotation: 0,
+        alpha: 1,
+        shakeX: 0,
+        tint: null,
+        glow: 0,
+    });
+    char.particles = [];
+}
+
+const animMap = {
+    async idle() {
+        // 呼吸：上下浮动循环
+        for (let cycle = 0; cycle < 4; cycle++) {
+            for (let i = 0; i <= 20; i++) {
+                char.y = CY + Math.sin(i / 20 * Math.PI) * (-8);
+                char.scaleY = 1 + Math.sin(i / 20 * Math.PI) * 0.04;
+                await wait(25);
+            }
+        }
+    },
+
+    async attack() {
+        const targetX = CX + 110;
+        playSound('hit');
+        currentCharFrame = 0; // 待机帧
+        // 蓄力后缩
+        for (let i = 0; i <= 8; i++) {
+            char.x = lerp(CX, CX - 25, i / 8);
+            char.scale = lerp(1, 0.85, i / 8);
+            await wait(18);
+        }
+        // 冲出时切换到攻击帧
+        currentCharFrame = charFrameCount > 1 ? 1 : 0;
+        for (let i = 0; i <= 10; i++) {
+            char.x = lerp(CX - 25, targetX, i / 10);
+            char.scale = lerp(0.85, 1.1, i / 10);
+            await wait(12);
+        }
+        spawnParticles(char.x + 40, char.y, '#fff', 8);
+        // 弹回时切回待机帧
+        currentCharFrame = 0;
+        for (let i = 0; i <= 12; i++) {
+            char.x = lerp(targetX, CX, i / 12);
+            char.scale = lerp(1.1, 1, i / 12);
+            await wait(14);
+        }
+    },
+
+    async heavy() {
+        playSound('heavy');
+        // 大幅蓄力
+        for (let i = 0; i <= 15; i++) {
+            char.x = lerp(CX, CX - 55, i / 15);
+            char.scale = lerp(1, 0.7, i / 15);
+            char.scaleY = lerp(1, 1.3, i / 15);
+            await wait(18);
+        }
+        // 爆发冲出时切到攻击帧
+        currentCharFrame = charFrameCount > 1 ? 1 : 0;
+        const targetX = CX + 140;
+        for (let i = 0; i <= 8; i++) {
+            char.x = lerp(CX - 55, targetX, i / 8);
+            char.scale = lerp(0.7, 1.4, i / 8);
+            char.scaleY = lerp(1.3, 0.8, i / 8);
+            await wait(10);
+        }
+        spawnParticles(char.x + 50, char.y, '#ff8800', 20);
+        // 弹回切回待机帧
+        currentCharFrame = 0;
+        for (let i = 0; i <= 14; i++) {
+            char.x = lerp(targetX, CX, i / 14);
+            char.scale = lerp(1.4, 1, i / 14);
+            char.scaleY = lerp(0.8, 1, i / 14);
+            await wait(14);
+        }
+    },
+
+    async block() {
+        playSound('block');
+        char.tint = 'blue';
+        for (let i = 0; i <= 6; i++) {
+            char.scale = lerp(1, 1.15, i / 6);
+            char.glow = lerp(0, 1, i / 6);
+            await wait(20);
+        }
+        await wait(600);
+        for (let i = 0; i <= 8; i++) {
+            char.scale = lerp(1.15, 1, i / 8);
+            char.glow = lerp(1, 0, i / 8);
+            await wait(20);
+        }
+        char.tint = null;
+    },
+
+    async hit() {
+        playSound('hit');
+        char.tint = 'red';
+        for (let i = 0; i < 7; i++) {
+            char.shakeX = (i % 2 === 0 ? 1 : -1) * 12;
+            char.scale = i === 0 ? 0.9 : 1;
+            await wait(45);
+        }
+        char.shakeX = 0;
+        char.tint = null;
+    },
+
+    async skill() {
+        playSound('skill');
+        // 旋转蓄能
+        for (let i = 0; i <= 20; i++) {
+            char.rotation = lerp(0, 360, i / 20);
+            char.scale = lerp(1, 1.4, i / 20);
+            char.glow = i / 20;
+            await wait(20);
+        }
+        char.rotation = 0;
+        spawnParticles(char.x, char.y, '#ffd700', 30);
+        await wait(100);
+        for (let i = 0; i <= 10; i++) {
+            char.scale = lerp(1.4, 1, i / 10);
+            char.glow = lerp(1, 0, i / 10);
+            await wait(20);
+        }
+    },
+
+    async death() {
+        playSound('death');
+        for (let i = 0; i <= 25; i++) {
+            char.rotation = lerp(0, 360, i / 25);
+            char.scale = lerp(1, 0, i / 25);
+            char.alpha = lerp(1, 0, i / 25);
+            char.y = lerp(CY, CY + 60, i / 25);
+            await wait(30);
+        }
+        spawnParticles(CX, CY + 30, '#e94560', 25);
+    },
+
+    async victory() {
+        playSound('victory');
+        // 跳跃弹跳
+        for (let bounce = 0; bounce < 3; bounce++) {
+            for (let i = 0; i <= 15; i++) {
+                char.y = CY - Math.sin(i / 15 * Math.PI) * (50 - bounce * 12);
+                char.scaleX = 1 - Math.sin(i / 15 * Math.PI) * 0.15;
+                char.scaleY = 1 + Math.sin(i / 15 * Math.PI) * 0.2;
+                await wait(25);
+            }
+            if (bounce < 2) spawnParticles(char.x, char.y + 40, '#ffd700', 12);
+        }
+        char.scaleX = 1; char.scaleY = 1;
+    },
+};
+
+// ============================================================
+// 粒子系统
+// ============================================================
+function spawnParticles(x, y, color, count) {
+    for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 2 + Math.random() * 5;
+        char.particles.push({
+            x, y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed - 2,
+            life: 1,
+            color,
+            size: 2 + Math.random() * 4,
+        });
+    }
+}
+
+function updateParticles() {
+    char.particles = char.particles.filter(p => p.life > 0);
+    for (const p of char.particles) {
+        p.x  += p.vx;
+        p.y  += p.vy;
+        p.vy += 0.18;
+        p.life -= 0.025;
+    }
+}
+
+// ============================================================
+// 渲染循环
+// ============================================================
+function render() {
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, '#1a1a2e');
+    grad.addColorStop(1, '#16213e');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 地面
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, CY + 60); ctx.lineTo(canvas.width, CY + 60);
+    ctx.stroke();
+
+    updateParticles();
+
+    // 粒子
+    for (const p of char.particles) {
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // 角色
+    const img = charImg || defaultChar;
+    const SIZE = 80;
+    const sx = char.x + char.shakeX;
+    const sy = char.y;
+
+    ctx.save();
+    ctx.globalAlpha = char.alpha;
+    ctx.translate(sx, sy);
+    ctx.rotate(char.rotation * Math.PI / 180);
+    ctx.scale(char.scale * (char.scaleX || 1), char.scaleY);
+
+    // 发光效果
+    if (char.glow > 0) {
+        ctx.shadowColor = char.tint === 'blue' ? '#64b4ff' : '#ffd700';
+        ctx.shadowBlur  = char.glow * 30;
+    }
+
+    // 计算当前帧的源矩形
+    const fw = charImg ? charFrameW : img.width;
+    const fh = charImg ? img.height  : img.height;
+    const fx = charImg ? currentCharFrame * charFrameW : 0;
+
+    // 颜色叠加
+    if (char.tint) {
+        ctx.drawImage(img, fx, 0, fw, fh, -SIZE/2, -SIZE/2, SIZE, SIZE);
+        ctx.globalCompositeOperation = 'source-atop';
+        ctx.fillStyle = char.tint === 'red' ? 'rgba(255,80,80,0.55)' : 'rgba(100,150,255,0.5)';
+        ctx.fillRect(-SIZE/2, -SIZE/2, SIZE, SIZE);
+        ctx.globalCompositeOperation = 'source-over';
+    } else {
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, fx, 0, fw, fh, -SIZE/2, -SIZE/2, SIZE, SIZE);
+    }
+
+    ctx.restore();
+
+    // 说明文字
+    ctx.font = '13px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#556';
+    ctx.fillText('← 点击上方按钮播放动画', CX, canvas.height - 14);
+
+    requestAnimationFrame(render);
+}
+
+render();
+</script>
+</body>
+</html>
