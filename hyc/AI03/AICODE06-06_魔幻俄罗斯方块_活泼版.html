@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎮 魔幻俄罗斯方块大冒险</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+      /* ===========================================
+         🌈 彩虹游戏风格主题
+         =========================================== */
+      :root {
+        /* 彩虹渐变色 */
+        --rainbow-1: #ff6b6b;
+        --rainbow-2: #feca57;
+        --rainbow-3: #48dbfb;
+        --rainbow-4: #1dd1a1;
+        --rainbow-5: #5f27cd;
+        --rainbow-6: #ff9ff3;
+        
+        /* 背景 */
+        --bg-dark: #2d3436;
+        --bg-card: #636e72;
+        --bg-light: #dfe6e9;
+        
+        /* 文字 */
+        --text-dark: #2d3436;
+        --text-light: #ffffff;
+        
+        /* 字体 */
+        --font-display: "ZCOOL KuaiLe", cursive;
+        --font-body: "Nunito", sans-serif;
+        
+        /* 尺寸 */
+        --title-size: clamp(2rem, 6vw, 4rem);
+        --h2-size: clamp(1.5rem, 4vw, 2.5rem);
+        --body-size: clamp(0.9rem, 2vw, 1.2rem);
+        
+        /* 动画 */
+        --bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        --smooth: cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html, body {
+        height: 100%;
+        overflow-x: hidden;
+        scroll-snap-type: y mandatory;
+        scroll-behavior: smooth;
+        font-family: var(--font-body);
+      }
+
+      /* ===========================================
+         🎮 浮动方块背景动画
+         =========================================== */
+      .floating-blocks {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+      }
+
+      .block {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        opacity: 0.15;
+        animation: float 15s infinite ease-in-out;
+      }
+
+      .block:nth-child(1) { background: var(--rainbow-1); left: 10%; animation-delay: 0s; }
+      .block:nth-child(2) { background: var(--rainbow-2); left: 20%; animation-delay: 2s; animation-duration: 18s; }
+      .block:nth-child(3) { background: var(--rainbow-3); left: 35%; animation-delay: 4s; }
+      .block:nth-child(4) { background: var(--rainbow-4); left: 50%; animation-delay: 1s; animation-duration: 20s; }
+      .block:nth-child(5) { background: var(--rainbow-5); left: 65%; animation-delay: 3s; }
+      .block:nth-child(6) { background: var(--rainbow-6); left: 80%; animation-delay: 5s; animation-duration: 17s; }
+      .block:nth-child(7) { background: var(--rainbow-1); left: 90%; animation-delay: 2.5s; }
+      .block:nth-child(8) { background: var(--rainbow-3); left: 5%; animation-delay: 4.5s; }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(100vh) rotate(0deg); }
+        50% { transform: translateY(-100px) rotate(180deg); }
+      }
+
+      /* ===========================================
+         📱 幻灯片基础
+         =========================================== */
+      .slide {
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+        scroll-snap-align: start;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        z-index: 1;
+      }
+
+      .slide-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        max-height: 100%;
+        overflow: hidden;
+        padding: clamp(1rem, 4vw, 3rem);
+        text-align: center;
+      }
+
+      /* ===========================================
+         🎨 标题页 - 彩虹爆炸风格
+         =========================================== */
+      .slide--title {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        position: relative;
+      }
+
+      .slide--title::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+        background-size: 30px 30px;
+        animation: bgMove 20s linear infinite;
+      }
+
+      @keyframes bgMove {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(30px, 30px); }
+      }
+
+      .game-icon {
+        font-size: clamp(4rem, 12vw, 8rem);
+        margin-bottom: 1rem;
+        animation: bounce 2s infinite var(--bounce);
+        filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+      }
+
+      @keyframes bounce {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-20px) scale(1.1); }
+      }
+
+      .slide--title h1 {
+        font-family: var(--font-display);
+        font-size: var(--title-size);
+        color: white;
+        text-shadow: 3px 3px 0px rgba(0,0,0,0.2),
+                     6px 6px 0px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+        animation: popIn 0.8s var(--bounce);
+      }
+
+      @keyframes popIn {
+        0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+        100% { transform: scale(1) rotate(0deg); opacity: 1; }
+      }
+
+      .badge-group {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 1.5rem;
+      }
+
+      .badge {
+        background: white;
+        color: var(--text-dark);
+        padding: 0.5em 1.2em;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: clamp(0.8rem, 1.5vw, 1rem);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        animation: slideUp 0.6s var(--bounce) backwards;
+      }
+
+      .badge:nth-child(1) { animation-delay: 0.3s; background: var(--rainbow-1); color: white; }
+      .badge:nth-child(2) { animation-delay: 0.5s; background: var(--rainbow-2); }
+      .badge:nth-child(3) { animation-delay: 0.7s; background: var(--rainbow-3); }
+
+      @keyframes slideUp {
+        0% { transform: translateY(50px); opacity: 0; }
+        100% { transform: translateY(0); opacity: 1; }
+      }
+
+      /* ===========================================
+         🎬 章节页 - 大数字风格
+         =========================================== */
+      .slide--section {
+        background: var(--bg-dark);
+        position: relative;
+      }
+
+      .big-number {
+        font-family: var(--font-display);
+        font-size: clamp(8rem, 25vw, 15rem);
+        color: transparent;
+        -webkit-text-stroke: 3px var(--rainbow-3);
+        position: absolute;
+        opacity: 0.3;
+        animation: pulse 3s infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.3; }
+        50% { transform: scale(1.05); opacity: 0.5; }
+      }
+
+      .section-content {
+        z-index: 1;
+      }
+
+      .section-emoji {
+        font-size: clamp(3rem, 8vw, 5rem);
+        margin-bottom: 1rem;
+        animation: wiggle 2s infinite;
+      }
+
+      @keyframes wiggle {
+        0%, 100% { transform: rotate(-5deg); }
+        50% { transform: rotate(5deg); }
+      }
+
+      .slide--section h2 {
+        font-family: var(--font-display);
+        font-size: var(--h2-size);
+        color: white;
+        margin-bottom: 0.5rem;
+      }
+
+      .section-subtitle {
+        color: var(--rainbow-3);
+        font-size: var(--body-size);
+        font-weight: 600;
+      }
+
+      /* ===========================================
+         📖 内容页 - 卡片风格
+         =========================================== */
+      .slide--content {
+        background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+        color: var(--text-dark);
+      }
+
+      .content-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .content-emoji {
+        font-size: clamp(2.5rem, 6vw, 4rem);
+        animation: shake 3s infinite;
+      }
+
+      @keyframes shake {
+        0%, 90%, 100% { transform: rotate(0deg); }
+        92% { transform: rotate(-10deg); }
+        94% { transform: rotate(10deg); }
+        96% { transform: rotate(-10deg); }
+        98% { transform: rotate(10deg); }
+      }
+
+      .slide--content h2 {
+        font-family: var(--font-display);
+        font-size: var(--h2-size);
+        color: var(--text-dark);
+        text-align: left;
+      }
+
+      /* 卡片网格 */
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        width: 100%;
+        max-width: 1200px;
+      }
+
+      .card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        transform: translateY(0);
+        transition: all 0.3s var(--bounce);
+        border: 3px solid transparent;
+      }
+
+      .card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      }
+
+      .card:nth-child(1) { border-color: var(--rainbow-1); }
+      .card:nth-child(2) { border-color: var(--rainbow-2); }
+      .card:nth-child(3) { border-color: var(--rainbow-3); }
+      .card:nth-child(4) { border-color: var(--rainbow-4); }
+
+      .card-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .card h3 {
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-dark);
+      }
+
+      .card p {
+        font-size: 0.95rem;
+        color: var(--bg-card);
+        line-height: 1.5;
+      }
+
+      /* 步骤流程 */
+      .step-flow {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        width: 100%;
+        max-width: 800px;
+      }
+
+      .step-item {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        background: white;
+        padding: 1.2rem 1.5rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        transform: translateX(-100px);
+        opacity: 0;
+        transition: all 0.5s var(--bounce);
+      }
+
+      .slide.visible .step-item {
+        transform: translateX(0);
+        opacity: 1;
+      }
+
+      .slide.visible .step-item:nth-child(1) { transition-delay: 0.1s; }
+      .slide.visible .step-item:nth-child(2) { transition-delay: 0.3s; }
+      .slide.visible .step-item:nth-child(3) { transition-delay: 0.5s; }
+
+      .step-num {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: white;
+        flex-shrink: 0;
+        animation: spin 10s linear infinite;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .step-item:nth-child(1) .step-num { background: var(--rainbow-1); }
+      .step-item:nth-child(2) .step-num { background: var(--rainbow-2); }
+      .step-item:nth-child(3) .step-num { background: var(--rainbow-3); }
+
+      .step-text h4 {
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        margin-bottom: 0.3rem;
+      }
+
+      .step-text p {
+        font-size: 0.9rem;
+        color: var(--bg-card);
+      }
+
+      /* 提示框 */
+      .tip-box {
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);
+        border: 3px dashed var(--rainbow-1);
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+        max-width: 800px;
+        position: relative;
+      }
+
+      .tip-box::before {
+        content: '💡';
+        position: absolute;
+        top: -20px;
+        left: 20px;
+        font-size: 2rem;
+        background: white;
+        padding: 0 10px;
+        border-radius: 50%;
+      }
+
+      .tip-box h4 {
+        font-family: var(--font-display);
+        color: var(--rainbow-1);
+        margin-bottom: 0.5rem;
+        margin-top: 0.5rem;
+      }
+
+      .tip-box.success {
+        background: linear-gradient(135deg, #f0fff4 0%, #e0ffe5 100%);
+        border-color: var(--rainbow-4);
+      }
+
+      .tip-box.success::before { content: '✨'; }
+      .tip-box.success h4 { color: var(--rainbow-4); }
+
+      .tip-box.warning {
+        background: linear-gradient(135deg, #fffbeb 0%, #fff3cd 100%);
+        border-color: var(--rainbow-2);
+      }
+
+      .tip-box.warning::before { content: '⚠️'; }
+      .tip-box.warning h4 { color: #d97706; }
+
+      /* 代码块 */
+      .code-block {
+        background: #1e1e1e;
+        border-radius: 15px;
+        padding: 1.5rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+        color: #d4d4d4;
+        text-align: left;
+        max-width: 800px;
+        width: 100%;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .code-block::before {
+        content: '📋';
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 1.2rem;
+      }
+
+      .code-block code {
+        white-space: pre-wrap;
+        line-height: 1.6;
+      }
+
+      /* 对比卡片 */
+      .vs-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        width: 100%;
+        max-width: 900px;
+        position: relative;
+      }
+
+      .vs-container::before {
+        content: 'VS';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: var(--rainbow-3);
+        color: white;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        font-weight: 700;
+        z-index: 10;
+        animation: pulse 2s infinite;
+      }
+
+      .vs-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      }
+
+      .vs-card.bad { border: 4px solid #ff6b6b; }
+      .vs-card.good { border: 4px solid #1dd1a1; }
+
+      .vs-header {
+        padding: 1rem;
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        text-align: center;
+      }
+
+      .vs-card.bad .vs-header { background: #ff6b6b; color: white; }
+      .vs-card.good .vs-header { background: #1dd1a1; color: white; }
+
+      .vs-body {
+        padding: 1.5rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.9rem;
+      }
+
+      /* 列表 */
+      .fun-list {
+        list-style: none;
+        text-align: left;
+        max-width: 800px;
+      }
+
+      .fun-list li {
+        background: white;
+        padding: 1rem 1.5rem;
+        margin-bottom: 0.8rem;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: var(--body-size);
+        transform: translateX(-50px);
+        opacity: 0;
+        transition: all 0.4s var(--bounce);
+      }
+
+      .slide.visible .fun-list li {
+        transform: translateX(0);
+        opacity: 1;
+      }
+
+      .slide.visible .fun-list li:nth-child(1) { transition-delay: 0.1s; }
+      .slide.visible .fun-list li:nth-child(2) { transition-delay: 0.2s; }
+      .slide.visible .fun-list li:nth-child(3) { transition-delay: 0.3s; }
+      .slide.visible .fun-list li:nth-child(4) { transition-delay: 0.4s; }
+
+      .fun-list li span {
+        font-size: 1.5rem;
+      }
+
+      /* 进度条 */
+      .progress-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 8px;
+        background: rgba(0,0,0,0.1);
+        z-index: 1000;
+      }
+
+      .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, var(--rainbow-1), var(--rainbow-2), var(--rainbow-3), var(--rainbow-4));
+        width: 0%;
+        transition: width 0.3s;
+      }
+
+      /* 导航点 */
+      .nav-dots {
+        position: fixed;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 100;
+      }
+
+      .nav-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.2);
+        cursor: pointer;
+        transition: all 0.3s var(--bounce);
+        border: 2px solid transparent;
+      }
+
+      .nav-dot.active {
+        background: var(--rainbow-3);
+        transform: scale(1.4);
+        border-color: white;
+        box-shadow: 0 0 10px var(--rainbow-3);
+      }
+
+      /* 键盘提示 */
+      .keyboard-hint {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.7);
+        color: white;
+        padding: 0.8rem 1.5rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        z-index: 100;
+        backdrop-filter: blur(10px);
+      }
+
+      /* 响应式 */
+      @media (max-width: 768px) {
+        .vs-container::before {
+          display: none;
+        }
+        .nav-dots {
+          display: none;
+        }
+      }
+
+      /* 动画类 */
+      .reveal {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.6s var(--bounce);
+      }
+
+      .slide.visible .reveal {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .reveal-delay-1 { transition-delay: 0.1s; }
+      .reveal-delay-2 { transition-delay: 0.2s; }
+      .reveal-delay-3 { transition-delay: 0.3s; }
+      .reveal-delay-4 { transition-delay: 0.4s; }
+    </style>
+</head>
+<body>
+    <!-- 浮动方块背景 -->
+    <div class="floating-blocks">
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+        <div class="block"></div>
+    </div>
+
+    <!-- 进度条 -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- 导航点 -->
+    <nav class="nav-dots" id="navDots"></nav>
+
+    <!-- 键盘提示 -->
+    <div class="keyboard-hint">🎮 ← → 或空格键翻页</div>
+
+    <!-- ===========================================
+         SLIDE 1: 封面
+         =========================================== -->
+    <section class="slide slide--title">
+        <div class="slide-content">
+            <div class="game-icon">🎮</div>
+            <h1>魔幻俄罗斯方块</h1>
+            <div class="badge-group">
+                <span class="badge">🎯 Plan Mode 先行</span>
+                <span class="badge">⏱️ 90分钟大冒险</span>
+                <span class="badge">💻 Kimi 2.5</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 2: 今天学什么
+         =========================================== -->
+    <section class="slide slide--content">
+        <div class="slide-content">
+            <div class="content-header">
+                <span class="content-emoji">🎯</span>
+                <h2>今天我们要学什么？</h2>
+            </div>
+            <div class="card-grid">
+                <div class="card reveal">
+                    <div class="card-icon">📝</div>
+                    <h3>Plan Mode 计划模式</h3>
+                    <p>先写需求再动手，让 AI 按你的想法来！</p>
+                </div>
+                <div class="card reveal reveal-delay-1">
+                    <div class="card-icon">🔍</div>
+                    <h3>需求审核大法</h3>
+                    <p>让 AI 帮你找漏洞，发现你没想到的问题</p>
+                </div>
+                <div class="card reveal reveal-delay-2">
+                    <div class="card-icon">🕵️</div>
+                    <h3>结果溯源</h3>
+                    <p>结果不对？回到需求找问题！</p>
+                </div>
+                <div class="card reveal reveal-delay-3">
+                    <div class="card-icon">🎮</div>
+                    <h3>做出俄罗斯方块</h3>
+                    <p>用需求驱动，让 AI 帮你做游戏！</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 3: 第一幕
+         =========================================== -->
+    <section class="slide slide--section">
+        <div class="big-number">01</div>
+        <div class="slide-content section-content">
+            <div class="section-emoji">🔗</div>
+            <h2>第一幕：联系</h2>
+            <p class="section-subtitle">🎮 侦探模式导入 — 10分钟</p>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 4: 侦探模式
+         =========================================== -->
+    <section class="slide slide--content">
+        <div class="slide-content">
+            <div class="content-header">
+                <span class="content-emoji">🕵️</span>
+                <h2>侦探模式启动！</h2>
+            </div>
+            <div class="tip-box reveal">
+                <h4>📋 任务</h4>
+                <p>玩两分钟俄罗斯方块，当侦探：<strong>把所有游戏规则找出来，写在纸上！</strong></p>
+            </div>
+            <ul class="fun-list" style="margin-top: 2rem;">
+                <li><span>⬇️</span> 方块会往下落</li>
+                <li><span>⬅️➡️</span> 可以左右移动、旋转</li>
+                <li><span>✨</span> 满一行就消掉</li>
+                <li><span>⬆️</span> 消了之后上面的积木会往下掉</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 5: 关键发现
+         =========================================== -->
+    <section class="slide slide--content">
+        <div class="slide-content">
+            <div class="content-header">
+                <span class="content-emoji">💡</span>
+                <h2>关键发现！</h2>
+            </div>
+            <div class="vs-container reveal">
+                <div class="vs-card bad">
+                    <div class="vs-header">❌ 游戏规则</div>
+                    <div class="vs-body">
+                        方块会往下落<br/>
+                        可以左右移动<br/>
+                        满一行消掉<br/>
+                        游戏结束条件
+                    </div>
+                </div>
+                <div class="vs-card good">
+                    <div class="vs-header">✅ 需求描述</div>
+                    <div class="vs-body">
+                        方块会往下落<br/>
+                        可以左右移动<br/>
+                        满一行消掉<br/>
+                        游戏结束条件
+                    </div>
+                </div>
+            </div>
+            <div class="tip-box success reveal" style="margin-top: 2rem;">
+                <h4>✨ 结论</h4>
+                <p><strong>游戏规则 = 需求描述！</strong><br/>每一条规则都是「这个游戏应该怎么运行」的需求</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 6: 一句话 vs 详细
+         =========================================== -->
+    <section class="slide slide--content">
+        <div class="slide-content">
+            <div class="content-header">
+                <span class="content-emoji">🤔</span>
+                <h2>一句话 vs 详细需求</h2>
+            </div>
+            <div class="vs-container reveal">
+                <div class="vs-card bad">
+                    <div class="vs-header">❌ 一句话版</div>
+                    <div class="vs-body" style="font-size: 1.1rem;">
+                        「帮我做一个<br/>俄罗斯方块」
+                    </div>
+                </div>
+                <div class="vs-card good">
+                    <div class="vs-header">✅ 详细需求版</div>
+                    <div class="vs-body">
+                        • 游戏区域：10列×20行<br/>
+                        • 初始速度：800ms/格<br/>
+                        • 消1行得100分<br/>
+                        • 消4行得800分<br/>
+                        • ...
+                    </div>
+                </div>
+            </div>
+            <div class="tip-box warning reveal" style="margin-top: 2rem;">
+                <h4>⚠️ AI 会怎么做？</h4>
+                <p><strong>你没说的，AI 就自己猜了！</strong><br/>得分规则、速度、旋转方向...全都由 AI 决定 😱</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 7: Plan Mode 引入
+         =========================================== -->
+    <section class="slide slide--content">
+        <div class="slide-content">
+            <div class="content-header">
+                <span class="content-emoji">🚀</span>
+                <h2>从今天开始：Plan Mode！</h2>
+            </div>
+            <div class="tip-box reveal">
+                <h4>📖 Plan Mode 是什么？</h4>
+                <p>在动手之前，把你的需求写得越详细越好！</p>
+            </div>
+            <div class="step-flow" style="margin-top: 2rem;">
+                <div class="step-item">
+                    <span class="step-num">1</span>
+                    <div class="step-text">
+                        <h4>📝 整理需求</h4>
+                        <p>把模糊的感觉变成具体可测试的文字</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-num">2</span>
+                    <div class="step-text">
+                        <h4>🔍 审核需求</h4>
+                        <p>AI 扮演审核工程师，找你没发现的问题</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-num">3</span>
+                    <div class="step-text">
+                        <h4>✅ 确认需求</h4>
+                        <p>回答审核问题，补充进文档</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 8: 第二幕
+         =========================================== -->
+    <section class="slide slide--section">
+        <div class="big-number">02</div>
+        <div class="slide-content section-content">
+            <div class="section-emoji">🛠️</div>
+            <h2>第二幕：建构</h2>
+            <p class="section-subtitle">🎮 Plan Mode 三步 + 生成闭环 — 65分钟</p>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 9: 三步总览
+         =========================================== -->
+    <section class="slide slide--content">
+        <div class="slide-content">
+            <div class="content-header">
+                <span class="content-emoji">📋</span>
+                <h2>Plan Mode 三步走！</h2>
+            </div>
+            <div class="step-flow">
+                <div class="step-item">
+                    <span class="step-num">1</span>
+                    <div class="step-text">
+                        <h4>📝 写需求文档</h4>
+                        <p>像设计师画图纸：标出每个尺寸，不是"大概这个形状"</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-num">2</span>
+                    <div class="step-text">
+                        <h4>🔍 压力测试</h4>
+                        <p>AI 只问问题，不回答，找出没说清楚的地方</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-num">3</span>
+                    <div class="step-text">
+                        <h4>✅ 确认完善</h4>
+                        <p>让需求经过压力测试，再提交生成</p>
+                    </div>
+                </div>
+            </div>
+            <div class="tip-box reveal" style="margin-top: 2rem;">
+                <h4>⏱️ 时间分配</h4>
+                <p>写需求 <strong>10分钟</strong> → 压力测试 <strong>5分钟</strong> → AI 生成</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 10: Level 0 模板
+         =========================================== -->
+    <section class="slide slide--content">
+        <div class="slide-content">
+            <div class="content-header">
+                <span class="content-emoji">📄</span>
+                <h2>Level 0 需求文档模板</h2>
+            </div>
+            <div class="code-block reveal">
+                <code>## 🎮 游戏区域
+• 宽：___列（默认10）× 高：___行（默认20）
+
+## 🕹️ 方块移动规则
+• 左移：___键 / 右移：___键 / 旋转：___键
+• 碰到左右边界：___（停止/不能再往那边移）
+• 碰到底部：___（固定在原地）
+
+## ✨ 消行规则
+• 触发条件：___
+• 消1行得___分，消4行一次得___分
+
+## ⚡ 关卡与速度
+• 初始速度：每___毫秒下落一格（默认800）
+
+## 🏁 游戏结束条件
+• 什么时候结束：___
+• 结束后显示：___</code>
+            </div>
+            <div class="tip-box warning reveal" style="margin-top: 1rem;">
+                <p>⚠️ <strong>5个部分必须全填！</strong>不确定的地方保持默认值，但不能空着！</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 11: 可测试性
+         =========================================== -->
+    <section class="slide slide--content">
+        <div class="slide-content">
+            <div class="content-header">
+                <span class="content-emoji">🧪</span>
+                <h2>需求可测试性</h2>
+            </div>
+            <div class="card-grid">
+                <div class="card reveal">
+                    <div class="card-icon">✅</div>
+                    <h3>可测试的需求</h3>
+                    <p>"初始速度每800毫秒下落一格"</p>
+                    <p style="color: var(--rainbow-4); margin-top: 0.5rem;">→ 可以测试：数800ms看方块是否下落</p>
+                </div>
+                <div class="card reveal reveal-delay-1">
+                    <div class="card-icon">❌</div>
+                    <h3>不可测试的需求</h3>
+                    <p>"游戏体验要流畅"</p>
+                    <p style="color: var(--rainbow-1); margin-top: 0.5rem;">→ 怎么叫流畅？没办法测试！</p>
+                </div>
+            </div>
+            <div class="tip-box success reveal" style="margin-top: 2rem;">
+                <h4>✨ 记住</h4>
+                <p>能说出<strong>"什么情况下算做对了"</strong>，才是写清楚了的需求！</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 12: 新窗口原则
+         =========================================== -->
+    <section class="slide slide--content">
+        <div class="slide-content">
+            <div class="content-header">
+                <span class="content-emoji">🪟</span>
+                <h2>新窗口原则！</h2>
+            </div>
+            <div class="tip-box reveal">
+                <h4>🎭 上下文污染</h4>
+                <p>让同一个同学既写作文又给自己改错，他永远改不出大问题！</p>
+            </div>
+            <div class="step-flow" style="margin-top: 2rem;">
+                <div class="step-item">
+                    <span class="step-num" style="background: var(--rainbow-1);">A</span>
+                    <div class="step-text">
+                        <h4>📝 写需求</h4>
+                        <p>窗口 A</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-num" style="background: var(--rainbow-2);">B</span>
+                    <div class="step-text">
+                        <h4>🔍 审核需求</h4>
+                        <p>窗口 B（<strong>新窗口！</strong>）</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-num" style="background: var(--rainbow-3);">C</span>
+                    <div class="step-text">
+                        <h4>🚀 执行生成</h4>
+                        <p>窗口 C（<strong>新窗口！</strong>）</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 13: 审核提示词
+         =========================================== -->
+    <section class="slide slide--content">
+        <div class="slide-content">
+            <div class="content-header">
+                <span class="content-emoji">📝</span>
+                <h2>需求审核提示词</h2>
+            </div>
+            <div class="code-block reveal">
+                <code>我写了一份俄罗斯方块的需求文档，内容如下：
+
+[粘贴你的需求文档]
+
+请你扮演一个需求审核工程师，读完这份文档后，
+找出所有你觉得「没有说清楚」「可以有多种理解」
+「遇到特殊情况不知道怎么处理」的地方。
+
+注意：你审核的是需求本身，不是代码。
+请用<strong>问题的形式</strong>列出来（每条一行，以问号结尾）。
+<strong>不要帮我回答这些问题</strong>，不要帮我修改文档，
+只负责提问。</code>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 14: 审核示例
+         =========================================== -->
+    <section class="slide slide--content">
+        <div class="slide-content">
+            <div class="content-header">
+                <span class="content-emoji">🤔</span>
+                <h2>AI 会问什么问题？</h2>
+            </div>
+            <ul class="fun-list">
+                <li><span>🔄</span> "方块旋转到边界时，如果旋转后的形状超出边界，是直接禁止旋转，还是自动向内移动？"</li>
+                <li><span>⚡</span> "方块落下时速度极快，落地瞬间玩家还没松开方向键，方块会继续移动吗？"</li>
+                <li><span>✨</span> "当积木消除多行时，是一行一行消，还是同时消除？"</li>
+                <li><span>🔄</span> "游戏结束画面，除了「游戏结束」和得分，还需要「重新开始」按钮吗？"</li>
+            </ul>
+            <div class="tip-box reveal" style="margin-top: 2rem;">
+                <h4>💡 这些问题，你想到了吗？</h4>
+                <p>这全是你需求文档里可能没写的！这就是审核的价值 🎯</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 15: 提交生成
+         =========================================== -->
+    <section class="slide slide--content">
+        <div class="slide-content">
+            <div class="content-header">
+                <span class="content-emoji">🚀</span>
+                <h2>第三步：提交生成！</h2>
+            </div>
+            <div class="code-block reveal">
+                <code>请根据以下需求文档，用单个 HTML 文件
+（内联 CSS 和 JS）做一个俄罗斯方块游戏。
+
+要求：<strong>严格按照需求文档实现</strong>，
+不要添加文档里没有提到的功能。
+
+需求文档：
+[粘贴你的完整需求文档]</code>
+            </div>
+            <div class="tip-box success reveal" style="margin-top: 2rem;">
+                <h4>✨ 关键</h4>
+                <p>强调<strong>"不要添加文档里没有提到的功能"</strong><br/>防止 AI 自作主张！</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 16: 验收清单
+         =========================================== -->
+    <section class="slide slide--content">
+        <div class="slide-content">
+            <div class="content-header">
+                <span class="content-emoji">✅</span>
+                <h2>生成完 ≠ 完成！</h2>
+            </div>
+            <div class="tip-box reveal">
+                <h4>📋 验收方法</h4>
+                <p>需求文档里写了什么，就测什么！</p>
+            </div>
+            <div class="code-block reveal" style="margin-top: 2rem;">
+                <code>消行规则：横向填满整行就消除
+→ 实际测试：把一行填满，看它消没消
+→ <strong>通过 ✓</strong>
+
+碰到左边界停止移动
+→ 实际测试：推到最左边，继续按左键...
+→ <strong>不通过 ✗ → 需要溯源</strong></code>
+            </div>
+            <div class="tip-box warning reveal" style="margin-top: 1rem;">
+                <p>⚠️ <strong>每条都要真的去操作</strong>，不能只是"看起来好像对"！</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 17: 结果溯源
+         =========================================== -->
+    <section class="slide slide--content">
+        <div class="slide-content">
+            <div class="content-header">
+                <span class="content-emoji">🔍</span>
+                <h2>结果溯源</h2>
+            </div>
+            <div class="step-flow">
+                <div class="step-item">
+                    <span class="step-num" style="background: #ff6b6b;">1</span>
+                    <div class="step-text">
+                        <h4>😱 发现问题</h4>
+                        <p>方块能移出右边界，一半跑出屏幕了</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-num" style="background: #feca57;">2</span>
+                    <div class="step-text">
+                        <h4>📄 回到需求</h4>
+                        <p>找「移动规则」这一节</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-num" style="background: #48dbfb;">3</span>
+                    <div class="step-text">
+                        <h4>💡 找到根源</h4>
+                        <p>"碰到边界停止"没写清楚是中心还是边缘</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-num" style="background: #1dd1a1;">4</span>
+                    <div class="step-text">
+                        <h4>✏️ 修改需求</h4>
+                        <p>改成"方块任意一侧碰到边界就停止"</p>
+                    </div>
+                </div>
+            </div>
+            <div class="tip-box success reveal" style="margin-top: 2rem;">
+                <h4>✨ 关键</h4>
+                <p><strong>不需要动代码！</strong>需求说清楚了，AI 会重新做对 🎉</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 18: 第三幕
+         =========================================== -->
+    <section class="slide slide--section">
+        <div class="big-number">03</div>
+        <div class="slide-content section-content">
+            <div class="section-emoji">🤔</div>
+            <h2>第三幕：反思</h2>
+            <p class="section-subtitle">🎤 成果展示 + 互评 — 10分钟</p>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 19: 展示要点
+         =========================================== -->
+    <section class="slide slide--content">
+        <div class="slide-content">
+            <div class="content-header">
+                <span class="content-emoji">🎤</span>
+                <h2>展示三件事！</h2>
+            </div>
+            <ul class="fun-list">
+                <li><span>🎨</span> <strong>你的需求文档里，有没有加什么你自己特别设计的规则？</strong></li>
+                <li><span>🤯</span> <strong>AI 压力测试问了你什么最意外的问题？你最后怎么回答的？</strong></li>
+                <li><span>🔄</span> <strong>你第一版和第二版有什么不同？是溯源到了哪条需求？</strong></li>
+            </ul>
+            <div class="tip-box reveal" style="margin-top: 2rem;">
+                <h4>💡 互评规则</h4>
+                <p>不只评价"好不好玩"，而是看需求文档：<br/>
+                <strong>一个优点</strong> — 哪里写得很清楚？<br/>
+                <strong>一个建议</strong> — 还有什么没说清楚？</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 20: 第四幕
+         =========================================== -->
+    <section class="slide slide--section">
+        <div class="big-number">04</div>
+        <div class="slide-content section-content">
+            <div class="section-emoji">🚀</div>
+            <h2>第四幕：延续</h2>
+            <p class="section-subtitle">📚 抽象总结 + 下节预告 — 5分钟</p>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 21: 总结
+         =========================================== -->
+    <section class="slide slide--content">
+        <div class="slide-content">
+            <div class="content-header">
+                <span class="content-emoji">📚</span>
+                <h2>今天学到的核心流程</h2>
+            </div>
+            <div class="tip-box reveal">
+                <h4>🚀 Plan Mode — 你跟 AI 合作的基础动作</h4>
+            </div>
+            <div class="card-grid" style="margin-top: 2rem;">
+                <div class="card reveal">
+                    <div class="card-icon">📝</div>
+                    <h3>第一步</h3>
+                    <p>写需求文档</p>
+                </div>
+                <div class="card reveal reveal-delay-1">
+                    <div class="card-icon">🔍</div>
+                    <h3>第二步</h3>
+                    <p>AI 审核（开新窗口）</p>
+                </div>
+                <div class="card reveal reveal-delay-2">
+                    <div class="card-icon">✅</div>
+                    <h3>第三步</h3>
+                    <p>回答问题，完善需求</p>
+                </div>
+                <div class="card reveal reveal-delay-3">
+                    <div class="card-icon">🎯</div>
+                    <h3>生成后</h3>
+                    <p>逐条验收，溯源回需求</p>
+                </div>
+            </div>
+            <div class="tip-box success reveal" style="margin-top: 2rem;">
+                <h4>✨ 记住</h4>
+                <p>需求写得越详细，AI 执行越准确。<br/>需求写不清楚，改来改去反而更慢！</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 22: 下节预告
+         =========================================== -->
+    <section class="slide slide--content">
+        <div class="slide-content">
+            <div class="content-header">
+                <span class="content-emoji">📅</span>
+                <h2>下节课预告！</h2>
+            </div>
+            <div class="tip-box reveal">
+                <h4>🎮 给俄罗斯方块加功能！</h4>
+                <p>每个人选一个你想加的功能，用同样的方法：<br/>
+                <strong>写需求 → 压力测试 → 生成 → 验收</strong></p>
+            </div>
+            <div class="card-grid" style="margin-top: 2rem;">
+                <div class="card reveal">
+                    <div class="card-icon">💣</div>
+                    <h3>炸弹功能</h3>
+                    <p>可以炸掉一行</p>
+                </div>
+                <div class="card reveal reveal-delay-1">
+                    <div class="card-icon">🌈</div>
+                    <h3>变色功能</h3>
+                    <p>让方块会变色</p>
+                </div>
+                <div class="card reveal reveal-delay-2">
+                    <div class="card-icon">👾</div>
+                    <h3>Boss 模式</h3>
+                    <p>加个 Boss 挑战</p>
+                </div>
+                <div class="card reveal reveal-delay-3">
+                    <div class="card-icon">🏆</div>
+                    <h3>最高分记录</h3>
+                    <p>记住历史最高分</p>
+                </div>
+            </div>
+            <div class="tip-box warning reveal" style="margin-top: 2rem;">
+                <h4>📝 本周5分钟挑战</h4>
+                <p>想好下节课要加的功能，想想：<br/><strong>这个功能最难描述清楚的是哪一条？</strong></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 23: FAQ
+         =========================================== -->
+    <section class="slide slide--content">
+        <div class="slide-content">
+            <div class="content-header">
+                <span class="content-emoji">❓</span>
+                <h2>常见问题</h2>
+            </div>
+            <div class="card-grid">
+                <div class="card reveal">
+                    <div class="card-icon">❓</div>
+                    <h3>生成代码打开没反应</h3>
+                    <p>检查是否保存为 .html 格式，用浏览器打开</p>
+                </div>
+                <div class="card reveal reveal-delay-1">
+                    <div class="card-icon">❓</div>
+                    <h3>方块可以移出边界</h3>
+                    <p>需求里"碰到边界"没写清楚，溯源补充</p>
+                </div>
+                <div class="card reveal reveal-delay-2">
+                    <div class="card-icon">❓</div>
+                    <h3>消行了但积木没下移</h3>
+                    <p>需求里"消行后上方积木下移"没写</p>
+                </div>
+                <div class="card reveal reveal-delay-3">
+                    <div class="card-icon">❓</div>
+                    <h3>想直接改代码</h3>
+                    <p>先改需求文档，让 AI 重新生成更安全</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 24: 结束
+         =========================================== -->
+    <section class="slide slide--title">
+        <div class="slide-content">
+            <div class="game-icon">🎉</div>
+            <h1>下节课见！</h1>
+            <div class="badge-group">
+                <span class="badge">💡 记住：Plan Mode 先行！</span>
+                <span class="badge">🎮 魔幻俄罗斯方块（下）</span>
+            </div>
+        </div>
+    </section>
+
+    <script>
+      /* ===========================================
+         SLIDE CONTROLLER
+         =========================================== */
+      class SlidePresentation {
+        constructor() {
+          this.slides = document.querySelectorAll(".slide");
+          this.currentSlide = 0;
+          this.totalSlides = this.slides.length;
+          this.setupIntersectionObserver();
+          this.setupKeyboardNav();
+          this.setupProgressBar();
+          this.setupNavDots();
+        }
+
+        setupIntersectionObserver() {
+          const options = {
+            root: null,
+            rootMargin: "0px",
+            threshold: 0.5
+          };
+
+          const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("visible");
+                const index = Array.from(this.slides).indexOf(entry.target);
+                this.currentSlide = index;
+                this.updateNavDots();
+              }
+            });
+          }, options);
+
+          this.slides.forEach(slide => observer.observe(slide));
+        }
+
+        setupKeyboardNav() {
+          document.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowDown" || e.key === "ArrowRight" || e.key === " ") {
+              e.preventDefault();
+              this.nextSlide();
+            } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+              e.preventDefault();
+              this.prevSlide();
+            }
+          });
+        }
+
+        setupProgressBar() {
+          window.addEventListener("scroll", () => {
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = (scrollTop / docHeight) * 100;
+            document.getElementById("progressBar").style.width = progress + "%";
+          });
+        }
+
+        setupNavDots() {
+          const container = document.getElementById("navDots");
+          container.innerHTML = "";
+          this.slides.forEach((_, index) => {
+            const dot = document.createElement("div");
+            dot.className = "nav-dot" + (index === 0 ? " active" : "");
+            dot.addEventListener("click", () => this.goToSlide(index));
+            container.appendChild(dot);
+          });
+        }
+
+        updateNavDots() {
+          const dots = document.querySelectorAll(".nav-dot");
+          dots.forEach((dot, index) => {
+            dot.classList.toggle("active", index === this.currentSlide);
+          });
+        }
+
+        nextSlide() {
+          if (this.currentSlide < this.totalSlides - 1) {
+            this.goToSlide(this.currentSlide + 1);
+          }
+        }
+
+        prevSlide() {
+          if (this.currentSlide > 0) {
+            this.goToSlide(this.currentSlide - 1);
+          }
+        }
+
+        goToSlide(index) {
+          this.slides[index].scrollIntoView({ behavior: "smooth" });
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        new SlidePresentation();
+      });
+    </script>
+</body>
+</html>
