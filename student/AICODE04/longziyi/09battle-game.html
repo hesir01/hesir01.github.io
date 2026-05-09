@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ 速攻英雄 - 回合制战斗</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px #e94560;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+
+        /* 属性分配界面 */
+        .attribute-allocation {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .allocation-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #e94560;
+        }
+
+        .points-info {
+            background: rgba(233, 69, 96, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        .points-info .remaining {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #e94560;
+        }
+
+        .points-info .remaining.valid {
+            color: #4ecdc4;
+        }
+
+        .attr-rules {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+
+        .attr-rules span {
+            color: #ffd700;
+            margin-right: 15px;
+        }
+
+        .attr-sliders {
+            display: grid;
+            gap: 20px;
+        }
+
+        .attr-row {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .attr-row:hover {
+            background: rgba(255,255,255,0.06);
+        }
+
+        .attr-label {
+            width: 80px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .attr-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 10px;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.2);
+            outline: none;
+        }
+
+        .attr-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #e94560;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+        }
+
+        .attr-value {
+            width: 120px;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        .attr-value .points {
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+
+        .start-btn {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            margin-top: 30px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #fff;
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .start-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(233, 69, 96, 0.4);
+        }
+
+        .start-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* 战斗界面 */
+        .battle-screen {
+            display: none;
+        }
+
+        .battle-arena {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .character-card {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .character-card.active {
+            border-color: #e94560;
+            box-shadow: 0 0 30px rgba(233, 69, 96, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(233, 69, 96, 0.3); }
+            50% { box-shadow: 0 0 50px rgba(233, 69, 96, 0.5); }
+        }
+
+        .character-card.player {
+            background: linear-gradient(135deg, rgba(15, 52, 96, 0.5), rgba(22, 33, 62, 0.5));
+        }
+
+        .character-card.ai {
+            background: linear-gradient(135deg, rgba(96, 15, 52, 0.5), rgba(62, 22, 33, 0.5));
+        }
+
+        .char-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* 玩家精灵图头像 */
+        .char-avatar.player-sprite {
+            background: url('image.png') no-repeat;
+            background-size: 200% 100%; /* 两帧水平排列 */
+            background-position: 0% 0%; /* 默认显示第一帧（待机） */
+            image-rendering: pixelated; /* 保持像素清晰 */
+            animation: idle 0.8s steps(1) infinite;
+        }
+
+        /* 待机动画 - 切换两帧 */
+        @keyframes idle {
+            0%, 49% { background-position: 0% 0%; } /* 第一帧 */
+            50%, 100% { background-position: 100% 0%; } /* 第二帧 */
+        }
+
+        /* 攻击动画 - 显示攻击帧 */
+        .char-avatar.player-sprite.attack {
+            animation: attackAnim 0.3s steps(1);
+        }
+
+        @keyframes attackAnim {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 0%; transform: scale(1.1); }
+            100% { background-position: 0% 0%; transform: scale(1); }
+        }
+
+        .char-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .char-type {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-bottom: 15px;
+        }
+
+        .hp-bar {
+            background: rgba(0,0,0,0.3);
+            height: 25px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .hp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e94560, #ff6b6b);
+            transition: width 0.5s ease;
+            border-radius: 15px;
+        }
+
+        .hp-fill.low {
+            background: linear-gradient(90deg, #ff4757, #ff6348);
+        }
+
+        .hp-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .stat-badge {
+            background: rgba(255,255,255,0.1);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .stat-badge.spd { color: #4ecdc4; }
+        .stat-badge.atk { color: #ff6b6b; }
+        .stat-badge.def { color: #95e1d3; }
+
+        .skill-status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+
+        .skill-status.available {
+            background: rgba(78, 205, 196, 0.2);
+            color: #4ecdc4;
+        }
+
+        .skill-status.used {
+            background: rgba(100, 100, 100, 0.2);
+            color: #888;
+        }
+
+        .block-indicator {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #4facfe;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: none;
+        }
+
+        .block-indicator.show {
+            display: block;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* VS 标记 */
+        .vs-marker {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #e94560;
+            text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+        }
+
+        /* 行动区域 */
+        .action-area {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .action-title {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #ffd700;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .action-btn {
+            padding: 20px 15px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s;
+            color: #fff;
+        }
+
+        .action-btn.attack {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .action-btn.heavy {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+        }
+
+        .action-btn.block {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        }
+
+        .action-btn.skill {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #000;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .action-btn .desc {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: normal;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+
+        /* 战斗日志 */
+        .battle-log {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-title {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #ffd700;
+            position: sticky;
+            top: 0;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .log-entry {
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .log-entry.damage {
+            background: rgba(233, 69, 96, 0.2);
+            border-left: 4px solid #e94560;
+        }
+
+        .log-entry.skill {
+            background: rgba(255, 215, 0, 0.2);
+            border-left: 4px solid #ffd700;
+        }
+
+        .log-entry.block {
+            background: rgba(79, 172, 254, 0.2);
+            border-left: 4px solid #4facfe;
+        }
+
+        .log-entry.turn {
+            background: rgba(255,255,255,0.1);
+            border-left: 4px solid #fff;
+            font-weight: bold;
+        }
+
+        .log-entry.result {
+            background: rgba(78, 205, 196, 0.3);
+            border-left: 4px solid #4ecdc4;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .log-entry.system {
+            background: rgba(100, 100, 100, 0.2);
+            border-left: 4px solid #888;
+            font-style: italic;
+        }
+
+        /* 结果弹窗 */
+        .result-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .result-modal.show {
+            display: flex;
+        }
+
+        .result-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            padding: 50px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .result-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+
+        .result-text {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .result-desc {
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+
+        .restart-btn {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(233, 69, 96, 0.4);
+        }
+
+        /* 回合指示器 */
+        .turn-indicator {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(233, 69, 96, 0.2);
+            border-radius: 10px;
+        }
+
+        /* AI属性展示 */
+        .ai-attrs-revealed .hidden-stat {
+            opacity: 1;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .battle-arena {
+                flex-direction: column;
+            }
+
+            .vs-marker {
+                transform: rotate(90deg);
+                margin: 10px 0;
+            }
+
+            .action-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .attr-row {
+                flex-wrap: wrap;
+            }
+
+            .attr-label {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+
+        /* 伤害数字动画 */
+        .damage-number {
+            position: absolute;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #e94560;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.8);
+            animation: damageFloat 1s ease forwards;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        @keyframes damageFloat {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>⚡ 速攻英雄</h1>
+        <p class="subtitle">回合制战斗游戏</p>
+
+        <!-- 属性分配界面 -->
+        <div class="attribute-allocation" id="allocationScreen">
+            <h2 class="allocation-title">🎮 分配属性点</h2>
+            
+            <div class="points-info">
+                剩余属性点: <span class="remaining" id="remainingPoints">20</span> / 20
+            </div>
+
+            <div class="attr-rules">
+                <span>💚 1点 = 100 HP</span>
+                <span>⚔️ 1点 = 5 ATK</span>
+                <span>🛡️ 1点 = 3 DEF</span>
+                <span>⚡ 1点 = 1 SPD</span>
+                <br><small>⚠️ 特技不占用属性点 | 必须分配完所有20点才能开始</small>
+            </div>
+
+            <div class="attr-sliders">
+                <div class="attr-row">
+                    <span class="attr-label">💚 HP</span>
+                    <input type="range" class="attr-slider" id="hpSlider" min="0" max="20" value="0">
+                    <div class="attr-value">
+                        <span id="hpValue">0</span>
+                        <span class="points">(<span id="hpPoints">0</span>点)</span>
+                    </div>
+                </div>
+                <div class="attr-row">
+                    <span class="attr-label">⚔️ ATK</span>
+                    <input type="range" class="attr-slider" id="atkSlider" min="0" max="20" value="0">
+                    <div class="attr-value">
+                        <span id="atkValue">0</span>
+                        <span class="points">(<span id="atkPoints">0</span>点)</span>
+                    </div>
+                </div>
+                <div class="attr-row">
+                    <span class="attr-label">🛡️ DEF</span>
+                    <input type="range" class="attr-slider" id="defSlider" min="0" max="20" value="0">
+                    <div class="attr-value">
+                        <span id="defValue">0</span>
+                        <span class="points">(<span id="defPoints">0</span>点)</span>
+                    </div>
+                </div>
+                <div class="attr-row">
+                    <span class="attr-label">⚡ SPD</span>
+                    <input type="range" class="attr-slider" id="spdSlider" min="0" max="20" value="0">
+                    <div class="attr-value">
+                        <span id="spdValue">0</span>
+                        <span class="points">(<span id="spdPoints">0</span>点)</span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="start-btn" id="startBtn" onclick="startBattle()" disabled>开始战斗</button>
+        </div>
+
+        <!-- 战斗界面 -->
+        <div class="battle-screen" id="battleScreen">
+            <div class="turn-indicator" id="turnIndicator">准备战斗...</div>
+            
+            <div class="battle-arena">
+                <div class="character-card player" id="playerCard">
+                    <div class="block-indicator" id="playerBlockIndicator">🛡️ 格挡中</div>
+                    <div class="char-avatar player-sprite" id="playerAvatar"></div>
+                    <div class="char-name">速攻英雄</div>
+                    <div class="char-type">玩家</div>
+                    <div class="hp-bar">
+                        <div class="hp-fill" id="playerHpBar" style="width: 100%"></div>
+                        <div class="hp-text" id="playerHpText">0 / 0</div>
+                    </div>
+                    <div class="stats">
+                        <span class="stat-badge spd">⚡ <span id="playerSpd">0</span></span>
+                        <span class="stat-badge atk">⚔️ <span id="playerAtk">0</span></span>
+                        <span class="stat-badge def">🛡️ <span id="playerDef">0</span></span>
+                    </div>
+                    <div class="skill-status available" id="playerSkillStatus">
+                        ⚡ 闪电穿刺 - 可用
+                    </div>
+                </div>
+
+                <div class="vs-marker">VS</div>
+
+                <div class="character-card ai" id="aiCard">
+                    <div class="block-indicator" id="aiBlockIndicator">🛡️ 格挡中</div>
+                    <div class="char-avatar">👹</div>
+                    <div class="char-name">暗影刺客</div>
+                    <div class="char-type">AI 对手</div>
+                    <div class="hp-bar">
+                        <div class="hp-fill" id="aiHpBar" style="width: 100%"></div>
+                        <div class="hp-text" id="aiHpText">? / ?</div>
+                    </div>
+                    <div class="stats">
+                        <span class="stat-badge spd">⚡ <span id="aiSpd">?</span></span>
+                        <span class="stat-badge atk">⚔️ <span id="aiAtk">?</span></span>
+                        <span class="stat-badge def">🛡️ <span id="aiDef">?</span></span>
+                    </div>
+                    <div class="skill-status available" id="aiSkillStatus">
+                        ⚡ 暗影突袭 - 可用
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-area">
+                <div class="action-title" id="actionTitle">等待战斗开始...</div>
+                <div class="action-buttons" id="actionButtons">
+                    <button class="action-btn attack" onclick="playerAction('attack')" disabled>
+                        普通攻击
+                        <span class="desc">造成 ATK-DEF 伤害</span>
+                    </button>
+                    <button class="action-btn heavy" onclick="playerAction('heavy')" disabled>
+                        重击
+                        <span class="desc">伤害 ×1.8</span>
+                    </button>
+                    <button class="action-btn block" onclick="playerAction('block')" disabled>
+                        格挡
+                        <span class="desc">本回合减伤 50%</span>
+                    </button>
+                    <button class="action-btn skill" id="skillBtn" onclick="playerAction('skill')" disabled>
+                        ⚡ 闪电穿刺
+                        <span class="desc">每场限用1次，1.5倍伤害</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="battle-log">
+                <div class="log-title">📜 战斗日志</div>
+                <div id="logContent">
+                    <div class="log-entry system">等待战斗开始...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 结果弹窗 -->
+    <div class="result-modal" id="resultModal">
+        <div class="result-content">
+            <div class="result-icon" id="resultIcon">🏆</div>
+            <div class="result-text" id="resultText">胜利！</div>
+            <div class="result-desc" id="resultDesc">你成功击败了暗影刺客！</div>
+            <button class="restart-btn" onclick="restartGame()">重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 游戏配置 ====================
+        const CONFIG = {
+            // 属性换算
+            HP_PER_POINT: 100,
+            ATK_PER_POINT: 5,
+            DEF_PER_POINT: 3,
+            SPD_PER_POINT: 1,
+            TOTAL_POINTS: 20,
+            
+            // 战斗公式
+            HEAVY_MULTIPLIER: 1.8,
+            BLOCK_REDUCTION: 0.5,
+            SKILL_MULTIPLIER: 1.5,
+            MIN_DAMAGE: 1,
+            
+            // AI 决策
+            AI_SKILL_THRESHOLD: 0.30,  // HP < 30% 使用特技
+            AI_HEAVY_CHANCE: 0.25,      // 25% 概率重击
+            
+            // 延迟
+            AI_ACTION_DELAY: 1000,
+            TURN_SWITCH_DELAY: 500
+        };
+
+        // ==================== 游戏状态 ====================
+        let gameState = {
+            player: null,
+            ai: null,
+            currentTurn: 1,
+            battleActive: false,
+            turnOrder: [],      // 行动顺序数组
+            currentActorIndex: 0,
+            isProcessing: false
+        };
+
+        // ==================== 特技数据 ====================
+        const SPECIAL_SKILLS = {
+            player: {
+                name: "⚡ 闪电穿刺",
+                description: "造成 150% 攻击力的穿透伤害，本回合免疫伤害",
+                multiplier: 1.5,
+                invincible: true
+            },
+            ai: {
+                name: "⚡ 暗影突袭",
+                description: "造成 150% 攻击力的穿透伤害，本回合免疫伤害",
+                multiplier: 1.5,
+                invincible: true
+            }
+        };
+
+        // ==================== 初始化 ====================
+        function initSliders() {
+            const sliders = ['hp', 'atk', 'def', 'spd'];
+            sliders.forEach(attr => {
+                const slider = document.getElementById(`${attr}Slider`);
+                slider.addEventListener('input', () => updateAttribute(attr));
+            });
+            updateAllAttributes();
+        }
+
+        function updateAttribute(attr) {
+            const slider = document.getElementById(`${attr}Slider`);
+            const valueEl = document.getElementById(`${attr}Value`);
+            const pointsEl = document.getElementById(`${attr}Points`);
+            
+            const points = parseInt(slider.value);
+            let value;
+            
+            switch(attr) {
+                case 'hp': value = points * CONFIG.HP_PER_POINT; break;
+                case 'atk': value = points * CONFIG.ATK_PER_POINT; break;
+                case 'def': value = points * CONFIG.DEF_PER_POINT; break;
+                case 'spd': value = points * CONFIG.SPD_PER_POINT; break;
+            }
+            
+            valueEl.textContent = value;
+            pointsEl.textContent = points;
+            
+            updateRemainingPoints();
+        }
+
+        function updateAllAttributes() {
+            ['hp', 'atk', 'def', 'spd'].forEach(attr => updateAttribute(attr));
+        }
+
+        function updateRemainingPoints() {
+            const used = ['hp', 'atk', 'def', 'spd'].reduce((sum, attr) => {
+                return sum + parseInt(document.getElementById(`${attr}Slider`).value);
+            }, 0);
+            
+            const remaining = CONFIG.TOTAL_POINTS - used;
+            const remainingEl = document.getElementById('remainingPoints');
+            remainingEl.textContent = remaining;
+            remainingEl.classList.toggle('valid', remaining === 0);
+            
+            document.getElementById('startBtn').disabled = remaining !== 0;
+        }
+
+        // ==================== 角色创建 ====================
+        function createCharacter(type, hpPoints, atkPoints, defPoints, spdPoints) {
+            return {
+                type: type,
+                maxHp: hpPoints * CONFIG.HP_PER_POINT,
+                hp: hpPoints * CONFIG.HP_PER_POINT,
+                atk: atkPoints * CONFIG.ATK_PER_POINT,
+                def: defPoints * CONFIG.DEF_PER_POINT,
+                spd: spdPoints * CONFIG.SPD_PER_POINT,
+                skillUsed: false,
+                isBlocking: false,
+                isInvincible: false,  // 本回合是否无敌（使用特技）
+                skill: SPECIAL_SKILLS[type]
+            };
+        }
+
+        // AI 属性分配策略 - 基于20点属性的智能分配
+        function generateAIAttributes() {
+            // AI 策略组合（总计20点）
+            const strategies = [
+                { hp: 3, atk: 8, def: 1, spd: 8, name: '均衡速攻' },
+                { hp: 2, atk: 10, def: 0, spd: 8, name: '极限攻击' },
+                { hp: 4, atk: 7, def: 1, spd: 8, name: '稍肉速攻' },
+                { hp: 2, atk: 8, def: 2, spd: 8, name: '稍防速攻' },
+                { hp: 5, atk: 6, def: 2, spd: 7, name: '偏肉战士' },
+                { hp: 3, atk: 9, def: 0, spd: 8, name: '狂战士' },
+                { hp: 6, atk: 5, def: 3, spd: 6, name: '坦克型' }
+            ];
+            
+            const strategy = strategies[Math.floor(Math.random() * strategies.length)];
+            addLog(`AI 选择了「${strategy.name}」策略`, 'system');
+            return strategy;
+        }
+
+        // ==================== 战斗流程 ====================
+        function startBattle() {
+            const hpPoints = parseInt(document.getElementById('hpSlider').value);
+            const atkPoints = parseInt(document.getElementById('atkSlider').value);
+            const defPoints = parseInt(document.getElementById('defSlider').value);
+            const spdPoints = parseInt(document.getElementById('spdSlider').value);
+
+            // 创建角色
+            gameState.player = createCharacter('player', hpPoints, atkPoints, defPoints, spdPoints);
+            
+            const aiAttrs = generateAIAttributes();
+            gameState.ai = createCharacter('ai', aiAttrs.hp, aiAttrs.atk, aiAttrs.def, aiAttrs.spd);
+
+            // 重置状态
+            gameState.currentTurn = 1;
+            gameState.battleActive = true;
+            gameState.isProcessing = false;
+            gameState.currentActorIndex = 0;
+
+            // 更新 UI
+            updateBattleUI();
+            clearLog();
+            
+            // 切换界面
+            document.getElementById('allocationScreen').style.display = 'none';
+            document.getElementById('battleScreen').style.display = 'block';
+
+            // 输出初始信息
+            addLog('⚔️ 战斗开始！', 'turn');
+            addLog(`玩家: HP=${gameState.player.maxHp} ATK=${gameState.player.atk} DEF=${gameState.player.def} SPD=${gameState.player.spd}`, 'system');
+            addLog(`AI: HP=${gameState.ai.maxHp} ATK=${gameState.ai.atk} DEF=${gameState.ai.def} SPD=${gameState.ai.spd}`, 'system');
+            
+            // 决定行动顺序并开始
+            determineTurnOrder();
+            setTimeout(startTurn, 500);
+        }
+
+        function determineTurnOrder() {
+            const player = gameState.player;
+            const ai = gameState.ai;
+
+            // SPD 高的先出手，同速时随机
+            if (player.spd > ai.spd) {
+                gameState.turnOrder = [player, ai];
+                addLog(`⚡ 玩家速度更快 (${player.spd} > ${ai.spd})，获得先手！`, 'turn');
+            } else if (ai.spd > player.spd) {
+                gameState.turnOrder = [ai, player];
+                addLog(`⚡ AI 速度更快 (${ai.spd} > ${player.spd})，获得先手！`, 'turn');
+            } else {
+                // 同速随机
+                const playerFirst = Math.random() < 0.5;
+                gameState.turnOrder = playerFirst ? [player, ai] : [ai, player];
+                addLog(`⚡ 双方速度相同 (${player.spd})，随机决定：${playerFirst ? '玩家' : 'AI'} 先手！`, 'turn');
+            }
+            
+            gameState.currentActorIndex = 0;
+        }
+
+        function startTurn() {
+            if (!gameState.battleActive || gameState.isProcessing) return;
+
+            const currentActor = gameState.turnOrder[gameState.currentActorIndex];
+            const isPlayer = currentActor.type === 'player';
+            
+            // 清除上一回合的无敌状态（在开始新回合前清除）
+            if (gameState.currentActorIndex === 0) {
+                gameState.player.isInvincible = false;
+                gameState.ai.isInvincible = false;
+            }
+            
+            // 更新 UI
+            document.getElementById('turnIndicator').textContent = 
+                `第 ${gameState.currentTurn} 回合 - ${isPlayer ? '🦸 玩家回合' : '👹 AI 回合'}`;
+            
+            document.getElementById('playerCard').classList.toggle('active', isPlayer);
+            document.getElementById('aiCard').classList.toggle('active', !isPlayer);
+
+            // 更新格挡指示器
+            document.getElementById('playerBlockIndicator').classList.toggle('show', gameState.player.isBlocking);
+            document.getElementById('aiBlockIndicator').classList.toggle('show', gameState.ai.isBlocking);
+
+            if (isPlayer) {
+                enablePlayerActions();
+                document.getElementById('actionTitle').textContent = '🎮 选择你的行动';
+                addLog(`🦸 玩家回合开始`, 'turn');
+            } else {
+                disablePlayerActions();
+                document.getElementById('actionTitle').textContent = '🤔 AI 正在决策...';
+                addLog(`👹 AI 回合开始`, 'turn');
+                gameState.isProcessing = true;
+                setTimeout(() => {
+                    gameState.isProcessing = false;
+                    aiAction();
+                }, CONFIG.AI_ACTION_DELAY);
+            }
+        }
+
+        // ==================== 玩家行动 ====================
+        function playerAction(actionType) {
+            if (!gameState.battleActive || gameState.isProcessing) return;
+            
+            gameState.isProcessing = true;
+            disablePlayerActions();
+            
+            // 触发攻击动画（如果是攻击类动作）
+            if (actionType === 'attack' || actionType === 'heavy' || actionType === 'skill') {
+                playPlayerAttackAnimation();
+            }
+            
+            const target = gameState.ai;
+            executeAction(gameState.player, target, actionType);
+            
+            if (checkBattleEnd()) return;
+            
+            setTimeout(nextActor, CONFIG.TURN_SWITCH_DELAY);
+        }
+
+        // 播放玩家攻击动画
+        function playPlayerAttackAnimation() {
+            const avatar = document.getElementById('playerAvatar');
+            if (avatar) {
+                avatar.classList.add('attack');
+                setTimeout(() => {
+                    avatar.classList.remove('attack');
+                }, 300);
+            }
+        }
+
+        // ==================== AI 行动 ====================
+        function aiAction() {
+            if (!gameState.battleActive) return;
+            
+            const ai = gameState.ai;
+            const player = gameState.player;
+            const hpPercent = ai.hp / ai.maxHp;
+            
+            let actionType;
+            let reason = '';
+            
+            // AI 决策逻辑（按优先级）
+            if (hpPercent < CONFIG.AI_SKILL_THRESHOLD && !ai.skillUsed) {
+                // 优先：血量低于30%且特技未使用
+                actionType = 'skill';
+                reason = '生命值低于 30%，释放保命特技！';
+            } else if (Math.random() < CONFIG.AI_HEAVY_CHANCE) {
+                // 其次：25%概率重击
+                actionType = 'heavy';
+                reason = '选择重击，追求爆发伤害';
+            } else {
+                // 默认：普通攻击
+                actionType = 'attack';
+                reason = '选择普通攻击';
+            }
+            
+            addLog(`🤖 AI ${reason}`, 'system');
+            executeAction(ai, player, actionType);
+            
+            if (checkBattleEnd()) return;
+            
+            setTimeout(nextActor, CONFIG.TURN_SWITCH_DELAY);
+        }
+
+        // ==================== 执行行动 ====================
+        function executeAction(attacker, defender, actionType) {
+            const attackerName = attacker.type === 'player' ? '🦸 玩家' : '👹 AI';
+            const defenderName = defender.type === 'player' ? '🦸 玩家' : '👹 AI';
+            
+            switch(actionType) {
+                case 'attack':
+                    performAttack(attacker, defender, false);
+                    break;
+                    
+                case 'heavy':
+                    performAttack(attacker, defender, true);
+                    break;
+                    
+                case 'block':
+                    attacker.isBlocking = true;
+                    addLog(`${attackerName} 进入🛡️ 格挡姿态，本回合受到的伤害减少 50%`, 'block');
+                    break;
+                    
+                case 'skill':
+                    performSkill(attacker, defender);
+                    break;
+            }
+            
+            updateBattleUI();
+        }
+
+        function performAttack(attacker, defender, isHeavy) {
+            const attackerName = attacker.type === 'player' ? '🦸 玩家' : '👹 AI';
+            const defenderName = defender.type === 'player' ? '🦸 玩家' : '👹 AI';
+            
+            // 检查目标是否无敌
+            if (defender.isInvincible) {
+                addLog(`${defenderName} 处于⚡无敌状态，攻击被闪避！`, 'skill');
+                return;
+            }
+            
+            // 基础伤害 = ATK - DEF，最低1点
+            let damage = Math.max(CONFIG.MIN_DAMAGE, attacker.atk - defender.def);
+            
+            // 重击加成
+            if (isHeavy) {
+                damage = Math.round(damage * CONFIG.HEAVY_MULTIPLIER);
+            }
+            
+            // 格挡减伤
+            if (defender.isBlocking) {
+                damage = Math.round(damage * CONFIG.BLOCK_REDUCTION);
+            }
+            
+            // 应用伤害
+            defender.hp = Math.max(0, defender.hp - damage);
+            
+            // 日志
+            if (isHeavy) {
+                addLog(`💥 ${attackerName} 使用重击！造成 ${damage} 点伤害！`, 'damage');
+            } else {
+                addLog(`⚔️ ${attackerName} 使用普通攻击，造成 ${damage} 点伤害`, 'damage');
+            }
+            
+            if (defender.isBlocking) {
+                addLog(`🛡️ ${defenderName} 格挡生效，伤害减半`, 'block');
+            }
+        }
+
+        function performSkill(attacker, defender) {
+            const attackerName = attacker.type === 'player' ? '🦸 玩家' : '👹 AI';
+            const defenderName = defender.type === 'player' ? '🦸 玩家' : '👹 AI';
+            
+            if (attacker.skillUsed) {
+                // 特技已使用，转为普通攻击
+                addLog(`⚠️ ${attackerName} 的特技已使用，改为普通攻击`, 'system');
+                performAttack(attacker, defender, false);
+                return;
+            }
+            
+            // 标记特技已使用
+            attacker.skillUsed = true;
+            
+            // 本回合无敌
+            attacker.isInvincible = true;
+            
+            // 真实伤害 = ATK * 1.5（无视防御）
+            let damage = Math.round(attacker.atk * CONFIG.SKILL_MULTIPLIER);
+            
+            // 应用伤害（无视格挡，因为是真实伤害）
+            defender.hp = Math.max(0, defender.hp - damage);
+            
+            // 日志
+            addLog(`✨ ${attackerName} 释放特技「${attacker.skill.name}」！`, 'skill');
+            addLog(`⚡ 造成 ${damage} 点真实伤害（无视防御）！`, 'damage');
+            addLog(`🌟 ${attackerName} 进入无敌状态，本回合免疫伤害`, 'skill');
+        }
+
+        // ==================== 回合管理 ====================
+        function nextActor() {
+            if (!gameState.battleActive) return;
+            
+            gameState.currentActorIndex++;
+            gameState.isProcessing = false;
+            
+            if (gameState.currentActorIndex >= gameState.turnOrder.length) {
+                // 回合结束
+                endRound();
+            } else {
+                // 同一回合的下一个行动者
+                startTurn();
+            }
+        }
+
+        function endRound() {
+            gameState.currentTurn++;
+            gameState.currentActorIndex = 0;
+            
+            // 清除本回合的所有临时状态
+            gameState.player.isBlocking = false;
+            gameState.ai.isBlocking = false;
+            gameState.player.isInvincible = false;
+            gameState.ai.isInvincible = false;
+            
+            // 隐藏格挡指示器
+            document.getElementById('playerBlockIndicator').classList.remove('show');
+            document.getElementById('aiBlockIndicator').classList.remove('show');
+            
+            addLog(`────────────`, 'system');
+            addLog(`📢 第 ${gameState.currentTurn} 回合开始`, 'turn');
+            
+            // 重新判定行动顺序（SPD可能因状态变化而改变，但这里SPD固定）
+            determineTurnOrder();
+            setTimeout(startTurn, CONFIG.TURN_SWITCH_DELAY);
+        }
+
+        // ==================== 胜负判定 ====================
+        function checkBattleEnd() {
+            const player = gameState.player;
+            const ai = gameState.ai;
+            
+            if (player.hp <= 0 || ai.hp <= 0) {
+                gameState.battleActive = false;
+                gameState.isProcessing = false;
+                
+                let result;
+                if (player.hp <= 0 && ai.hp <= 0) {
+                    result = 'draw';
+                    addLog('💀 双方同归于尽！', 'result');
+                } else if (player.hp <= 0) {
+                    result = 'lose';
+                    addLog('💀 玩家被击败！', 'result');
+                } else {
+                    result = 'win';
+                    addLog('🏆 玩家获胜！', 'result');
+                }
+                
+                setTimeout(() => showResult(result), 1000);
+                return true;
+            }
+            return false;
+        }
+
+        function showResult(result) {
+            const modal = document.getElementById('resultModal');
+            const icon = document.getElementById('resultIcon');
+            const text = document.getElementById('resultText');
+            const desc = document.getElementById('resultDesc');
+            
+            modal.classList.add('show');
+            
+            switch(result) {
+                case 'win':
+                    icon.textContent = '🏆';
+                    text.textContent = '胜利！';
+                    text.style.color = '#4ecdc4';
+                    desc.textContent = `经过 ${gameState.currentTurn} 回合的激战，你成功击败了暗影刺客！`;
+                    break;
+                case 'lose':
+                    icon.textContent = '💀';
+                    text.textContent = '失败...';
+                    text.style.color = '#e94560';
+                    desc.textContent = '你被暗影刺客击败了，调整属性分配再试一次吧！';
+                    break;
+                case 'draw':
+                    icon.textContent = '🤝';
+                    text.textContent = '平局！';
+                    text.style.color = '#ffd700';
+                    desc.textContent = '双方同归于尽，这是一场势均力敌的战斗！';
+                    break;
+            }
+        }
+
+        // ==================== UI 更新 ====================
+        function updateBattleUI() {
+            const player = gameState.player;
+            const ai = gameState.ai;
+            
+            // 玩家状态
+            const playerHpPercent = (player.hp / player.maxHp) * 100;
+            document.getElementById('playerHpBar').style.width = `${playerHpPercent}%`;
+            document.getElementById('playerHpBar').classList.toggle('low', playerHpPercent < 30);
+            document.getElementById('playerHpText').textContent = `${player.hp} / ${player.maxHp}`;
+            document.getElementById('playerSpd').textContent = player.spd;
+            document.getElementById('playerAtk').textContent = player.atk;
+            document.getElementById('playerDef').textContent = player.def;
+            
+            // AI 状态
+            const aiHpPercent = (ai.hp / ai.maxHp) * 100;
+            document.getElementById('aiHpBar').style.width = `${aiHpPercent}%`;
+            document.getElementById('aiHpBar').classList.toggle('low', aiHpPercent < 30);
+            document.getElementById('aiHpText').textContent = `${ai.hp} / ${ai.maxHp}`;
+            document.getElementById('aiSpd').textContent = ai.spd;
+            document.getElementById('aiAtk').textContent = ai.atk;
+            document.getElementById('aiDef').textContent = ai.def;
+            
+            // 特技状态
+            const playerSkillStatus = document.getElementById('playerSkillStatus');
+            if (player.skillUsed) {
+                playerSkillStatus.className = 'skill-status used';
+                playerSkillStatus.textContent = `${player.skill.name} - 已使用`;
+                document.getElementById('skillBtn').disabled = true;
+            } else {
+                playerSkillStatus.className = 'skill-status available';
+                playerSkillStatus.textContent = `${player.skill.name} - 可用`;
+            }
+            
+            const aiSkillStatus = document.getElementById('aiSkillStatus');
+            if (ai.skillUsed) {
+                aiSkillStatus.className = 'skill-status used';
+                aiSkillStatus.textContent = `${ai.skill.name} - 已使用`;
+            } else {
+                aiSkillStatus.className = 'skill-status available';
+                aiSkillStatus.textContent = `${ai.skill.name} - 可用`;
+            }
+        }
+
+        function enablePlayerActions() {
+            const buttons = document.querySelectorAll('.action-btn');
+            buttons.forEach(btn => {
+                if (btn.id === 'skillBtn' && gameState.player.skillUsed) {
+                    btn.disabled = true;
+                } else {
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        function disablePlayerActions() {
+            const buttons = document.querySelectorAll('.action-btn');
+            buttons.forEach(btn => btn.disabled = true);
+        }
+
+        // ==================== 日志系统 ====================
+        function addLog(message, type = 'normal') {
+            const logContent = document.getElementById('logContent');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = message;
+            logContent.insertBefore(entry, logContent.firstChild);
+        }
+
+        function clearLog() {
+            document.getElementById('logContent').innerHTML = '';
+        }
+
+        // ==================== 重新开始 ====================
+        function restartGame() {
+            // 隐藏弹窗
+            document.getElementById('resultModal').classList.remove('show');
+            
+            // 重置 UI
+            document.getElementById('battleScreen').style.display = 'none';
+            document.getElementById('allocationScreen').style.display = 'block';
+            
+            // 重置角色卡片状态
+            document.getElementById('playerCard').classList.remove('active');
+            document.getElementById('aiCard').classList.remove('active');
+            document.getElementById('playerBlockIndicator').classList.remove('show');
+            document.getElementById('aiBlockIndicator').classList.remove('show');
+            
+            // 重置玩家头像动画
+            const playerAvatar = document.getElementById('playerAvatar');
+            if (playerAvatar) {
+                playerAvatar.classList.remove('attack');
+            }
+            
+            // 重置特技状态显示
+            document.getElementById('playerSkillStatus').className = 'skill-status available';
+            document.getElementById('playerSkillStatus').textContent = '⚡ 闪电穿刺 - 可用';
+            document.getElementById('aiSkillStatus').className = 'skill-status available';
+            document.getElementById('aiSkillStatus').textContent = '⚡ 暗影突袭 - 可用';
+            
+            // 清空日志
+            clearLog();
+            addLog('等待战斗开始...', 'system');
+            
+            // 重置游戏状态
+            gameState = {
+                player: null,
+                ai: null,
+                currentTurn: 1,
+                battleActive: false,
+                turnOrder: [],
+                currentActorIndex: 0,
+                isProcessing: false
+            };
+            
+            // 重置按钮
+            document.getElementById('turnIndicator').textContent = '准备战斗...';
+            document.getElementById('actionTitle').textContent = '等待战斗开始...';
+        }
+
+        // ==================== 启动 ====================
+        initSliders();
+    </script>
+</body>
+</html>

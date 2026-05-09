@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML5像素画图工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            min-width: 600px;
+            min-height: 700px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4a90e2;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        /* 工具栏 */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 40px;
+            margin-bottom: 10px;
+            padding: 0 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .tool-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .tool-button {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .tool-button:hover {
+            background: #f0f0f0;
+        }
+
+        .tool-button.active {
+            background: #4a90e2;
+            color: white;
+            border-color: #4a90e2;
+        }
+
+        .frame-group {
+            display: flex;
+            gap: 5px;
+        }
+
+        .frame-tab {
+            width: 80px;
+            height: 32px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .frame-tab.active {
+            background: #4a90e2;
+            color: white;
+            border-color: #4a90e2;
+        }
+
+        /* 画布容器 */
+        .canvas-container {
+            position: relative;
+            width: 512px;
+            height: 512px;
+            margin: 10px auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 512px;
+            height: 512px;
+            cursor: crosshair;
+        }
+
+        /* 调色板 */
+        .palette {
+            display: flex;
+            align-items: center;
+            height: 60px;
+            margin: 10px 0;
+            padding: 0 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .color-title {
+            margin-right: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+        }
+
+        .color-swatch {
+            width: 24px;
+            height: 24px;
+            border: 2px solid transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+
+        .color-swatch.active {
+            border-color: #333;
+            box-shadow: 0 0 0 2px #4a90e2;
+        }
+
+        .current-color {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            margin-left: 20px;
+            background: #000000;
+        }
+
+        /* 底部控制栏 */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            height: 50px;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .control-button {
+            width: 120px;
+            height: 32px;
+            border: none;
+            border-radius: 4px;
+            background: #4a90e2;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .control-button:hover {
+            background: #357abd;
+        }
+
+        .control-button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        /* 右键菜单 */
+        .context-menu {
+            position: fixed;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: none;
+        }
+
+        .context-menu-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .context-menu-item:hover {
+            background: #f0f0f0;
+        }
+
+        /* 动画预览状态 */
+        .previewing {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(74, 144, 226, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(74, 144, 226, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 144, 226, 0); }
+        }
+
+        /* 提示消息 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4a90e2;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1001;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 HTML5像素画图工具</h1>
+
+        <!-- 工具栏 -->
+        <div class="toolbar">
+            <div class="tool-group">
+                <button class="tool-button active" id="brush-tool" title="画笔 (B)">
+                    🖌️
+                </button>
+                <button class="tool-button" id="eraser-tool" title="橡皮 (E)">
+                    🧽
+                </button>
+                <button class="tool-button" id="fill-tool" title="填充 (G)">
+                    🎨
+                </button>
+            </div>
+            <div class="frame-group">
+                <button class="frame-tab active" data-frame="0">帧1 (待机)</button>
+                <button class="frame-tab" data-frame="1">帧2 (攻击)</button>
+                <button class="tool-button" id="copy-frame1" title="复制帧1到帧2">
+                    ↪️
+                </button>
+                <button class="tool-button" id="copy-frame2" title="复制帧2到帧1">
+                    ↩️
+                </button>
+            </div>
+        </div>
+
+        <!-- 画布容器 -->
+        <div class="canvas-container">
+            <canvas id="canvas" width="512" height="512"></canvas>
+        </div>
+
+        <!-- 调色板 -->
+        <div class="palette">
+            <span class="color-title">调色板：</span>
+            <div class="color-grid" id="color-grid">
+                <div class="color-swatch active" data-color="#000000" style="background: #000000;"></div>
+                <div class="color-swatch" data-color="#FFFFFF" style="background: #FFFFFF; border: 1px solid #ddd;"></div>
+                <div class="color-swatch" data-color="#FF0000" style="background: #FF0000;"></div>
+                <div class="color-swatch" data-color="#00FF00" style="background: #00FF00;"></div>
+                <div class="color-swatch" data-color="#0000FF" style="background: #0000FF;"></div>
+                <div class="color-swatch" data-color="#FFFF00" style="background: #FFFF00;"></div>
+                <div class="color-swatch" data-color="#FF9900" style="background: #FF9900;"></div>
+                <div class="color-swatch" data-color="#9900FF" style="background: #9900FF;"></div>
+            </div>
+            <div class="current-color" id="current-color"></div>
+            <input type="color" id="color-picker" style="margin-left: 10px; width: 40px; height: 40px;">
+        </div>
+
+        <!-- 底部控制栏 -->
+        <div class="controls">
+            <button class="control-button" id="clear-all-button">🗑️ 清除全图</button>
+            <button class="control-button" id="preview-button">👁️ 预览动画</button>
+            <button class="control-button" id="export-button">💾 导出PNG</button>
+        </div>
+    </div>
+
+    <!-- 右键菜单 -->
+    <div class="context-menu" id="context-menu">
+        <div class="context-menu-item" id="undo-item">撤销 (Ctrl+Z)</div>
+        <div class="context-menu-item" id="redo-item">重做 (Ctrl+Y)</div>
+        <div class="context-menu-item" id="clear-item">清空画布</div>
+        <div class="context-menu-item" id="copy-item">复制当前帧</div>
+        <div class="context-menu-item" id="paste-item">粘贴到当前帧</div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // 全局变量
+        let currentTool = 'brush';
+        let currentColor = '#000000';
+        let currentFrame = 0;
+        let isDrawing = false;
+        let isPreviewing = false;
+        let previewInterval;
+        
+        // 帧数据
+        let frames = [
+            createEmptyFrame(),
+            createEmptyFrame()
+        ];
+        
+        // 操作历史
+        let history = [[], []];
+        let historyIndex = [0, 0];
+        
+        // 复制缓冲区
+        let copyBuffer = null;
+        
+        // 自动保存间隔
+        let autoSaveInterval;
+
+        // DOM元素
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const currentColorEl = document.getElementById('current-color');
+        const colorPicker = document.getElementById('color-picker');
+        const previewButton = document.getElementById('preview-button');
+        const exportButton = document.getElementById('export-button');
+        const contextMenu = document.getElementById('context-menu');
+        const toast = document.getElementById('toast');
+
+        // 初始化
+        function init() {
+            // 绘制棋盘格背景
+            drawCheckerboard();
+            
+            // 绘制网格线
+            drawGrid();
+            
+            // 绘制当前帧
+            drawFrame(currentFrame);
+            
+            // 绑定事件
+            bindEvents();
+            
+            // 启动自动保存
+            startAutoSave();
+            
+            // 加载保存的状态
+            loadSavedState();
+        }
+
+        // 创建空帧
+        function createEmptyFrame() {
+            const frame = [];
+            for (let y = 0; y < 64; y++) {
+                const row = [];
+                for (let x = 0; x < 64; x++) {
+                    row.push(null); // null表示透明
+                }
+                frame.push(row);
+            }
+            return frame;
+        }
+
+        // 绘制棋盘格背景
+        function drawCheckerboard() {
+            ctx.clearRect(0, 0, 512, 512);
+            
+            for (let y = 0; y < 512; y += 8) {
+                for (let x = 0; x < 512; x += 8) {
+                    const isEven = (Math.floor(x / 8) + Math.floor(y / 8)) % 2 === 0;
+                    ctx.fillStyle = isEven ? '#F0F0F0' : '#E0E0E0';
+                    ctx.fillRect(x, y, 8, 8);
+                }
+            }
+        }
+
+        // 绘制网格线
+        function drawGrid() {
+            ctx.strokeStyle = '#CCCCCC';
+            ctx.lineWidth = 1;
+            
+            // 垂直线
+            for (let x = 0; x <= 512; x += 8) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, 512);
+                ctx.stroke();
+            }
+            
+            // 水平线
+            for (let y = 0; y <= 512; y += 8) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(512, y);
+                ctx.stroke();
+            }
+        }
+
+        // 绘制当前帧
+        function drawFrame(frameIndex) {
+            drawCheckerboard();
+            drawGrid();
+            
+            const frame = frames[frameIndex];
+            for (let y = 0; y < 64; y++) {
+                for (let x = 0; x < 64; x++) {
+                    const color = frame[y][x];
+                    if (color) {
+                        ctx.fillStyle = color;
+                        ctx.fillRect(x * 8, y * 8, 8, 8);
+                    }
+                }
+            }
+        }
+
+        // 绑定事件
+        function bindEvents() {
+            // 工具切换
+            document.getElementById('brush-tool').addEventListener('click', () => setTool('brush'));
+            document.getElementById('eraser-tool').addEventListener('click', () => setTool('eraser'));
+            document.getElementById('fill-tool').addEventListener('click', () => setTool('fill'));
+            
+            // 帧切换
+            document.querySelectorAll('.frame-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const frameIndex = parseInt(tab.dataset.frame);
+                    switchFrame(frameIndex);
+                });
+                
+                // 双击重命名
+                tab.addEventListener('dblclick', function() {
+                    const frameIndex = parseInt(this.dataset.frame);
+                    const newName = prompt('请输入新的帧名称：', this.textContent.split(' ')[1].replace('(', '').replace(')', ''));
+                    if (newName && newName.length <= 10) {
+                        this.textContent = `帧${frameIndex + 1} (${newName})`;
+                    }
+                });
+            });
+            
+            // 帧复制
+            document.getElementById('copy-frame1').addEventListener('click', () => copyFrame(0, 1));
+            document.getElementById('copy-frame2').addEventListener('click', () => copyFrame(1, 0));
+            
+            // 调色板
+            document.querySelectorAll('.color-swatch').forEach(swatch => {
+                swatch.addEventListener('click', () => {
+                    currentColor = swatch.dataset.color;
+                    updateColorUI();
+                });
+            });
+            
+            // 颜色选择器
+            colorPicker.addEventListener('change', () => {
+                currentColor = colorPicker.value;
+                updateColorUI();
+            });
+            
+            // 画布事件
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseleave', stopDrawing);
+            
+            // 右键菜单
+            canvas.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                showContextMenu(e.clientX, e.clientY);
+            });
+            
+            // 点击空白处关闭右键菜单
+            document.addEventListener('click', () => {
+                contextMenu.style.display = 'none';
+            });
+            
+            // 右键菜单项
+            document.getElementById('undo-item').addEventListener('click', undo);
+            document.getElementById('redo-item').addEventListener('click', redo);
+            document.getElementById('clear-item').addEventListener('click', clearCanvas);
+            document.getElementById('copy-item').addEventListener('click', copyCurrentFrame);
+            document.getElementById('paste-item').addEventListener('click', pasteToCurrentFrame);
+            
+            // 预览按钮
+            previewButton.addEventListener('click', togglePreview);
+            
+            // 导出按钮
+            exportButton.addEventListener('click', exportSpritesheet);
+            
+            // 清除全图按钮
+            document.getElementById('clear-all-button').addEventListener('click', clearAllFrames);
+            
+            // 键盘快捷键
+            document.addEventListener('keydown', handleKeyboard);
+        }
+
+        // 设置工具
+        function setTool(tool) {
+            currentTool = tool;
+            
+            // 更新UI
+            document.querySelectorAll('.tool-button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`${tool}-tool`).classList.add('active');
+        }
+
+        // 切换帧
+        function switchFrame(frameIndex) {
+            currentFrame = frameIndex;
+            
+            // 更新UI
+            document.querySelectorAll('.frame-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`[data-frame="${frameIndex}"]`).classList.add('active');
+            
+            // 绘制新帧
+            drawFrame(frameIndex);
+        }
+
+        // 复制帧
+        function copyFrame(fromIndex, toIndex) {
+            // 复制帧数据
+            frames[toIndex] = frames[fromIndex].map(row => [...row]);
+            
+            // 记录操作历史
+            saveHistory(toIndex);
+            
+            // 切换到目标帧
+            switchFrame(toIndex);
+            
+            // 显示提示
+            showToast(`已从帧${fromIndex + 1}复制到帧${toIndex + 1}`);
+        }
+
+        // 更新颜色UI
+        function updateColorUI() {
+            currentColorEl.style.background = currentColor;
+            colorPicker.value = currentColor;
+            
+            // 更新颜色块激活状态
+            document.querySelectorAll('.color-swatch').forEach(swatch => {
+                swatch.classList.remove('active');
+                if (swatch.dataset.color === currentColor) {
+                    swatch.classList.add('active');
+                }
+            });
+        }
+
+        // 开始绘制
+        function startDrawing(e) {
+            if (isPreviewing) return;
+            
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / 8);
+            const y = Math.floor((e.clientY - rect.top) / 8);
+            
+            if (x >= 0 && x < 64 && y >= 0 && y < 64) {
+                if (currentTool === 'fill') {
+                    floodFill(x, y);
+                } else {
+                    drawPixel(x, y);
+                }
+            }
+        }
+
+        // 绘制
+        function draw(e) {
+            if (!isDrawing || isPreviewing) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / 8);
+            const y = Math.floor((e.clientY - rect.top) / 8);
+            
+            if (x >= 0 && x < 64 && y >= 0 && y < 64) {
+                drawPixel(x, y);
+            }
+        }
+
+        // 停止绘制
+        function stopDrawing() {
+            if (isDrawing) {
+                saveHistory(currentFrame);
+                isDrawing = false;
+            }
+        }
+
+        // 绘制像素
+        function drawPixel(x, y) {
+            const color = currentTool === 'eraser' ? null : currentColor;
+            frames[currentFrame][y][x] = color;
+            
+            // 绘制到画布
+            if (color) {
+                ctx.fillStyle = color;
+                ctx.fillRect(x * 8, y * 8, 8, 8);
+            } else {
+                // 绘制棋盘格背景
+                const isEven = (x + y) % 2 === 0;
+                ctx.fillStyle = isEven ? '#F0F0F0' : '#E0E0E0';
+                ctx.fillRect(x * 8, y * 8, 8, 8);
+                
+                // 重绘网格线
+                ctx.strokeStyle = '#CCCCCC';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(x * 8, y * 8);
+                ctx.lineTo(x * 8 + 8, y * 8);
+                ctx.lineTo(x * 8 + 8, y * 8 + 8);
+                ctx.lineTo(x * 8, y * 8 + 8);
+                ctx.closePath();
+                ctx.stroke();
+            }
+        }
+
+        // 洪水填充
+        function floodFill(startX, startY) {
+            const frame = frames[currentFrame];
+            const targetColor = frame[startY][startX];
+            const newColor = currentColor;
+            
+            if (targetColor === newColor) return;
+            
+            const stack = [[startX, startY]];
+            const visited = new Set();
+            
+            while (stack.length > 0) {
+                const [x, y] = stack.pop();
+                const key = `${x},${y}`;
+                
+                if (visited.has(key)) continue;
+                if (x < 0 || x >= 64 || y < 0 || y >= 64) continue;
+                if (frame[y][x] !== targetColor) continue;
+                
+                visited.add(key);
+                frame[y][x] = newColor;
+                
+                // 添加相邻像素
+                stack.push([x + 1, y]);
+                stack.push([x - 1, y]);
+                stack.push([x, y + 1]);
+                stack.push([x, y - 1]);
+            }
+            
+            // 重绘帧
+            drawFrame(currentFrame);
+            saveHistory(currentFrame);
+        }
+
+        // 显示右键菜单
+        function showContextMenu(x, y) {
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = `${x}px`;
+            contextMenu.style.top = `${y}px`;
+        }
+
+        // 撤销
+        function undo() {
+            if (historyIndex[currentFrame] > 0) {
+                historyIndex[currentFrame]--;
+                const savedFrame = history[currentFrame][historyIndex[currentFrame]];
+                frames[currentFrame] = savedFrame.map(row => [...row]);
+                drawFrame(currentFrame);
+                showToast('已撤销操作');
+            }
+        }
+
+        // 重做
+        function redo() {
+            if (historyIndex[currentFrame] < history[currentFrame].length - 1) {
+                historyIndex[currentFrame]++;
+                const savedFrame = history[currentFrame][historyIndex[currentFrame]];
+                frames[currentFrame] = savedFrame.map(row => [...row]);
+                drawFrame(currentFrame);
+                showToast('已重做操作');
+            }
+        }
+
+        // 清空画布
+        function clearCanvas() {
+            if (confirm('确定要清空当前画布吗？')) {
+                frames[currentFrame] = createEmptyFrame();
+                drawFrame(currentFrame);
+                saveHistory(currentFrame);
+                showToast('画布已清空');
+            }
+        }
+
+        // 复制当前帧
+        function copyCurrentFrame() {
+            copyBuffer = frames[currentFrame].map(row => [...row]);
+            showToast('已复制当前帧');
+        }
+
+        // 粘贴到当前帧
+        function pasteToCurrentFrame() {
+            if (copyBuffer) {
+                frames[currentFrame] = copyBuffer.map(row => [...row]);
+                drawFrame(currentFrame);
+                saveHistory(currentFrame);
+                showToast('已粘贴到当前帧');
+            } else {
+                showToast('没有可粘贴的内容');
+            }
+        }
+
+        // 清除全图
+        function clearAllFrames() {
+            if (confirm('确定要清除所有帧的内容吗？')) {
+                // 清除所有帧
+                frames[0] = createEmptyFrame();
+                frames[1] = createEmptyFrame();
+                
+                // 保存历史记录
+                saveHistory(0);
+                saveHistory(1);
+                
+                // 重绘当前帧
+                drawFrame(currentFrame);
+                
+                // 显示提示
+                showToast('所有帧已清除');
+            }
+        }
+
+        // 保存历史记录
+        function saveHistory(frameIndex) {
+            // 保存当前帧状态
+            const frameCopy = frames[frameIndex].map(row => [...row]);
+            
+            // 截断历史记录
+            history[frameIndex] = history[frameIndex].slice(0, historyIndex[frameIndex] + 1);
+            
+            // 添加新记录
+            history[frameIndex].push(frameCopy);
+            
+            // 限制历史记录长度
+            if (history[frameIndex].length > 50) {
+                history[frameIndex].shift();
+            } else {
+                historyIndex[frameIndex]++;
+            }
+        }
+
+        // 切换预览
+        function togglePreview() {
+            if (isPreviewing) {
+                stopPreview();
+            } else {
+                startPreview();
+            }
+        }
+
+        // 开始预览
+        function startPreview() {
+            isPreviewing = true;
+            previewButton.textContent = '⏸️ 停止预览';
+            canvas.classList.add('previewing');
+            
+            let previewFrame = 0;
+            drawFrame(previewFrame);
+            
+            previewInterval = setInterval(() => {
+                previewFrame = 1 - previewFrame;
+                drawFrame(previewFrame);
+            }, 500);
+        }
+
+        // 停止预览
+        function stopPreview() {
+            isPreviewing = false;
+            clearInterval(previewInterval);
+            previewButton.textContent = '👁️ 预览动画';
+            canvas.classList.remove('previewing');
+            drawFrame(currentFrame);
+        }
+
+        // 导出Spritesheet
+        function exportSpritesheet() {
+            const spritesheetCanvas = document.createElement('canvas');
+            spritesheetCanvas.width = 128;
+            spritesheetCanvas.height = 64;
+            const spritesheetCtx = spritesheetCanvas.getContext('2d');
+            
+            // 绘制帧1（左侧）
+            drawFrameToCanvas(frames[0], spritesheetCtx, 0, 0);
+            
+            // 绘制帧2（右侧）
+            drawFrameToCanvas(frames[1], spritesheetCtx, 64, 0);
+            
+            // 导出为PNG
+            spritesheetCanvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'spritesheet.png';
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('导出成功！');
+            });
+        }
+
+        // 绘制帧到画布
+        function drawFrameToCanvas(frame, ctx, offsetX, offsetY) {
+            for (let y = 0; y < 64; y++) {
+                for (let x = 0; x < 64; x++) {
+                    const color = frame[y][x];
+                    if (color) {
+                        ctx.fillStyle = color;
+                        ctx.fillRect(offsetX + x, offsetY + y, 1, 1);
+                    }
+                }
+            }
+        }
+
+        // 处理键盘事件
+        function handleKeyboard(e) {
+            switch(e.key.toLowerCase()) {
+                case 'b':
+                    setTool('brush');
+                    break;
+                case 'e':
+                    setTool('eraser');
+                    break;
+                case 'g':
+                    setTool('fill');
+                    break;
+                case ' ': 
+                    e.preventDefault();
+                    togglePreview();
+                    break;
+            }
+            
+            // 组合键
+            if (e.ctrlKey) {
+                switch(e.key.toLowerCase()) {
+                    case 'z':
+                        e.preventDefault();
+                        undo();
+                        break;
+                    case 'y':
+                        e.preventDefault();
+                        redo();
+                        break;
+                    case 'c':
+                        e.preventDefault();
+                        copyCurrentFrame();
+                        break;
+                    case 'v':
+                        e.preventDefault();
+                        pasteToCurrentFrame();
+                        break;
+                }
+            }
+        }
+
+        // 显示提示
+        function showToast(message) {
+            toast.textContent = message;
+            toast.style.display = 'block';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2000);
+        }
+
+        // 启动自动保存
+        function startAutoSave() {
+            autoSaveInterval = setInterval(() => {
+                saveState();
+            }, 30000); // 30秒
+        }
+
+        // 保存状态
+        function saveState() {
+            const state = {
+                frames: frames,
+                currentFrame: currentFrame,
+                currentTool: currentTool,
+                currentColor: currentColor,
+                history: history,
+                historyIndex: historyIndex
+            };
+            localStorage.setItem('pixel-art-tool-state', JSON.stringify(state));
+        }
+
+        // 加载保存的状态
+        function loadSavedState() {
+            const savedState = localStorage.getItem('pixel-art-tool-state');
+            if (savedState) {
+                try {
+                    const state = JSON.parse(savedState);
+                    frames = state.frames;
+                    currentFrame = state.currentFrame;
+                    currentTool = state.currentTool;
+                    currentColor = state.currentColor;
+                    history = state.history;
+                    historyIndex = state.historyIndex;
+                    
+                    // 更新UI
+                    setTool(currentTool);
+                    switchFrame(currentFrame);
+                    updateColorUI();
+                    showToast('已恢复上次编辑状态');
+                } catch (e) {
+                    console.error('加载保存状态失败:', e);
+                }
+            }
+        }
+
+        // 初始化应用
+        init();
+    </script>
+</body>
+</html>
