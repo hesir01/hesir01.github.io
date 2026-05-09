@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>回合制战斗游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .battle-arena {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 30px;
+            gap: 40px;
+        }
+
+        .character-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            width: 280px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.2);
+            transition: transform 0.3s;
+        }
+
+        .character-card.active {
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(255,215,0,0.5);
+        }
+
+        .character-card.player {
+            border-color: #4CAF50;
+        }
+
+        .character-card.ai {
+            border-color: #f44336;
+        }
+
+        .character-avatar {
+            width: 160px;
+            height: 120px;
+            margin: 0 auto 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            overflow: visible;
+            position: relative;
+        }
+
+        .player .character-avatar {
+            background: transparent;
+        }
+
+        .ai .character-avatar {
+            background: linear-gradient(135deg, #f44336, #c62828);
+        }
+
+        /* 精灵图动画样式 */
+        .sprite-avatar {
+            width: 120px;
+            height: 120px;
+            background-image: url('spritesheet (1).png');
+            background-size: 200% 100%;
+            background-repeat: no-repeat;
+            background-position: 0% 50%;
+            image-rendering: pixelated;
+            position: relative;
+            z-index: 1;
+            transition: background-position 0.1s;
+        }
+
+        /* 攻击帧 - 添加attacking类时切换到第二帧 */
+        .sprite-avatar.attacking {
+            background-position: 100% 50%;
+        }
+
+        /* 攻击时的移动动画 */
+        @keyframes attackMove {
+            0% { transform: translateX(0) scale(1); }
+            30% { transform: translateX(30px) scale(1.1); }
+            70% { transform: translateX(10px) scale(1.05); }
+            100% { transform: translateX(0) scale(1); }
+        }
+
+        .player.attacking .sprite-avatar {
+            animation: attackMove 0.5s ease-out;
+        }
+
+        /* 受击动画 */
+        @keyframes hurtAnimation {
+            0%, 100% { filter: none; }
+            50% { filter: brightness(2) saturate(0); }
+        }
+
+        .character-card.hurt {
+            animation: hurtAnimation 0.3s ease-in-out;
+        }
+
+        .character-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .hp-bar-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            height: 25px;
+            overflow: hidden;
+            margin-bottom: 5px;
+            position: relative;
+        }
+
+        .hp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .hp-bar.low {
+            background: linear-gradient(90deg, #ff9800, #f44336);
+        }
+
+        .hp-bar.critical {
+            background: linear-gradient(90deg, #f44336, #b71c1c);
+        }
+
+        .hp-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stat.buffed {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .stat.debuffed {
+            color: #f44336;
+            font-weight: bold;
+        }
+
+        .vs-badge {
+            font-size: 36px;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .action-panel {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .action-title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 18px;
+            color: #ffd700;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #fff;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-attack {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+        }
+
+        .btn-heavy {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+        }
+
+        .btn-block {
+            background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+        }
+
+        .btn-skill {
+            background: linear-gradient(135deg, #e91e63, #c2185b);
+        }
+
+        .battle-log {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            width: 100%;
+            max-width: 600px;
+            min-height: 100px;
+        }
+
+        .log-title {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+
+        .log-entries {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .log-entry {
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            font-size: 14px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .log-entry.damage {
+            border-left: 3px solid #f44336;
+        }
+
+        .log-entry.heal {
+            border-left: 3px solid #4CAF50;
+        }
+
+        .log-entry.info {
+            border-left: 3px solid #2196F3;
+        }
+
+        .log-entry.buff {
+            border-left: 3px solid #ff9800;
+        }
+
+        .game-over-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .game-over-modal.show {
+            display: flex;
+        }
+
+        .game-over-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid #ffd700;
+        }
+
+        .game-over-title {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .game-over-title.win {
+            color: #4CAF50;
+        }
+
+        .game-over-title.lose {
+            color: #f44336;
+        }
+
+        .game-over-title.draw {
+            color: #ff9800;
+        }
+
+        .restart-btn {
+            padding: 15px 40px;
+            font-size: 18px;
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .turn-indicator {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 18px;
+            color: #ffd700;
+        }
+
+        .status-badges {
+            margin-top: 5px;
+            min-height: 24px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            margin: 2px;
+        }
+
+        .status-badge.blocking {
+            background: #9c27b0;
+        }
+
+        .status-badge.buff-atk {
+            background: #ff5722;
+        }
+
+        .status-badge.buff-def {
+            background: #2196F3;
+        }
+
+        .skill-info {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        .points-info {
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: #aaa;
+            text-align: center;
+        }
+
+        .points-info strong {
+            color: #ffd700;
+        }
+
+        /* 普通攻击动画 - 只针对精灵图 */
+        @keyframes spriteNormalAttack {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(var(--attack-distance)); }
+            100% { transform: translateX(0); }
+        }
+
+        .sprite-avatar.attack-normal {
+            animation: spriteNormalAttack 0.4s ease-in-out;
+        }
+
+        /* 重击蓄力动画 - 只针对精灵图 */
+        @keyframes spriteHeavyCharge {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.2); }
+        }
+
+        .sprite-avatar.heavy-charge {
+            animation: spriteHeavyCharge 0.3s ease-out forwards;
+        }
+
+        /* 重击攻击动画 - 只针对精灵图 */
+        @keyframes spriteHeavyAttack {
+            0% { transform: translateX(0) scale(1.2); }
+            40% { transform: translateX(var(--attack-distance)) scale(1.2); }
+            100% { transform: translateX(0) scale(1); }
+        }
+
+        .sprite-avatar.attack-heavy {
+            animation: spriteHeavyAttack 0.5s ease-out;
+        }
+
+        /* 受击左右抖动动画 - 只针对精灵图 */
+        @keyframes spriteHitShake {
+            0%, 100% { transform: translateX(0); }
+            16.66% { transform: translateX(-10px); }
+            33.33% { transform: translateX(10px); }
+            50% { transform: translateX(-10px); }
+            66.66% { transform: translateX(10px); }
+            83.33% { transform: translateX(-10px); }
+        }
+
+        .sprite-avatar.hit-shake {
+            animation: spriteHitShake 0.4s ease-in-out;
+        }
+
+        /* 受击变红动画 - 只针对精灵图 */
+        @keyframes spriteHitRed {
+            0%, 100% { filter: none; }
+            50% { filter: hue-rotate(-50deg) saturate(2); }
+        }
+
+        .sprite-avatar.hit-red {
+            animation: spriteHitRed 0.3s ease-in-out;
+        }
+
+        /* 水平抖动3次 - 只针对精灵图 */
+        @keyframes spriteHorizontalShake {
+            0%, 100% { transform: translateX(0); }
+            16.66% { transform: translateX(-8px); }
+            33.33% { transform: translateX(8px); }
+            50% { transform: translateX(-8px); }
+            66.66% { transform: translateX(8px); }
+            83.33% { transform: translateX(-8px); }
+        }
+
+        .sprite-avatar.horizontal-shake {
+            animation: spriteHorizontalShake 0.45s ease-in-out;
+        }
+
+        /* 格挡后退动画 */
+        @keyframes blockBack {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(var(--block-distance)); }
+        }
+
+        .character-card.block-back {
+            animation: blockBack 0.5s ease-in-out;
+        }
+
+        /* 闪烁两次 */
+        @keyframes flashTwice {
+            0%, 100% { opacity: 1; }
+            25% { opacity: 0.3; }
+            50% { opacity: 1; }
+            75% { opacity: 0.3; }
+        }
+
+        .character-card.flash-twice {
+            animation: flashTwice 0.5s ease-in-out;
+        }
+
+        /* 死亡动画 */
+        @keyframes death {
+            0% { transform: rotate(0deg) scale(1); opacity: 1; }
+            100% { transform: rotate(360deg) scale(0); opacity: 0; }
+        }
+
+        .character-card.death {
+            animation: death 0.6s ease-in forwards;
+        }
+
+        /* 胜利弹跳动画 */
+        @keyframes victoryBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-30px); }
+        }
+
+        .character-card.victory {
+            animation: victoryBounce 0.2s ease-in-out 3;
+        }
+
+        /* 角色卡片添加过渡效果 */
+        /* AI角色精灵图 */
+        .ai-avatar {
+            background-image: url('spritesheet (1).png');
+            background-size: 200% 100%;
+            background-repeat: no-repeat;
+            background-position: 0% 50%;
+            image-rendering: pixelated;
+        }
+
+        /* Emoji表情容器 */
+        .emoji-expression {
+            position: absolute;
+            font-size: 48px;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        /* Emoji攻击动画 */
+        @keyframes emojiAttack {
+            0% { opacity: 0; transform: scale(0.5) translateX(0); }
+            20% { opacity: 1; transform: scale(1.2) translateX(-20px); }
+            80% { opacity: 1; transform: scale(1) translateX(-40px); }
+            100% { opacity: 0; transform: scale(0.8) translateX(-60px); }
+        }
+
+        .emoji-attack {
+            animation: emojiAttack 0.6s ease-out forwards;
+        }
+
+        /* Emoji受击动画 */
+        @keyframes emojiHurt {
+            0% { opacity: 0; transform: scale(0.5); }
+            20% { opacity: 1; transform: scale(1.3); }
+            40% { opacity: 1; transform: scale(1) rotate(-10deg); }
+            60% { opacity: 1; transform: scale(1.1) rotate(10deg); }
+            80% { opacity: 0.8; transform: scale(1) rotate(0deg); }
+            100% { opacity: 0; transform: scale(0.8); }
+        }
+
+        .emoji-hurt {
+            animation: emojiHurt 0.5s ease-out forwards;
+        }
+
+        /* Emoji死亡动画 */
+        @keyframes emojiDeath {
+            0% { opacity: 1; transform: scale(1) rotate(0deg); }
+            50% { opacity: 1; transform: scale(1.5) rotate(180deg); }
+            100% { opacity: 0; transform: scale(0) rotate(360deg); }
+        }
+
+        .emoji-death {
+            animation: emojiDeath 0.8s ease-in-out forwards;
+        }
+
+        /* Emoji胜利动画 */
+        @keyframes emojiVictory {
+            0%, 100% { opacity: 0; transform: translateY(0) scale(0.5); }
+            25% { opacity: 1; transform: translateY(-20px) scale(1.2); }
+            50% { opacity: 1; transform: translateY(-10px) scale(1); }
+            75% { opacity: 1; transform: translateY(-25px) scale(1.3); }
+        }
+
+        .emoji-victory {
+            animation: emojiVictory 0.8s ease-in-out 2;
+        }
+
+        /* Emoji格挡动画 */
+        @keyframes emojiBlock {
+            0% { opacity: 0; transform: scale(0.8); }
+            30% { opacity: 1; transform: scale(1.2); }
+            50% { opacity: 0.5; }
+            70% { opacity: 1; transform: scale(1.1); }
+            100% { opacity: 0; transform: scale(1); }
+        }
+
+        .emoji-block {
+            animation: emojiBlock 0.5s ease-in-out forwards;
+        }
+
+        .character-card {
+            transition: filter 0.1s;
+        }
+    </style>
+</head>
+<body>
+    <h1>⚔️ 回合制战斗游戏</h1>
+
+    <div class="points-info">
+        <strong>属性点兑换规则：</strong>HP 1分=10 | ATK 1分=5 | DEF 1分=3 | SPD 1分=1 | 双方共20点
+    </div>
+
+    <div class="turn-indicator" id="turnIndicator">战斗开始！</div>
+
+    <div class="battle-arena">
+        <canvas id="skillCanvas" width="800" height="200" style="position: absolute; top: 0; left: 0; pointer-events: none; z-index: 100;"></canvas>
+
+        <div class="character-card player" id="playerCard">
+            <div class="character-avatar">
+                <div class="sprite-avatar" id="playerSprite"></div>
+            </div>
+            <div class="character-name" id="playerName">坦克</div>
+            <div class="hp-bar-container">
+                <div class="hp-bar" id="playerHpBar" style="width: 100%"></div>
+                <div class="hp-text" id="playerHpText">50/50</div>
+            </div>
+            <div class="stats">
+                <div class="stat">⚔️ <span id="playerAtk">25</span></div>
+                <div class="stat">🛡️ <span id="playerDef">12</span></div>
+                <div class="stat">⚡ <span id="playerSpd">6</span></div>
+            </div>
+            <div class="status-badges" id="playerBadges"></div>
+            <div class="skill-info" id="playerSkillInfo"></div>
+        </div>
+
+        <div class="vs-badge">VS</div>
+
+        <div class="character-card ai" id="aiCard">
+            <div class="character-avatar">
+                <div class="emoji-expression" id="aiEmoji"></div>
+                <div class="sprite-avatar ai-avatar"></div>
+            </div>
+            <div class="character-name" id="aiName">重装战士</div>
+            <div class="hp-bar-container">
+                <div class="hp-bar" id="aiHpBar" style="width: 100%"></div>
+                <div class="hp-text" id="aiHpText">40/40</div>
+            </div>
+            <div class="stats">
+                <div class="stat">⚔️ <span id="aiAtk">30</span></div>
+                <div class="stat">🛡️ <span id="aiDef">15</span></div>
+                <div class="stat">⚡ <span id="aiSpd">5</span></div>
+            </div>
+            <div class="status-badges" id="aiBadges"></div>
+            <div class="skill-info" id="aiSkillInfo"></div>
+        </div>
+    </div>
+
+    <div class="action-panel">
+        <div class="action-title">选择行动</div>
+        <div class="action-buttons">
+            <button class="action-btn btn-attack" id="btnAttack" onclick="game.playerAction('attack')">
+                普通攻击
+            </button>
+            <button class="action-btn btn-heavy" id="btnHeavy" onclick="game.playerAction('heavy')">
+                重击 (×1.8)
+            </button>
+            <button class="action-btn btn-block" id="btnBlock" onclick="game.playerAction('block')">
+                格挡 (-50%伤害)
+            </button>
+            <button class="action-btn btn-skill" id="btnSkill" onclick="game.playerAction('skill')">
+                特技
+            </button>
+        </div>
+    </div>
+
+    <div class="battle-log">
+        <div class="log-title">📜 战斗日志</div>
+        <div class="log-entries" id="logEntries">
+            <div class="log-entry info">战斗开始！SPD高的先出手</div>
+        </div>
+    </div>
+
+    <div class="game-over-modal" id="gameOverModal">
+        <div class="game-over-content">
+            <div class="game-over-title" id="gameOverTitle">胜利！</div>
+            <button class="restart-btn" onclick="game.restart()">再来一局</button>
+        </div>
+    </div>
+
+    <script>
+        // 角色数据 - 基于20点属性分配规则
+        // 玩家（坦克型）：HP 50(5分), ATK 25(5分), DEF 12(4分), SPD 6(6分) = 20分
+        const playerData = {
+            name: "坦克",
+            hp: 50,
+            maxHp: 50,
+            atk: 25,
+            def: 12,
+            spd: 6,
+            skill: {
+                name: "⚡连击",
+                description: "闪电打击，连续发动两次普通攻击",
+                cost: 0,
+                effect: {
+                    type: "multi_attack",
+                    attack_count: 2,
+                    damage_multiplier: 1.0
+                }
+            }
+        };
+
+        // AI（重装战士型）：HP 40(4分), ATK 30(6分), DEF 15(5分), SPD 5(5分) = 20分
+        const aiData = {
+            name: "重装战士",
+            hp: 40,
+            maxHp: 40,
+            atk: 30,
+            def: 15,
+            spd: 5,
+            skill: {
+                name: "🔥狂暴",
+                description: "牺牲防御换取攻击力，ATK+10，DEF-5，持续2回合",
+                cost: 0,
+                effect: {
+                    type: "buff",
+                    stat: "atk",
+                    value: 10,
+                    duration: 2,
+                    debuff: {
+                        stat: "def",
+                        value: -5
+                    }
+                }
+            }
+        };
+
+        // 游戏状态
+        class BattleGame {
+            constructor() {
+                this.player = null;
+                this.ai = null;
+                this.currentTurn = 0;
+                this.turnOrder = [];
+                this.gameOver = false;
+                this.logEntries = [];
+                this.isAnimating = false;
+                this.init();
+            }
+
+            init() {
+                this.player = this.createCharacter(playerData, 1);
+                this.ai = this.createCharacter(aiData, 2);
+                this.currentTurn = 0;
+                this.turnOrder = [];
+                this.gameOver = false;
+                this.logEntries = [];
+                this.isAnimating = false;
+                this.updateUI();
+                this.determineTurnOrder();
+                this.addLog(`战斗开始！${this.player.name} VS ${this.ai.name}`, 'info');
+                this.addLog(`属性点规则：HP1分=10, ATK1分=5, DEF1分=3, SPD1分=1`, 'info');
+                this.processTurn();
+            }
+
+            createCharacter(data, id) {
+                return {
+                    id: id,
+                    name: data.name || '无名',
+                    hp: data.hp || 50,
+                    maxHp: data.maxHp || data.hp || 50,
+                    baseAtk: data.atk || 10,
+                    baseDef: data.def || 5,
+                    baseSpd: data.spd || 5,
+                    atk: data.atk || 10,
+                    def: data.def || 5,
+                    spd: data.spd || 5,
+                    skill: data.skill || null,
+                    isBlocking: false,
+                    skillUsed: false,
+                    heavyAttackCount: 2,
+                    heavyAttackCooldown: 0,
+                    buffs: []
+                };
+            }
+
+            calculateStats(character) {
+                character.atk = character.baseAtk;
+                character.def = character.baseDef;
+                character.spd = character.baseSpd;
+
+                for (const buff of character.buffs) {
+                    if (buff.stat === 'atk') {
+                        character.atk += buff.value;
+                    } else if (buff.stat === 'def') {
+                        character.def += buff.value;
+                    } else if (buff.stat === 'spd') {
+                        character.spd += buff.value;
+                    }
+                }
+
+                character.atk = Math.max(0, character.atk);
+                character.def = Math.max(0, character.def);
+                character.spd = Math.max(0, character.spd);
+            }
+
+            updateBuffs(character) {
+                for (let i = character.buffs.length - 1; i >= 0; i--) {
+                    character.buffs[i].duration--;
+                    if (character.buffs[i].duration <= 0) {
+                        const expiredBuff = character.buffs.splice(i, 1)[0];
+                        this.addLog(`${character.name} 的${this.getBuffName(expiredBuff)}效果结束了`, 'info');
+                    }
+                }
+                this.calculateStats(character);
+            }
+
+            getBuffName(buff) {
+                if (buff.stat === 'atk') return buff.value > 0 ? '攻击提升' : '攻击降低';
+                if (buff.stat === 'def') return buff.value > 0 ? '防御提升' : '防御降低';
+                if (buff.stat === 'spd') return buff.value > 0 ? '速度提升' : '速度降低';
+                return '属性变化';
+            }
+
+            determineTurnOrder() {
+                if (this.player.spd > this.ai.spd) {
+                    this.turnOrder = [this.player, this.ai];
+                } else if (this.ai.spd > this.player.spd) {
+                    this.turnOrder = [this.ai, this.player];
+                } else {
+                    this.turnOrder = this.player.id < this.ai.id ? [this.player, this.ai] : [this.ai, this.player];
+                }
+            }
+
+            async processTurn() {
+                if (this.gameOver) return;
+
+                const currentActor = this.turnOrder[this.currentTurn % 2];
+                
+                currentActor.isBlocking = false;
+                
+                if (currentActor.heavyAttackCooldown > 0) {
+                    currentActor.heavyAttackCooldown--;
+                }
+
+                this.updateBuffs(currentActor);
+                this.determineTurnOrder();
+                this.updateUI();
+
+                if (currentActor.id === 1) {
+                    this.setTurnIndicator(`${this.player.name} 的回合 - 请选择行动`);
+                    this.enableActionButtons(true);
+                } else {
+                    this.setTurnIndicator(`${this.ai.name} 的回合 - AI思考中...`);
+                    this.enableActionButtons(false);
+                    await this.sleep(1000);
+                    this.aiAction();
+                }
+            }
+
+            async playerAction(actionType) {
+                if (this.gameOver || this.isAnimating) return;
+                this.enableActionButtons(false);
+                this.isAnimating = true;
+                await this.executeAction(this.player, this.ai, actionType);
+                this.isAnimating = false;
+            }
+
+            async aiAction() {
+                if (this.gameOver) return;
+                
+                const actionType = this.decideAIAction();
+                this.isAnimating = true;
+                await this.executeAction(this.ai, this.player, actionType);
+                this.isAnimating = false;
+            }
+
+            decideAIAction() {
+                const hpPercent = (this.ai.hp / this.ai.maxHp) * 100;
+                
+                if (hpPercent < 30 && !this.ai.skillUsed && this.ai.skill) {
+                    return 'skill';
+                }
+                
+                const random = Math.random() * 100;
+                if (random < 25 && this.ai.heavyAttackCount > 0 && this.ai.heavyAttackCooldown === 0) {
+                    return 'heavy';
+                }
+                
+                return 'attack';
+            }
+
+            async executeAction(attacker, defender, actionType) {
+                let damage = 0;
+                let actionName = '';
+
+                switch (actionType) {
+                    case 'attack':
+                        actionName = '普通攻击';
+                        damage = this.calculateDamage(attacker.atk, defender.def, 1.0);
+                        await this.playAttackAnimation(attacker, defender, damage, 'normal');
+                        break;
+                    case 'heavy':
+                        actionName = '重击';
+                        damage = this.calculateDamage(attacker.atk, defender.def, 1.8);
+                        attacker.heavyAttackCount--;
+                        attacker.heavyAttackCooldown = 2;
+                        await this.playAttackAnimation(attacker, defender, damage, 'heavy');
+                        break;
+                    case 'block':
+                        actionName = '格挡';
+                        attacker.isBlocking = true;
+                        await this.playBlockAnimation(attacker);
+                        this.addLog(`${attacker.name} 采取防御姿态，本回合受到伤害减半`, 'info');
+                        break;
+                    case 'skill':
+                        actionName = attacker.skill ? attacker.skill.name : '特技';
+                        attacker.skillUsed = true;
+                        await this.executeSkill(attacker, defender);
+                        break;
+                }
+
+                if (actionType !== 'block' && actionType !== 'skill') {
+                    this.applyDamage(defender, damage);
+                    this.addLog(`${attacker.name} 使用 ${actionName}，造成 ${damage} 点伤害！`, 'damage');
+                }
+
+                if (await this.checkGameOver()) {
+                    return;
+                }
+
+                this.currentTurn++;
+                this.processTurn();
+            }
+
+            async playAttackAnimation(attacker, defender, damage, attackType = 'normal') {
+                const attackerCard = attacker.id === 1 ? document.getElementById('playerCard') : document.getElementById('aiCard');
+                const defenderCard = attacker.id === 1 ? document.getElementById('aiCard') : document.getElementById('playerCard');
+                
+                const isAIAttacking = attacker.id === 2;
+                const attackDistance = attacker.id === 1 ? '100px' : '-100px';
+                
+                if (attackType === 'normal') {
+                    await this.playNormalAttackAnimation(attackerCard, defenderCard, attackDistance, isAIAttacking);
+                } else if (attackType === 'heavy') {
+                    const heavyDistance = attacker.id === 1 ? '150px' : '-150px';
+                    await this.playHeavyAttackAnimation(attackerCard, defenderCard, heavyDistance, isAIAttacking);
+                }
+            }
+
+            showEmoji(emoji, animationClass) {
+                const emojiEl = document.getElementById('aiEmoji');
+                if (!emojiEl) return;
+                
+                emojiEl.textContent = emoji;
+                emojiEl.className = 'emoji-expression ' + animationClass;
+                
+                setTimeout(() => {
+                    emojiEl.className = 'emoji-expression';
+                    emojiEl.textContent = '';
+                }, 1500);
+            }
+
+            async playNormalAttackAnimation(attackerCard, defenderCard, attackDistance, isAIAttacking = false) {
+                // 获取攻击方和受击方的精灵图
+                const attackerSprite = attackerCard.querySelector('.sprite-avatar');
+                const defenderSprite = defenderCard.querySelector('.sprite-avatar');
+
+                // 设置攻击距离变量
+                attackerSprite.style.setProperty('--attack-distance', attackDistance);
+
+                // 切换到攻击帧
+                attackerSprite.classList.add('attacking');
+
+                // 播放攻击音效
+                playSound_attack();
+
+                // 如果是AI攻击，显示攻击emoji
+                if (isAIAttacking) {
+                    this.showEmoji('⚔️', 'emoji-attack');
+                }
+
+                // 播放攻击动画 - 应用于精灵图
+                attackerSprite.classList.add('attack-normal');
+                await this.sleep(200);
+
+                // 播放受击动画 - 应用于精灵图
+                this.playHitAnimation(defenderSprite, !isAIAttacking);
+                await this.sleep(200);
+
+                // 清理类名 - 移除攻击帧
+                attackerSprite.classList.remove('attack-normal', 'attacking');
+            }
+
+            async playHeavyAttackAnimation(attackerCard, defenderCard, attackDistance, isAIAttacking = false) {
+                // 获取攻击方和受击方的精灵图
+                const attackerSprite = attackerCard.querySelector('.sprite-avatar');
+                const defenderSprite = defenderCard.querySelector('.sprite-avatar');
+
+                // 设置攻击距离变量
+                attackerSprite.style.setProperty('--attack-distance', attackDistance);
+
+                // 蓄力阶段 - 切换到攻击帧
+                attackerSprite.classList.add('attacking');
+
+                // 蓄力阶段 - AI显示愤怒表情
+                if (isAIAttacking) {
+                    this.showEmoji('😠', 'emoji-attack');
+                }
+
+                // 蓄力动画 - 应用于精灵图
+                attackerSprite.classList.add('heavy-charge');
+                await this.sleep(300);
+
+                // 播放重击音效
+                playSound_heavy();
+
+                // 攻击阶段 - 应用于精灵图
+                attackerSprite.classList.remove('heavy-charge');
+                attackerSprite.classList.add('attack-heavy');
+                await this.sleep(250);
+
+                // 受击抖动 - 应用于精灵图
+                defenderSprite.classList.add('horizontal-shake');
+                await this.sleep(200);
+
+                // 清理类名 - 移除攻击帧
+                attackerSprite.classList.remove('attack-heavy', 'attacking');
+                defenderSprite.classList.remove('horizontal-shake');
+            }
+
+            playHitAnimation(targetSprite, isAITarget = false) {
+                targetSprite.classList.add('hit-shake', 'hit-red');
+
+                // 播放受击音效
+                playSound_hit();
+
+                // 如果AI被击中，显示受伤emoji
+                if (isAITarget) {
+                    this.showEmoji('😵', 'emoji-hurt');
+                }
+
+                setTimeout(() => {
+                    targetSprite.classList.remove('hit-shake', 'hit-red');
+                }, 400);
+            }
+
+            async playBlockAnimation(blocker) {
+                const blockerCard = blocker.id === 1 ? document.getElementById('playerCard') : document.getElementById('aiCard');
+                const blockerSprite = blockerCard.querySelector('.sprite-avatar');
+                const blockDistance = blocker.id === 1 ? '-50px' : '50px';
+
+                blockerSprite.style.setProperty('--block-distance', blockDistance);
+                blockerSprite.classList.add('block-back', 'flash-twice');
+
+                // 播放格挡音效
+                playSound_block();
+
+                // AI格挡显示护盾emoji
+                if (blocker.id === 2) {
+                    this.showEmoji('🛡️', 'emoji-block');
+                }
+
+                await this.sleep(500);
+
+                blockerSprite.classList.remove('block-back', 'flash-twice');
+            }
+
+            async playDeathAnimation(deadCharacter) {
+                const deadCard = deadCharacter.id === 1 ? document.getElementById('playerCard') : document.getElementById('aiCard');
+                const deadSprite = deadCard.querySelector('.sprite-avatar');
+                deadSprite.classList.add('death');
+                
+                // AI死亡显示骷髅emoji
+                if (deadCharacter.id === 2) {
+                    await this.sleep(200);
+                    this.showEmoji('💀', 'emoji-death');
+                }
+                
+                await this.sleep(600);
+            }
+
+            async playVictoryAnimation(victor) {
+                const victorCard = victor.id === 1 ? document.getElementById('playerCard') : document.getElementById('aiCard');
+                const victorSprite = victorCard.querySelector('.sprite-avatar');
+                victorSprite.classList.add('victory');
+
+                // 播放胜利音效
+                playSound_win();
+
+                // AI胜利显示开心emoji
+                if (victor.id === 2) {
+                    await this.sleep(200);
+                    this.showEmoji('🎉', 'emoji-victory');
+                }
+
+                await this.sleep(600);
+                victorSprite.classList.remove('victory');
+            }
+
+            async executeSkill(attacker, defender) {
+                if (!attacker.skill) return;
+                
+                const effect = attacker.skill.effect;
+                
+                switch (effect.type) {
+                    case 'multi_attack':
+                        const count = effect.attack_count || 2;
+                        const multiplier = effect.damage_multiplier || 1.0;
+                        let totalDamage = 0;
+
+                        // 播放连击特效
+                        playSkillEffect_multiAttack(attacker.id, defender.id);
+
+                        for (let i = 0; i < count; i++) {
+                            const dmg = this.calculateDamage(attacker.atk, defender.def, multiplier);
+                            totalDamage += dmg;
+                            if (i < count - 1) {
+                                await this.playAttackAnimation(attacker, defender, dmg, 'normal');
+                            }
+                        }
+
+                        this.applyDamage(defender, totalDamage);
+                        this.addLog(`${attacker.name} 使用 ${attacker.skill.name}！连续攻击 ${count} 次，造成 ${totalDamage} 点伤害！`, 'damage');
+                        await this.playAttackAnimation(attacker, defender, totalDamage, 'normal');
+                        break;
+                    
+                    case 'buff':
+                        attacker.buffs.push({
+                            stat: effect.stat,
+                            value: effect.value,
+                            duration: effect.duration
+                        });
+                        
+                        if (effect.debuff) {
+                            attacker.buffs.push({
+                                stat: effect.debuff.stat,
+                                value: effect.debuff.value,
+                                duration: effect.duration
+                            });
+                        }
+                        
+                        this.calculateStats(attacker);
+                        
+                        this.addLog(`${attacker.name} 使用 ${attacker.skill.name}！${effect.value > 0 ? '攻击力提升' : '攻击力降低'}${Math.abs(effect.value)}点，持续${effect.duration}回合`, 'buff');
+                        if (effect.debuff) {
+                            this.addLog(`${attacker.name} 防御力降低${Math.abs(effect.debuff.value)}点！`, 'buff');
+                        }
+                        break;
+                    
+                    default:
+                        this.addLog(`${attacker.name} 使用 ${attacker.skill.name}！`, 'info');
+                }
+            }
+
+            calculateDamage(atk, def, multiplier) {
+                let damage = Math.floor((atk - def) * multiplier);
+                return Math.max(1, damage);
+            }
+
+            applyDamage(target, damage) {
+                if (target.isBlocking) {
+                    damage = Math.max(1, Math.floor(damage * 0.5));
+                }
+                
+                target.hp = Math.max(0, target.hp - damage);
+                this.updateUI();
+            }
+
+            async checkGameOver() {
+                const playerDead = this.player.hp <= 0;
+                const aiDead = this.ai.hp <= 0;
+
+                if (playerDead && aiDead) {
+                    await this.endGame('draw', '平局！');
+                    return true;
+                } else if (aiDead) {
+                    await this.endGame('win', '胜利！');
+                    return true;
+                } else if (playerDead) {
+                    await this.endGame('lose', '失败！');
+                    return true;
+                }
+
+                return false;
+            }
+
+            async endGame(result, title) {
+                this.gameOver = true;
+                
+                // 播放死亡和胜利动画
+                if (result === 'win') {
+                    await this.playDeathAnimation(this.ai);
+                    await this.playVictoryAnimation(this.player);
+                } else if (result === 'lose') {
+                    await this.playDeathAnimation(this.player);
+                    await this.playVictoryAnimation(this.ai);
+                } else {
+                    // 平局
+                    await this.playDeathAnimation(this.player);
+                    await this.playDeathAnimation(this.ai);
+                }
+                
+                const modal = document.getElementById('gameOverModal');
+                const titleEl = document.getElementById('gameOverTitle');
+                
+                titleEl.textContent = title;
+                titleEl.className = 'game-over-title ' + result;
+                modal.classList.add('show');
+                
+                this.enableActionButtons(false);
+            }
+
+            restart() {
+                document.getElementById('gameOverModal').classList.remove('show');
+                
+                // 清除死亡和动画类
+                const playerSprite = document.querySelector('#playerCard .sprite-avatar');
+                const aiSprite = document.querySelector('#aiCard .sprite-avatar');
+                if (playerSprite) playerSprite.classList.remove('death', 'victory');
+                if (aiSprite) aiSprite.classList.remove('death', 'victory');
+
+                this.init();
+            }
+
+            updateUI() {
+                document.getElementById('playerName').textContent = this.player.name;
+                
+                const playerAtkEl = document.getElementById('playerAtk');
+                playerAtkEl.textContent = this.player.atk;
+                playerAtkEl.parentElement.className = 'stat ' + (this.player.atk > this.player.baseAtk ? 'buffed' : this.player.atk < this.player.baseAtk ? 'debuffed' : '');
+                
+                const playerDefEl = document.getElementById('playerDef');
+                playerDefEl.textContent = this.player.def;
+                playerDefEl.parentElement.className = 'stat ' + (this.player.def > this.player.baseDef ? 'buffed' : this.player.def < this.player.baseDef ? 'debuffed' : '');
+                
+                document.getElementById('playerSpd').textContent = this.player.spd;
+                
+                const playerHpPercent = (this.player.hp / this.player.maxHp) * 100;
+                document.getElementById('playerHpBar').style.width = playerHpPercent + '%';
+                document.getElementById('playerHpText').textContent = `${this.player.hp}/${this.player.maxHp}`;
+                
+                document.getElementById('aiName').textContent = this.ai.name;
+                
+                const aiAtkEl = document.getElementById('aiAtk');
+                aiAtkEl.textContent = this.ai.atk;
+                aiAtkEl.parentElement.className = 'stat ' + (this.ai.atk > this.ai.baseAtk ? 'buffed' : this.ai.atk < this.ai.baseAtk ? 'debuffed' : '');
+                
+                const aiDefEl = document.getElementById('aiDef');
+                aiDefEl.textContent = this.ai.def;
+                aiDefEl.parentElement.className = 'stat ' + (this.ai.def > this.ai.baseDef ? 'buffed' : this.ai.def < this.ai.baseDef ? 'debuffed' : '');
+                
+                document.getElementById('aiSpd').textContent = this.ai.spd;
+                
+                const aiHpPercent = (this.ai.hp / this.ai.maxHp) * 100;
+                document.getElementById('aiHpBar').style.width = aiHpPercent + '%';
+                document.getElementById('aiHpText').textContent = `${this.ai.hp}/${this.ai.maxHp}`;
+                
+                this.updateHpBarColor('playerHpBar', playerHpPercent);
+                this.updateHpBarColor('aiHpBar', aiHpPercent);
+                
+                this.updateStatusBadges('playerBadges', this.player);
+                this.updateStatusBadges('aiBadges', this.ai);
+                
+                if (this.player.skill) {
+                    document.getElementById('playerSkillInfo').textContent = this.player.skill.name + (this.player.skillUsed ? ' (已使用)' : '');
+                }
+                if (this.ai.skill) {
+                    document.getElementById('aiSkillInfo').textContent = this.ai.skill.name + (this.ai.skillUsed ? ' (已使用)' : '');
+                }
+                
+                this.updateActionButtons();
+                
+                const isPlayerTurn = this.turnOrder[this.currentTurn % 2]?.id === 1;
+                document.getElementById('playerCard').classList.toggle('active', isPlayerTurn);
+                document.getElementById('aiCard').classList.toggle('active', !isPlayerTurn);
+            }
+
+            updateStatusBadges(badgeId, character) {
+                const container = document.getElementById(badgeId);
+                container.innerHTML = '';
+                
+                if (character.isBlocking) {
+                    const badge = document.createElement('span');
+                    badge.className = 'status-badge blocking';
+                    badge.textContent = '格挡中';
+                    container.appendChild(badge);
+                }
+                
+                for (const buff of character.buffs) {
+                    const badge = document.createElement('span');
+                    if (buff.stat === 'atk') {
+                        badge.className = 'status-badge buff-atk';
+                        badge.textContent = buff.value > 0 ? `⚔️+${buff.value}(${buff.duration})` : `⚔️${buff.value}(${buff.duration})`;
+                    } else if (buff.stat === 'def') {
+                        badge.className = 'status-badge buff-def';
+                        badge.textContent = buff.value > 0 ? `🛡️+${buff.value}(${buff.duration})` : `🛡️${buff.value}(${buff.duration})`;
+                    }
+                    container.appendChild(badge);
+                }
+            }
+
+            updateHpBarColor(barId, percent) {
+                const bar = document.getElementById(barId);
+                bar.classList.remove('low', 'critical');
+                if (percent <= 20) {
+                    bar.classList.add('critical');
+                } else if (percent <= 50) {
+                    bar.classList.add('low');
+                }
+            }
+
+            updateActionButtons() {
+                const isPlayerTurn = this.turnOrder[this.currentTurn % 2]?.id === 1;
+                
+                document.getElementById('btnAttack').disabled = !isPlayerTurn;
+                
+                const heavyBtn = document.getElementById('btnHeavy');
+                if (this.player.heavyAttackCount <= 0) {
+                    heavyBtn.disabled = true;
+                    heavyBtn.textContent = '重击 (次数用尽)';
+                } else if (this.player.heavyAttackCooldown > 0) {
+                    heavyBtn.disabled = true;
+                    heavyBtn.textContent = `重击 (冷却中${this.player.heavyAttackCooldown}回合)`;
+                } else {
+                    heavyBtn.disabled = !isPlayerTurn;
+                    heavyBtn.textContent = `重击 (×1.8) 剩余${this.player.heavyAttackCount}次`;
+                }
+                
+                document.getElementById('btnBlock').disabled = !isPlayerTurn;
+                
+                const skillBtn = document.getElementById('btnSkill');
+                if (this.player.skillUsed) {
+                    skillBtn.disabled = true;
+                    skillBtn.textContent = this.player.skill ? `${this.player.skill.name} (已使用)` : '特技 (已使用)';
+                } else {
+                    skillBtn.disabled = !isPlayerTurn;
+                    skillBtn.textContent = this.player.skill ? this.player.skill.name : '特技';
+                }
+            }
+
+            enableActionButtons(enable) {
+                const buttons = document.querySelectorAll('.action-btn');
+                buttons.forEach(btn => {
+                    if (enable) {
+                        this.updateActionButtons();
+                    } else {
+                        btn.disabled = true;
+                    }
+                });
+            }
+
+            setTurnIndicator(text) {
+                document.getElementById('turnIndicator').textContent = text;
+            }
+
+            addLog(message, type) {
+                this.logEntries.unshift({ message, type });
+                if (this.logEntries.length > 3) {
+                    this.logEntries.pop();
+                }
+                this.renderLog();
+            }
+
+            renderLog() {
+                const container = document.getElementById('logEntries');
+                container.innerHTML = '';
+                
+                this.logEntries.forEach(entry => {
+                    const div = document.createElement('div');
+                    div.className = `log-entry ${entry.type}`;
+                    div.textContent = entry.message;
+                    container.appendChild(div);
+                });
+            }
+
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // Web Audio API 音效系统
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            return audioCtx;
+        }
+
+        function playSound_attack() {
+            const ctx = getAudioContext();
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(800, ctx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.08);
+
+            gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+
+            oscillator.start(ctx.currentTime);
+            oscillator.stop(ctx.currentTime + 0.08);
+        }
+
+        function playSound_heavy() {
+            const ctx = getAudioContext();
+            const now = ctx.currentTime;
+
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            const filter = ctx.createBiquadFilter();
+
+            oscillator.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(150, now);
+            oscillator.frequency.exponentialRampToValueAtTime(50, now + 0.15);
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(300, now);
+            filter.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+
+            gainNode.gain.setValueAtTime(0.4, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+
+            oscillator.start(now);
+            oscillator.stop(now + 0.15);
+
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(80, now + 0.05);
+            gain2.gain.setValueAtTime(0.2, now + 0.05);
+            gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+            osc2.start(now + 0.05);
+            osc2.stop(now + 0.15);
+        }
+
+        function playSound_block() {
+            const ctx = getAudioContext();
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(1200, ctx.currentTime);
+            oscillator.frequency.setValueAtTime(600, ctx.currentTime + 0.02);
+
+            gainNode.gain.setValueAtTime(0.4, ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+
+            oscillator.start(ctx.currentTime);
+            oscillator.stop(ctx.currentTime + 0.05);
+        }
+
+        function playSound_hit() {
+            const ctx = getAudioContext();
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(600, ctx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.12);
+
+            gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
+
+            oscillator.start(ctx.currentTime);
+            oscillator.stop(ctx.currentTime + 0.12);
+        }
+
+        function playSound_win() {
+            const ctx = getAudioContext();
+            const notes = [523.25, 659.25, 783.99];
+
+            notes.forEach((freq, i) => {
+                setTimeout(() => {
+                    const oscillator = ctx.createOscillator();
+                    const gainNode = ctx.createGain();
+
+                    oscillator.connect(gainNode);
+                    gainNode.connect(ctx.destination);
+
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(freq, ctx.currentTime);
+
+                    gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+
+                    oscillator.start(ctx.currentTime);
+                    oscillator.stop(ctx.currentTime + 0.2);
+                }, i * 100);
+            });
+        }
+
+        function playSound_multiHit() {
+            const ctx = getAudioContext();
+            const now = ctx.currentTime;
+
+            for (let i = 0; i < 3; i++) {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(400 + i * 200, now + i * 0.15);
+                osc.frequency.exponentialRampToValueAtTime(200 + i * 100, now + i * 0.15 + 0.1);
+
+                gain.gain.setValueAtTime(0, now + i * 0.15);
+                gain.gain.linearRampToValueAtTime(0.3, now + i * 0.15 + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.12);
+
+                osc.start(now + i * 0.15);
+                osc.stop(now + i * 0.15 + 0.12);
+            }
+        }
+
+        // Canvas连击特效
+        function playSkillEffect_multiAttack(attackerId, defenderId) {
+            playSound_multiHit();
+
+            const canvas = document.getElementById('skillCanvas');
+            const ctx = canvas.getContext('2d');
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            // 获取目标位置
+            const defenderCard = defenderId === 1 ? document.getElementById('playerCard') : document.getElementById('aiCard');
+            const defenderRect = defenderCard.getBoundingClientRect();
+            const targetX = (defenderRect.left + defenderRect.width / 2 - rect.left) * scaleX;
+            const targetY = (defenderRect.top + defenderRect.height / 2 - rect.top) * scaleY;
+
+            // 获取攻击者位置
+            const attackerCard = attackerId === 1 ? document.getElementById('playerCard') : document.getElementById('aiCard');
+            const attackerRect = attackerCard.getBoundingClientRect();
+            const startX = (attackerRect.left + attackerRect.width / 2 - rect.left) * scaleX;
+            const startY = (attackerRect.top + attackerRect.height / 2 - rect.top) * scaleY;
+
+            let hitCount = 0;
+            const maxHits = 3;
+
+            function drawLightning(x1, y1, x2, y2, progress) {
+                ctx.save();
+                ctx.strokeStyle = `rgba(255, 255, 100, ${1 - progress})`;
+                ctx.lineWidth = 3 * (1 - progress * 0.5);
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = 'rgba(255, 255, 0, 0.8)';
+
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+
+                // 画折线闪电效果
+                const segments = 8;
+                const dx = (x2 - x1) / segments;
+                const dy = (y2 - y1) / segments;
+
+                for (let i = 1; i < segments; i++) {
+                    const offsetX = (Math.random() - 0.5) * 30 * (1 - progress);
+                    const offsetY = (Math.random() - 0.5) * 20 * (1 - progress);
+                    ctx.lineTo(x1 + dx * i + offsetX, y1 + dy * i + offsetY);
+                }
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+
+                // 闪电分支
+                if (Math.random() > 0.5) {
+                    ctx.strokeStyle = `rgba(200, 200, 255, ${0.5 - progress * 0.5})`;
+                    ctx.lineWidth = 1;
+                    const branchX = x1 + dx * 4 + (Math.random() - 0.5) * 20;
+                    const branchY = y1 + dy * 4 + (Math.random() - 0.5) * 20;
+                    ctx.beginPath();
+                    ctx.moveTo(branchX, branchY);
+                    ctx.lineTo(branchX + (Math.random() - 0.5) * 40, branchY + (Math.random() - 0.5) * 40);
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            }
+
+            function drawHitEffect(x, y, progress) {
+                ctx.save();
+
+                // 光晕
+                const gradient = ctx.createRadialGradient(x, y, 0, x, y, 50 * progress);
+                gradient.addColorStop(0, `rgba(255, 255, 200, ${0.8 * (1 - progress)})`);
+                gradient.addColorStop(0.5, `rgba(255, 200, 100, ${0.4 * (1 - progress)})`);
+                gradient.addColorStop(1, 'rgba(255, 100, 50, 0)');
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(x, y, 50 * progress, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 数字
+                ctx.fillStyle = `rgba(255, 255, 0, ${1 - progress})`;
+                ctx.font = `bold ${24 * (1 + progress * 0.5)}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = 'rgba(255, 0, 0, 0.8)';
+                ctx.fillText(`${hitCount + 1} HIT!`, x, y - 30 * progress);
+
+                ctx.restore();
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                if (hitCount < maxHits) {
+                    const hitProgress = (Date.now() % 400) / 400;
+                    drawLightning(startX, startY, targetX, targetY, hitProgress);
+                    drawHitEffect(targetX, targetY, hitProgress);
+                    requestAnimationFrame(animate);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+
+            // 开始连击动画
+            const hitInterval = setInterval(() => {
+                hitCount++;
+                if (hitCount >= maxHits) {
+                    clearInterval(hitInterval);
+                    setTimeout(() => {
+                        hitCount = 0;
+                    }, 300);
+                }
+            }, 400);
+
+            animate();
+        }
+
+        const game = new BattleGame();
+    </script>
+</body>
+</html>
