@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>俄罗斯方块</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .game-container { display: flex; gap: 24px; }
+    .board-wrapper { position: relative; }
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      grid-template-rows: repeat(20, 1fr);
+      gap: 1px;
+      background: #1e1e2e;
+      padding: 4px;
+      border-radius: 8px;
+      border: 3px solid #3a3a4a;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 60px rgba(0,0,0,0.3);
+    }
+    .cell { width: 28px; height: 28px; background: #2a2a3e; border-radius: 2px; }
+    .cell.filled { border-radius: 4px; box-shadow: 0 0 10px currentColor; }
+    .info-panel { display: flex; flex-direction: column; width: 180px; }
+    .panel {
+      background: #1e1e2e;
+      padding: 16px;
+      border-radius: 8px;
+      border: 2px solid #3a3a4a;
+      margin-bottom: 12px;
+    }
+    .panel-title {
+      color: #a0a0b0;
+      font-size: 14px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+    .next-piece-preview { display: flex; justify-content: center; align-items: center; min-height: 80px; }
+    .next-cell { width: 20px; height: 20px; border-radius: 3px; }
+    .stats { display: flex; flex-direction: column; gap: 8px; }
+    .stat-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #2a2a3e; }
+    .stat-label { color: #a0a0b0; font-size: 14px; }
+    .stat-value { color: #fff; font-size: 18px; font-weight: bold; font-family: monospace; }
+    .controls-wrapper { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+    .controls { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: #4f46e5; color: white; }
+    .btn-primary:hover { background: #4338ca; }
+    .btn-secondary { background: #3a3a4a; color: #e0e0e0; }
+    .btn-secondary:hover { background: #4a4a5a; }
+    .btn:active { transform: scale(0.98); }
+    .instructions { background: #1e1e2e; padding: 16px; border-radius: 8px; border: 2px solid #3a3a4a; }
+    .instruction-title {
+      color: #a0a0b0;
+      font-size: 14px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .instruction-list { display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #c0c0d0; }
+    .instruction-item { display: flex; justify-content: space-between; }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border-radius: 8px;
+    }
+    .overlay-title { color: #fff; font-size: 24px; margin-bottom: 16px; }
+    .overlay-subtitle { color: #a0a0b0; font-size: 14px; text-align: center; }
+    .overlay.gameover .overlay-title { color: #ef4444; }
+    .new-record { color: #fbbf24; font-size: 14px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <div class="board-wrapper">
+      <div class="game-board" id="gameBoard"></div>
+      <div class="overlay" id="overlay">
+        <h2 class="overlay-title">俄罗斯方块</h2>
+        <p class="overlay-subtitle">按「开始游戏」按钮开始<br />使用方向键控制方块</p>
+      </div>
+    </div>
+    
+    <div class="info-panel">
+      <div class="panel">
+        <div class="panel-title">下一个</div>
+        <div class="next-piece-preview" id="nextPiecePreview"></div>
+      </div>
+      <div class="panel stats" id="statsPanel"></div>
+    </div>
+    
+    <div class="controls-wrapper">
+      <div class="controls" id="controls"></div>
+      <div class="instructions">
+        <div class="instruction-title">操作说明</div>
+        <div class="instruction-list">
+          <div class="instruction-item"><span>← →</span><span>左右移动</span></div>
+          <div class="instruction-item"><span>↓</span><span>加速下落</span></div>
+          <div class="instruction-item"><span>↑</span><span>旋转</span></div>
+          <div class="instruction-item"><span>空格</span><span>快速下落</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TETROMINOS = {
+      I: { shape: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]], color: '#00f5ff' },
+      O: { shape: [[1,1],[1,1]], color: '#ffff00' },
+      T: { shape: [[0,1,0],[1,1,1],[0,0,0]], color: '#a855f7' },
+      S: { shape: [[0,1,1],[1,1,0],[0,0,0]], color: '#22c55e' },
+      Z: { shape: [[1,1,0],[0,1,1],[0,0,0]], color: '#ef4444' },
+      J: { shape: [[1,0,0],[1,1,1],[0,0,0]], color: '#3b82f6' },
+      L: { shape: [[0,0,1],[1,1,1],[0,0,0]], color: '#f97316' },
+    };
+    const TYPES = Object.keys(TETROMINOS);
+    const W = 10, H = 20;
+    const SCORES = { 1: 100, 2: 300, 3: 500, 4: 800 };
+    const LINES_PER_LEVEL = 10;
+    
+    let board = createBoard();
+    let currentPiece = null, currentPos = {x:0,y:0}, nextPiece = randomPiece();
+    let score = 0, level = 1, lines = 0;
+    let gameStatus = 'idle';
+    let gameLoop = null, lastTime = 0;
+    let highScore = parseInt(localStorage.getItem('tetris_high_score') || '0');
+
+    function createBoard() { return Array(H).fill().map(() => Array(W).fill(null)); }
+    function randomPiece() {
+      const t = TYPES[Math.floor(Math.random() * TYPES.length)];
+      return { ...TETROMINOS[t], shape: TETROMINOS[t].shape.map(r => [...r]) };
+    }
+    function checkCollision(piece, pos) {
+      for (let y = 0; y < piece.shape.length; y++) {
+        for (let x = 0; x < piece.shape[y].length; x++) {
+          if (piece.shape[y][x]) {
+            const nx = pos.x + x, ny = pos.y + y;
+            if (nx < 0 || nx >= W || ny >= H || (ny >= 0 && board[ny][nx])) return true;
+          }
+        }
+      }
+      return false;
+    }
+    function rotatePiece(p) {
+      const rows = p.shape.length, cols = p.shape[0].length;
+      return { ...p, shape: Array(cols).fill().map((_,i) => Array(rows).fill().map((_,j) => p.shape[rows-1-j][i])) };
+    }
+    function spawnPiece() {
+      currentPiece = nextPiece;
+      nextPiece = randomPiece();
+      currentPos = { x: Math.floor((W - currentPiece.shape[0].length)/2), y: 0 };
+      if (checkCollision(currentPiece, currentPos)) gameOver();
+    }
+    function lockPiece() {
+      for (let y = 0; y < currentPiece.shape.length; y++) {
+        for (let x = 0; x < currentPiece.shape[y].length; x++) {
+          if (currentPiece.shape[y][x]) {
+            const by = currentPos.y + y, bx = currentPos.x + x;
+            if (by >= 0 && by < H && bx >= 0 && bx < W) board[by][bx] = currentPiece.color;
+          }
+        }
+      }
+    }
+    function clearLines() {
+      let cleared = 0;
+      board = board.filter(row => {
+        const full = row.every(c => c !== null);
+        if (full) cleared++;
+        return !full;
+      });
+      while (board.length < H) board.unshift(Array(W).fill(null));
+      if (cleared) {
+        lines += cleared;
+        level = Math.floor(lines / LINES_PER_LEVEL) + 1;
+        score += (SCORES[cleared] || 0) * level;
+        if (score > highScore) {
+          highScore = score;
+          localStorage.setItem('tetris_high_score', score.toString());
+        }
+      }
+    }
+    function movePiece(dx, dy) {
+      if (!currentPiece || gameStatus !== 'playing') return false;
+      const newPos = { x: currentPos.x + dx, y: currentPos.y + dy };
+      if (!checkCollision(currentPiece, newPos)) { currentPos = newPos; return true; }
+      if (dy > 0) { lockPiece(); clearLines(); spawnPiece(); }
+      return false;
+    }
+    function rotate() {
+      if (!currentPiece || gameStatus !== 'playing') return;
+      const rotated = rotatePiece(currentPiece);
+      if (!checkCollision(rotated, currentPos)) { currentPiece = rotated; return; }
+      [-1,1,-2,2].forEach(kick => {
+        const kicked = { x: currentPos.x + kick, y: currentPos.y };
+        if (!checkCollision(rotated, kicked)) { currentPiece = rotated; currentPos = kicked; }
+      });
+    }
+    function hardDrop() { if (currentPiece && gameStatus === 'playing') while (movePiece(0,1)); }
+    function getSpeed() { return Math.max(100, 1000 - (level-1)*100); }
+
+    function update(timestamp) {
+      if (gameStatus !== 'playing') { gameLoop = requestAnimationFrame(update); return; }
+      if (timestamp - lastTime > getSpeed()) { movePiece(0,1); lastTime = timestamp; }
+      render();
+      gameLoop = requestAnimationFrame(update);
+    }
+
+    function render() {
+      const display = board.map(r => [...r]);
+      if (currentPiece) {
+        for (let y = 0; y < currentPiece.shape.length; y++) {
+          for (let x = 0; x < currentPiece.shape[y].length; x++) {
+            if (currentPiece.shape[y][x]) {
+              const by = currentPos.y + y, bx = currentPos.x + x;
+              if (by >= 0 && by < H && bx >= 0 && bx < W) display[by][bx] = currentPiece.color;
+            }
+          }
+        }
+      }
+      
+      document.getElementById('gameBoard').innerHTML = display.flat().map(cell =>
+        `<div class="cell ${cell ? 'filled' : ''}" style="background: ${cell || '#2a2a3e'}; color: ${cell || 'transparent'}"></div>`
+      ).join('');
+      
+      const nextHTML = nextPiece.shape.map(r => r.map(cell =>
+        `<div class="next-cell" style="background: ${cell ? nextPiece.color : 'transparent'}"></div>`
+      ).join('')).join('');
+      document.getElementById('nextPiecePreview').innerHTML =
+        `<div style="display: grid; grid-template-columns: repeat(${nextPiece.shape[0].length},1fr); gap:2px">${nextHTML}</div>`;
+      
+      document.getElementById('statsPanel').innerHTML = `
+        <div class="stat-item"><span class="stat-label">分数</span><span class="stat-value">${score.toString().padStart(6,'0')}</span></div>
+        <div class="stat-item"><span class="stat-label">等级</span><span class="stat-value">${level.toString().padStart(6,'0')}</span></div>
+        <div class="stat-item"><span class="stat-label">消除行数</span><span class="stat-value">${lines.toString().padStart(6,'0')}</span></div>
+        <div class="stat-item"><span class="stat-label">最高分</span><span class="stat-value">${highScore.toString().padStart(6,'0')}</span></div>
+      `;
+    }
+
+    function startGame() {
+      board = createBoard(); score = 0; level = 1; lines = 0;
+      gameStatus = 'playing'; nextPiece = randomPiece();
+      spawnPiece(); lastTime = performance.now();
+      document.getElementById('overlay').style.display = 'none';
+      updateControls();
+    }
+    function pauseGame() {
+      gameStatus = 'paused';
+      document.getElementById('overlay').className = 'overlay';
+      document.getElementById('overlay').innerHTML = '<h2 class="overlay-title">游戏暂停</h2>';
+      document.getElementById('overlay').style.display = 'flex';
+      updateControls();
+    }
+    function resumeGame() {
+      gameStatus = 'playing'; lastTime = performance.now();
+      document.getElementById('overlay').style.display = 'none';
+      updateControls();
+    }
+    function restartGame() { startGame(); }
+    function gameOver() {
+      gameStatus = 'gameover';
+      document.getElementById('overlay').className = 'overlay gameover';
+      document.getElementById('overlay').innerHTML = `
+        <h2 class="overlay-title">游戏结束</h2>
+        <p style="color:#fff;font-size:18px">最终分数: ${score}</p>
+        ${score >= highScore && score > 0 ? '<p class="new-record">🎉 新纪录!</p>' : ''}
+      `;
+      document.getElementById('overlay').style.display = 'flex';
+      updateControls();
+    }
+    function updateControls() {
+      document.getElementById('startBtn').style.display = gameStatus === 'idle' ? 'block' : 'none';
+      document.getElementById('pauseBtn').style.display = gameStatus === 'playing' ? 'block' : 'none';
+      document.getElementById('resumeBtn').style.display = gameStatus === 'paused' ? 'block' : 'none';
+      document.getElementById('restartBtn').style.display = gameStatus !== 'idle' ? 'block' : 'none';
+    }
+
+    document.getElementById('controls').innerHTML = `
+      <button class="btn btn-primary" onclick="startGame()" id="startBtn">开始游戏</button>
+      <button class="btn btn-secondary" onclick="pauseGame()" id="pauseBtn" style="display:none">暂停</button>
+      <button class="btn btn-primary" onclick="resumeGame()" id="resumeBtn" style="display:none">继续</button>
+      <button class="btn btn-secondary" onclick="restartGame()" id="restartBtn" style="display:none">重新开始</button>
+    `;
+
+    document.addEventListener('keydown', e => {
+      if (gameStatus !== 'playing') { if (e.key === ' ' && gameStatus === 'idle') startGame(); return; }
+      switch (e.key) {
+        case 'ArrowLeft': movePiece(-1,0); break;
+        case 'ArrowRight': movePiece(1,0); break;
+        case 'ArrowDown': movePiece(0,1); break;
+        case 'ArrowUp': rotate(); break;
+        case ' ': hardDrop(); break;
+      }
+    });
+
+    render();
+    gameLoop = requestAnimationFrame(update);
+  </script>
+</body>
+</html>
