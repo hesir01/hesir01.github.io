@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>像素画图工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 28px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .main-layout {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* 工具栏 */
+        .toolbar {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-width: 200px;
+        }
+
+        .toolbar-section {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 15px;
+        }
+
+        .toolbar-section:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .toolbar-title {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tool-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tool-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 18px;
+        }
+
+        .tool-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .tool-btn.active {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.2);
+        }
+
+        .tool-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 调色板 */
+        .palette {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+
+        .color-cell {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .color-cell:hover {
+            transform: scale(1.1);
+        }
+
+        .color-cell.active {
+            border-color: #fff;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .color-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            margin-bottom: 10px;
+            background: #000;
+        }
+
+        /* 画布区域 */
+        .canvas-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            background: #0a0a0a;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        #pixelCanvas {
+            display: block;
+            cursor: crosshair;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        /* 帧控制 */
+        .frame-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .frame-btn {
+            padding: 8px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .frame-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .frame-btn.active {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.2);
+        }
+
+        .frame-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* 动画控制 */
+        .animation-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .play-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .play-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .speed-slider {
+            width: 150px;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .speed-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #00d4ff;
+            cursor: pointer;
+        }
+
+        .speed-value {
+            font-size: 14px;
+            color: #888;
+            min-width: 50px;
+        }
+
+        /* 操作按钮 */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            border: none;
+        }
+
+        .action-btn.primary:hover {
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* 设置区域 */
+        .settings {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .setting-label {
+            font-size: 14px;
+            color: #888;
+        }
+
+        select {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            cursor: pointer;
+            outline: none;
+        }
+
+        /* 提示信息 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 快捷键提示 */
+        .shortcuts {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .shortcuts h3 {
+            margin-bottom: 10px;
+            color: #888;
+        }
+
+        .shortcuts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 5px;
+        }
+
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        kbd {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        /* 网格线开关 */
+        .toggle-btn {
+            padding: 6px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #888;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .toggle-btn.active {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+
+        /* 保存提示 */
+        .save-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 6px;
+            font-size: 12px;
+            color: #888;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .save-indicator.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 像素画图工具</h1>
+        
+        <div class="main-layout">
+            <!-- 左侧工具栏 -->
+            <div class="toolbar">
+                <div class="toolbar-section">
+                    <div class="toolbar-title">工具</div>
+                    <div class="tool-buttons">
+                        <button class="tool-btn active" data-tool="brush" title="画笔 (P)">✏️</button>
+                        <button class="tool-btn" data-tool="eraser" title="橡皮 (E)">🧼</button>
+                        <button class="tool-btn" data-tool="fill" title="填充桶 (F)">🪣</button>
+                    </div>
+                </div>
+                
+                <div class="toolbar-section">
+                    <div class="toolbar-title">操作</div>
+                    <div class="tool-buttons">
+                        <button class="tool-btn" id="undoBtn" title="撤销 (Ctrl+Z)">↩️</button>
+                        <button class="tool-btn" id="redoBtn" title="重做 (Ctrl+Y)">↪️</button>
+                    </div>
+                </div>
+                
+                <div class="toolbar-section">
+                    <div class="toolbar-title">当前颜色</div>
+                    <div class="color-preview" id="colorPreview"></div>
+                    <div class="toolbar-title">调色板</div>
+                    <div class="palette" id="palette"></div>
+                </div>
+            </div>
+            
+            <!-- 中间画布区域 -->
+            <div class="canvas-area">
+                <div class="canvas-wrapper">
+                    <canvas id="pixelCanvas" width="512" height="512"></canvas>
+                    <div class="save-indicator" id="saveIndicator">已自动保存</div>
+                </div>
+                
+                <div class="frame-controls">
+                    <button class="frame-btn active" data-frame="0">帧 1 (待机)</button>
+                    <button class="frame-btn" data-frame="1">帧 2 (攻击)</button>
+                    <button class="action-btn" id="copyFrameBtn">复制帧1到帧2</button>
+                    <button class="action-btn" id="clearBtn">清空画布</button>
+                </div>
+                
+                <div class="animation-controls">
+                    <button class="play-btn" id="playBtn">▶ 播放动画</button>
+                    <div class="speed-control">
+                        <span class="setting-label">速度:</span>
+                        <input type="range" class="speed-slider" id="speedSlider" min="50" max="500" step="50" value="100">
+                        <span class="speed-value" id="speedValue">100ms</span>
+                    </div>
+                </div>
+                
+                <div class="settings">
+                    <div class="setting-item">
+                        <span class="setting-label">背景:</span>
+                        <select id="bgSelect">
+                            <option value="transparent">透明</option>
+                            <option value="white">白色</option>
+                        </select>
+                    </div>
+                    <button class="toggle-btn active" id="gridToggle">网格线</button>
+                    <button class="action-btn primary" id="exportBtn">导出 PNG</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="shortcuts">
+            <h3>快捷键</h3>
+            <div class="shortcuts-grid">
+                <div class="shortcut-item"><span>画笔工具</span> <kbd>P</kbd></div>
+                <div class="shortcut-item"><span>橡皮工具</span> <kbd>E</kbd></div>
+                <div class="shortcut-item"><span>填充桶</span> <kbd>F</kbd></div>
+                <div class="shortcut-item"><span>切换到帧1</span> <kbd>1</kbd></div>
+                <div class="shortcut-item"><span>切换到帧2</span> <kbd>2</kbd></div>
+                <div class="shortcut-item"><span>复制帧</span> <kbd>C</kbd></div>
+                <div class="shortcut-item"><span>播放/暂停</span> <kbd>空格</kbd></div>
+                <div class="shortcut-item"><span>撤销</span> <kbd>Ctrl+Z</kbd></div>
+                <div class="shortcut-item"><span>重做</span> <kbd>Ctrl+Y</kbd></div>
+                <div class="shortcut-item"><span>清空画布</span> <kbd>Delete</kbd></div>
+                <div class="shortcut-item"><span>网格线开关</span> <kbd>G</kbd></div>
+                <div class="shortcut-item"><span>导出</span> <kbd>Ctrl+S</kbd></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // 配置
+        const CANVAS_SIZE = 64;
+        const SCALE = 8;
+        const DISPLAY_SIZE = CANVAS_SIZE * SCALE;
+        const MAX_HISTORY = 20;
+        const AUTO_SAVE_INTERVAL = 30000;
+
+        // 16种预设颜色
+        const COLORS = [
+            '#000000', '#333333', '#666666', '#999999',
+            '#FFFFFF', '#FF0000', '#FF6600', '#FFFF00',
+            '#00FF00', '#00FFFF', '#0066FF', '#9900FF',
+            '#FF66CC', '#996633', '#003366', '#006633'
+        ];
+
+        // 状态
+        let currentTool = 'brush';
+        let currentColor = '#000000';
+        let currentFrame = 0;
+        let isDrawing = false;
+        let showGrid = true;
+        let backgroundType = 'transparent';
+        let isPlaying = false;
+        let playInterval = null;
+        let playSpeed = 100;
+        let lastSaveTime = 0;
+        let renderQueued = false;
+        let strokeDirty = false;
+
+        // 帧数据
+        let frames = [
+            createEmptyFrame(),
+            createEmptyFrame()
+        ];
+
+        // 历史记录
+        let history = []; // 存完整快照，支持真正的撤销/重做
+        let historyIndex = -1;
+
+        // DOM 元素
+        const canvas = document.getElementById('pixelCanvas');
+        const ctx = canvas.getContext('2d');
+        const palette = document.getElementById('palette');
+        const colorPreview = document.getElementById('colorPreview');
+        const toast = document.getElementById('toast');
+        const saveIndicator = document.getElementById('saveIndicator');
+
+        // 初始化
+        function init() {
+            setupCanvas();
+            setupPalette();
+            setupEventListeners();
+            loadFromStorage();
+            syncControlsFromState();
+            pushHistory(); // 初始状态入栈，作为撤销基线
+            requestRender();
+            startAutoSave();
+            updateUI();
+        }
+
+        // 创建空帧
+        function createEmptyFrame() {
+            return new Array(CANVAS_SIZE * CANVAS_SIZE).fill(null);
+        }
+
+        // 请求渲染（合并高频调用）
+        function requestRender() {
+            if (renderQueued) return;
+            renderQueued = true;
+            requestAnimationFrame(() => {
+                renderQueued = false;
+                render();
+            });
+        }
+
+        // 设置画布
+        function setupCanvas() {
+            canvas.width = DISPLAY_SIZE;
+            canvas.height = DISPLAY_SIZE;
+            ctx.imageSmoothingEnabled = false;
+        }
+
+        // 设置调色板
+        function setupPalette() {
+            palette.innerHTML = '';
+            COLORS.forEach((color, index) => {
+                const cell = document.createElement('div');
+                cell.className = 'color-cell' + (color === currentColor ? ' active' : '');
+                cell.style.backgroundColor = color;
+                cell.dataset.color = color;
+                cell.addEventListener('click', () => selectColor(color));
+                palette.appendChild(cell);
+            });
+            updateColorPreview();
+        }
+
+        // 选择颜色
+        function selectColor(color) {
+            currentColor = color;
+            if (currentTool === 'eraser') {
+                currentTool = 'brush';
+            }
+            updateUI();
+        }
+
+        // 更新颜色预览
+        function updateColorPreview() {
+            colorPreview.style.backgroundColor = currentColor;
+        }
+
+        // 更新UI
+        function updateUI() {
+            // 更新工具按钮
+            document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tool === currentTool);
+            });
+
+            // 更新调色板
+            document.querySelectorAll('.color-cell').forEach(cell => {
+                cell.classList.toggle('active', cell.dataset.color === currentColor);
+            });
+
+            // 更新颜色预览
+            updateColorPreview();
+
+            // 更新帧按钮
+            document.querySelectorAll('.frame-btn[data-frame]').forEach(btn => {
+                btn.classList.toggle('active', parseInt(btn.dataset.frame) === currentFrame);
+            });
+
+            // 更新网格线按钮
+            document.getElementById('gridToggle').classList.toggle('active', showGrid);
+
+            // 更新撤销/重做按钮
+            document.getElementById('undoBtn').disabled = historyIndex <= 0;
+            document.getElementById('redoBtn').disabled = historyIndex >= history.length - 1;
+
+            // 更新复制帧按钮
+            const frame1Empty = isFrameEmpty(0);
+            document.getElementById('copyFrameBtn').disabled = frame1Empty;
+
+            // 更新播放按钮
+            document.getElementById('playBtn').textContent = isPlaying ? '⏸ 暂停' : '▶ 播放动画';
+
+            // 更新画布光标
+            updateCanvasCursor();
+        }
+
+        // 从状态同步控件回显
+        function syncControlsFromState() {
+            const bgSelect = document.getElementById('bgSelect');
+            if (bgSelect) bgSelect.value = backgroundType;
+        }
+
+        // 更新画布光标
+        function updateCanvasCursor() {
+            if (isPlaying) {
+                canvas.style.cursor = 'default';
+            } else {
+                canvas.style.cursor = 'crosshair';
+            }
+        }
+
+        // 生成当前状态快照（用于撤销/重做）
+        function snapshotState() {
+            return {
+                frames: [
+                    [...frames[0]],
+                    [...frames[1]]
+                ],
+                currentFrame,
+                currentColor,
+                currentTool,
+                backgroundType,
+                showGrid
+            };
+        }
+
+        // 恢复到某个快照
+        function restoreState(state) {
+            frames = [
+                [...state.frames[0]],
+                [...state.frames[1]]
+            ];
+            currentFrame = state.currentFrame ?? 0;
+            currentColor = state.currentColor ?? '#000000';
+            currentTool = state.currentTool ?? 'brush';
+            backgroundType = state.backgroundType ?? 'transparent';
+            showGrid = state.showGrid ?? true;
+
+            syncControlsFromState();
+            render();
+            updateUI();
+        }
+
+        // 历史入栈（当前状态作为“最新”）
+        function pushHistory() {
+            // 清掉 redo 分支
+            history = history.slice(0, historyIndex + 1);
+            history.push(snapshotState());
+
+            // 限制历史长度
+            if (history.length > MAX_HISTORY) {
+                const overflow = history.length - MAX_HISTORY;
+                history.splice(0, overflow);
+                historyIndex = Math.max(-1, historyIndex - overflow);
+            }
+
+            historyIndex = history.length - 1;
+            updateUI();
+        }
+
+        // 渲染画布
+        function render() {
+            // 清空画布
+            ctx.clearRect(0, 0, DISPLAY_SIZE, DISPLAY_SIZE);
+
+            // 绘制背景
+            if (backgroundType === 'white') {
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, DISPLAY_SIZE, DISPLAY_SIZE);
+            } else {
+                // 透明背景 - 绘制棋盘格
+                const checkSize = SCALE * 2;
+                for (let y = 0; y < DISPLAY_SIZE; y += checkSize) {
+                    for (let x = 0; x < DISPLAY_SIZE; x += checkSize) {
+                        const isEven = ((x / checkSize) + (y / checkSize)) % 2 === 0;
+                        ctx.fillStyle = isEven ? '#222' : '#333';
+                        ctx.fillRect(x, y, checkSize, checkSize);
+                    }
+                }
+            }
+
+            // 绘制像素
+            const frame = frames[currentFrame];
+            for (let y = 0; y < CANVAS_SIZE; y++) {
+                for (let x = 0; x < CANVAS_SIZE; x++) {
+                    const color = frame[y * CANVAS_SIZE + x];
+                    if (color) {
+                        ctx.fillStyle = color;
+                        ctx.fillRect(x * SCALE, y * SCALE, SCALE, SCALE);
+                    }
+                }
+            }
+
+            // 绘制网格线
+            if (showGrid) {
+                ctx.strokeStyle = '#CCCCCC';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                for (let i = 0; i <= CANVAS_SIZE; i++) {
+                    const pos = i * SCALE;
+                    ctx.moveTo(pos, 0);
+                    ctx.lineTo(pos, DISPLAY_SIZE);
+                    ctx.moveTo(0, pos);
+                    ctx.lineTo(DISPLAY_SIZE, pos);
+                }
+                ctx.stroke();
+            }
+        }
+
+        // 获取鼠标在画布上的像素坐标
+        function getPixelCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / SCALE);
+            const y = Math.floor((e.clientY - rect.top) / SCALE);
+            return { x, y };
+        }
+
+        // 设置像素
+        function setPixel(x, y, color) {
+            if (x < 0 || x >= CANVAS_SIZE || y < 0 || y >= CANVAS_SIZE) return;
+            frames[currentFrame][y * CANVAS_SIZE + x] = color;
+        }
+
+        // 获取像素
+        function getPixel(x, y) {
+            if (x < 0 || x >= CANVAS_SIZE || y < 0 || y >= CANVAS_SIZE) return null;
+            return frames[currentFrame][y * CANVAS_SIZE + x];
+        }
+
+        // 开始绘制
+        function startDrawing(e) {
+            if (isPlaying) return;
+            if (e.button === 2) {
+                // 右键取色
+                e.preventDefault();
+                pickColor(e);
+                return;
+            }
+            if (e.button !== 0) return;
+
+            strokeDirty = false;
+            const { x, y } = getPixelCoords(e);
+
+            if (currentTool === 'brush') {
+                isDrawing = true;
+                setPixel(x, y, currentColor);
+                strokeDirty = true;
+                requestRender();
+            } else if (currentTool === 'eraser') {
+                isDrawing = true;
+                setPixel(x, y, null);
+                strokeDirty = true;
+                requestRender();
+            } else if (currentTool === 'fill') {
+                floodFill(x, y, currentColor);
+                pushHistory();
+                requestRender();
+                isDrawing = false;
+            }
+        }
+
+        // 绘制中
+        function draw(e) {
+            if (!isDrawing || isPlaying) return;
+            const { x, y } = getPixelCoords(e);
+
+            if (currentTool === 'brush') {
+                setPixel(x, y, currentColor);
+                strokeDirty = true;
+                requestRender();
+            } else if (currentTool === 'eraser') {
+                setPixel(x, y, null);
+                strokeDirty = true;
+                requestRender();
+            }
+        }
+
+        // 结束绘制
+        function stopDrawing() {
+            if (!isDrawing) return;
+            isDrawing = false;
+            if (strokeDirty) {
+                pushHistory();
+                strokeDirty = false;
+            }
+        }
+
+        // 取色
+        function pickColor(e) {
+            const { x, y } = getPixelCoords(e);
+            const color = getPixel(x, y);
+            if (color) {
+                currentColor = color;
+                currentTool = 'brush';
+                updateUI();
+                showToast('已拾取颜色');
+            } else {
+                showToast('无法拾取透明色');
+            }
+        }
+
+        // 填充算法（四向连通）
+        function floodFill(startX, startY, fillColor) {
+            const targetColor = getPixel(startX, startY);
+            
+            // 如果目标颜色与填充颜色相同，不执行
+            if (targetColor === fillColor) return;
+
+            // 用 Uint8Array 标记访问，避免 Set + 字符串 key
+            const visited = new Uint8Array(CANVAS_SIZE * CANVAS_SIZE);
+            const stackX = [startX];
+            const stackY = [startY];
+
+            while (stackX.length > 0) {
+                const x = stackX.pop();
+                const y = stackY.pop();
+
+                if (x < 0 || x >= CANVAS_SIZE || y < 0 || y >= CANVAS_SIZE) continue;
+                const idx = y * CANVAS_SIZE + x;
+                if (visited[idx]) continue;
+                if (getPixel(x, y) !== targetColor) continue;
+
+                visited[idx] = 1;
+                setPixel(x, y, fillColor);
+
+                stackX.push(x + 1); stackY.push(y);
+                stackX.push(x - 1); stackY.push(y);
+                stackX.push(x); stackY.push(y + 1);
+                stackX.push(x); stackY.push(y - 1);
+            }
+        }
+
+        // 撤销
+        function undo() {
+            if (historyIndex <= 0) return;
+            historyIndex--;
+            restoreState(history[historyIndex]);
+        }
+
+        // 重做
+        function redo() {
+            if (historyIndex >= history.length - 1) return;
+            historyIndex++;
+            restoreState(history[historyIndex]);
+        }
+
+        // 切换帧
+        function switchFrame(frameIndex) {
+            if (isPlaying) {
+                stopAnimation();
+            }
+            currentFrame = frameIndex;
+            requestRender();
+            updateUI();
+        }
+
+        // 复制帧
+        function copyFrame() {
+            if (isFrameEmpty(0)) return;
+            
+            frames[1] = [...frames[0]];
+            pushHistory();
+            showToast('已复制帧1到帧2');
+            requestRender();
+            updateUI();
+        }
+
+        // 清空画布
+        function clearCanvas() {
+            frames[currentFrame] = createEmptyFrame();
+            pushHistory();
+            requestRender();
+            updateUI();
+            showToast('画布已清空');
+        }
+
+        // 检查帧是否为空
+        function isFrameEmpty(frameIndex) {
+            return frames[frameIndex].every(pixel => pixel === null);
+        }
+
+        // 播放动画
+        function toggleAnimation() {
+            if (isPlaying) {
+                stopAnimation();
+            } else {
+                startAnimation();
+            }
+        }
+
+        // 开始动画
+        function startAnimation() {
+            isPlaying = true;
+            updateUI();
+            
+            let frame = 0;
+            playInterval = setInterval(() => {
+                currentFrame = frame;
+                render();
+                frame = frame === 0 ? 1 : 0;
+            }, playSpeed);
+        }
+
+        // 停止动画
+        function stopAnimation() {
+            isPlaying = false;
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+            updateUI();
+            requestRender();
+        }
+
+        // 导出 PNG
+        function exportPNG() {
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = CANVAS_SIZE * 2;
+            exportCanvas.height = CANVAS_SIZE;
+            const exportCtx = exportCanvas.getContext('2d');
+
+            // 绘制帧1
+            for (let y = 0; y < CANVAS_SIZE; y++) {
+                for (let x = 0; x < CANVAS_SIZE; x++) {
+                    const color = frames[0][y * CANVAS_SIZE + x];
+                    if (color) {
+                        exportCtx.fillStyle = color;
+                        exportCtx.fillRect(x, y, 1, 1);
+                    }
+                }
+            }
+
+            // 绘制帧2
+            for (let y = 0; y < CANVAS_SIZE; y++) {
+                for (let x = 0; x < CANVAS_SIZE; x++) {
+                    const color = frames[1][y * CANVAS_SIZE + x];
+                    if (color) {
+                        exportCtx.fillStyle = color;
+                        exportCtx.fillRect(CANVAS_SIZE + x, y, 1, 1);
+                    }
+                }
+            }
+
+            // 下载
+            const link = document.createElement('a');
+            const now = new Date();
+            const timestamp = now.getFullYear() +
+                String(now.getMonth() + 1).padStart(2, '0') +
+                String(now.getDate()).padStart(2, '0') + '_' +
+                String(now.getHours()).padStart(2, '0') +
+                String(now.getMinutes()).padStart(2, '0') +
+                String(now.getSeconds()).padStart(2, '0');
+            link.download = `spritesheet_${timestamp}.png`;
+            link.href = exportCanvas.toDataURL('image/png');
+            link.click();
+
+            showToast('已导出 PNG');
+        }
+
+        // 显示提示
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 1500);
+        }
+
+        // 保存到本地存储
+        function saveToStorage() {
+            const data = {
+                frame1: frames[0],
+                frame2: frames[1],
+                currentFrame: currentFrame,
+                currentColor: currentColor,
+                currentTool: currentTool,
+                backgroundType: backgroundType,
+                showGrid: showGrid,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('pixel_editor_data', JSON.stringify(data));
+            
+            // 显示保存提示
+            saveIndicator.classList.add('show');
+            setTimeout(() => {
+                saveIndicator.classList.remove('show');
+            }, 1500);
+        }
+
+        // 从本地存储加载
+        function loadFromStorage() {
+            const saved = localStorage.getItem('pixel_editor_data');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    if (data.frame1) frames[0] = data.frame1;
+                    if (data.frame2) frames[1] = data.frame2;
+                    if (data.currentFrame !== undefined) currentFrame = data.currentFrame;
+                    if (data.currentColor) currentColor = data.currentColor;
+                    if (data.currentTool) currentTool = data.currentTool;
+                    if (data.backgroundType) backgroundType = data.backgroundType;
+                    if (data.showGrid !== undefined) showGrid = data.showGrid;
+                } catch (e) {
+                    console.error('加载保存数据失败:', e);
+                }
+            }
+        }
+
+        // 自动保存
+        function startAutoSave() {
+            setInterval(() => {
+                saveToStorage();
+            }, AUTO_SAVE_INTERVAL);
+        }
+
+        // 设置事件监听
+        function setupEventListeners() {
+            // 画布事件
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseleave', stopDrawing);
+            canvas.addEventListener('contextmenu', e => e.preventDefault());
+            // 鼠标在画布外松开也能结束绘制
+            window.addEventListener('mouseup', stopDrawing);
+
+            // 工具按钮
+            document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentTool = btn.dataset.tool;
+                    updateUI();
+                });
+            });
+
+            // 撤销/重做
+            document.getElementById('undoBtn').addEventListener('click', undo);
+            document.getElementById('redoBtn').addEventListener('click', redo);
+
+            // 帧切换
+            document.querySelectorAll('.frame-btn[data-frame]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    switchFrame(parseInt(btn.dataset.frame));
+                });
+            });
+
+            // 复制帧
+            document.getElementById('copyFrameBtn').addEventListener('click', copyFrame);
+
+            // 清空画布
+            document.getElementById('clearBtn').addEventListener('click', clearCanvas);
+
+            // 播放按钮
+            document.getElementById('playBtn').addEventListener('click', toggleAnimation);
+
+            // 速度滑块
+            const speedSlider = document.getElementById('speedSlider');
+            const speedValue = document.getElementById('speedValue');
+            speedSlider.addEventListener('input', () => {
+                playSpeed = parseInt(speedSlider.value);
+                speedValue.textContent = playSpeed + 'ms';
+                if (isPlaying) {
+                    stopAnimation();
+                    startAnimation();
+                }
+            });
+
+            // 背景选择
+            document.getElementById('bgSelect').addEventListener('change', (e) => {
+                backgroundType = e.target.value;
+                requestRender();
+                pushHistory();
+            });
+
+            // 网格线开关
+            document.getElementById('gridToggle').addEventListener('click', () => {
+                showGrid = !showGrid;
+                requestRender();
+                pushHistory();
+                updateUI();
+            });
+
+            // 导出按钮
+            document.getElementById('exportBtn').addEventListener('click', exportPNG);
+
+            // 键盘快捷键
+            document.addEventListener('keydown', (e) => {
+                // 防止在输入框中触发
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+
+                switch (e.key.toLowerCase()) {
+                    case 'p':
+                        currentTool = 'brush';
+                        updateUI();
+                        break;
+                    case 'e':
+                        currentTool = 'eraser';
+                        updateUI();
+                        break;
+                    case 'f':
+                        currentTool = 'fill';
+                        updateUI();
+                        break;
+                    case '1':
+                        switchFrame(0);
+                        break;
+                    case '2':
+                        switchFrame(1);
+                        break;
+                    case 'c':
+                        copyFrame();
+                        break;
+                    case ' ':
+                        e.preventDefault();
+                        toggleAnimation();
+                        break;
+                    case 'delete':
+                        clearCanvas();
+                        break;
+                    case 'g':
+                        showGrid = !showGrid;
+                        requestRender();
+                        pushHistory();
+                        updateUI();
+                        break;
+                }
+
+                // Ctrl+快捷键
+                if (e.ctrlKey) {
+                    switch (e.key.toLowerCase()) {
+                        case 'z':
+                            e.preventDefault();
+                            undo();
+                            break;
+                        case 'y':
+                            e.preventDefault();
+                            redo();
+                            break;
+                        case 's':
+                            e.preventDefault();
+                            exportPNG();
+                            break;
+                    }
+                }
+            });
+
+            // 页面关闭前保存
+            window.addEventListener('beforeunload', () => {
+                saveToStorage();
+            });
+        }
+
+        // 启动
+        init();
+    </script>
+</body>
+</html>
