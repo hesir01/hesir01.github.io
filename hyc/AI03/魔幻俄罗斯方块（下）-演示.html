@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>魔幻俄罗斯方块（下）— 魔改升级 + AI 自动测试</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap">
+    <style>
+        /* ===========================================
+           THEME: CREATIVE VOLTAGE
+           电光蓝 + 荧光黄 科技游戏风格
+           =========================================== */
+        :root {
+            /* 核心配色 */
+            --bg-primary: #0066ff;
+            --bg-dark: #1a1a2e;
+            --bg-deeper: #0f0f1a;
+            --accent-neon: #d4ff00;
+            --accent-cyan: #00f0ff;
+            --text-light: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.7);
+            --text-dark: #1a1a2e;
+
+            /* 字体 */
+            --font-display: 'Syne', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+
+            /* 动画 */
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration-normal: 0.6s;
+        }
+
+        /* ===========================================
+           VIEWPORT BASE (from viewport-base.css)
+           =========================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+            font-family: var(--font-display);
+        }
+
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-light);
+        }
+
+        /* 幻灯片基础样式 */
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+            padding: clamp(1.5rem, 4vw, 4rem);
+        }
+
+        /* ===========================================
+           字体大小系统 (clamp)
+           =========================================== */
+        :root {
+            --title-size: clamp(2rem, 6vw, 5rem);
+            --h2-size: clamp(1.25rem, 3.5vw, 2.5rem);
+            --h3-size: clamp(1rem, 2.5vw, 1.75rem);
+            --body-size: clamp(0.85rem, 1.5vw, 1.125rem);
+            --small-size: clamp(0.7rem, 1vw, 0.875rem);
+            --slide-padding: clamp(1.5rem, 4vw, 4rem);
+            --content-gap: clamp(1rem, 2vw, 2rem);
+        }
+
+        /* ===========================================
+           动画系统
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity var(--duration-normal) var(--ease-out-expo),
+                        transform var(--duration-normal) var(--ease-out-expo);
+        }
+
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal:nth-child(1) { transition-delay: 0.1s; }
+        .reveal:nth-child(2) { transition-delay: 0.2s; }
+        .reveal:nth-child(3) { transition-delay: 0.3s; }
+        .reveal:nth-child(4) { transition-delay: 0.4s; }
+        .reveal:nth-child(5) { transition-delay: 0.5s; }
+        .reveal:nth-child(6) { transition-delay: 0.6s; }
+
+        /* 霓虹光效 */
+        .neon-glow {
+            text-shadow: 0 0 20px rgba(212, 255, 0, 0.5),
+                         0 0 40px rgba(212, 255, 0, 0.3);
+        }
+
+        .cyan-glow {
+            text-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+        }
+
+        /* ===========================================
+           背景效果
+           =========================================== */
+        .bg-gradient-dark {
+            background: linear-gradient(135deg, var(--bg-deeper) 0%, var(--bg-dark) 100%);
+        }
+
+        .bg-gradient-blue {
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-dark) 100%);
+        }
+
+        /* 网格纹理背景 */
+        .grid-pattern::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+        }
+
+        /* 半色调纹理 */
+        .halftone::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(212, 255, 0, 0.1) 1px, transparent 1px);
+            background-size: 8px 8px;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* ===========================================
+           布局组件
+           =========================================== */
+        .split-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(1rem, 3vw, 3rem);
+            height: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .split-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--accent-neon);
+            color: var(--text-dark);
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            font-weight: 700;
+            border-radius: 100px;
+        }
+
+        .badge-outline {
+            background: transparent;
+            border: 2px solid var(--accent-neon);
+            color: var(--accent-neon);
+        }
+
+        .badge-cyan {
+            background: var(--accent-cyan);
+            color: var(--text-dark);
+        }
+
+        .card, .container, .content-box {
+            max-width: min(90vw, 1000px);
+            max-height: min(80vh, 700px);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+            gap: clamp(0.5rem, 1.5vw, 1rem);
+        }
+
+        img, .image-container {
+            max-width: 100%;
+            max-height: min(50vh, 400px);
+            object-fit: contain;
+        }
+
+        /* ===========================================
+           幻灯片特定样式
+           =========================================== */
+
+        /* --- Slide 1: 封面 --- */
+        .slide-cover {
+            background: var(--bg-dark);
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .slide-cover::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 80%, rgba(0, 102, 255, 0.3) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(212, 255, 0, 0.2) 0%, transparent 50%);
+        }
+
+        .cover-title {
+            font-size: clamp(2.5rem, 8vw, 6rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1rem;
+        }
+
+        .cover-subtitle {
+            font-size: var(--h2-size);
+            color: var(--accent-cyan);
+            font-family: var(--font-mono);
+            margin-bottom: 2rem;
+        }
+
+        .cover-meta {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        /* --- Slide 2: 课程信息 --- */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: clamp(1rem, 2vw, 2rem);
+            max-width: 900px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            border-radius: 16px;
+            padding: clamp(1rem, 2vw, 1.5rem);
+        }
+
+        .info-card h3 {
+            font-size: var(--small-size);
+            color: var(--accent-cyan);
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-card p {
+            font-size: var(--body-size);
+        }
+
+        /* --- Slide 3-5: 课程目标 --- */
+        .goal-section {
+            margin-bottom: clamp(1.5rem, 3vh, 2.5rem);
+        }
+
+        .goal-section h3 {
+            font-size: var(--h3-size);
+            color: var(--accent-neon);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .goal-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .goal-list li {
+            font-size: var(--body-size);
+            padding-left: 1.5rem;
+            position: relative;
+            line-height: 1.5;
+        }
+
+        .goal-list li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--accent-cyan);
+        }
+
+        /* --- Slide 6: 核心概念表 --- */
+        .concept-table {
+            width: 100%;
+            max-width: 1000px;
+            border-collapse: collapse;
+            font-size: var(--body-size);
+        }
+
+        .concept-table th {
+            text-align: left;
+            padding: 1rem;
+            background: rgba(0, 240, 255, 0.1);
+            border-bottom: 2px solid var(--accent-cyan);
+            font-family: var(--font-mono);
+            color: var(--accent-cyan);
+        }
+
+        .concept-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            vertical-align: top;
+        }
+
+        .concept-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* --- Slide 7: 误概念 --- */
+        .misconception-card {
+            background: rgba(212, 255, 0, 0.05);
+            border-left: 4px solid var(--accent-neon);
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .misconception-card h4 {
+            font-size: var(--body-size);
+            color: var(--accent-neon);
+            margin-bottom: 0.5rem;
+        }
+
+        .misconception-card p {
+            font-size: var(--small-size);
+            color: var(--text-muted);
+        }
+
+        /* --- Slide 8-9: 第一幕 --- */
+        .act-badge {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+        }
+
+        .dialogue-box {
+            background: rgba(0, 102, 255, 0.1);
+            border: 1px solid rgba(0, 102, 255, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .dialogue-box .speaker {
+            font-family: var(--font-mono);
+            color: var(--accent-cyan);
+            font-size: var(--small-size);
+            margin-bottom: 0.5rem;
+        }
+
+        .rule-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .rule-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .rule-item .num {
+            font-family: var(--font-mono);
+            color: var(--accent-neon);
+            font-size: var(--small-size);
+        }
+
+        /* --- Slide 10-12: 流程步骤 --- */
+        .step-flow {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 2rem 0;
+        }
+
+        .step-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--accent-cyan);
+            border-radius: 16px;
+            padding: 1.5rem;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .step-card .step-num {
+            font-family: var(--font-mono);
+            font-size: var(--h2-size);
+            color: var(--accent-cyan);
+        }
+
+        .step-card h4 {
+            font-size: var(--h3-size);
+            margin: 0.5rem 0;
+        }
+
+        .step-card p {
+            font-size: var(--small-size);
+            color: var(--text-muted);
+        }
+
+        .step-arrow {
+            font-size: 2rem;
+            color: var(--accent-neon);
+        }
+
+        @media (max-width: 768px) {
+            .step-flow {
+                flex-direction: column;
+            }
+            .step-arrow {
+                transform: rotate(90deg);
+            }
+        }
+
+        /* --- Slide 13: 路径对比 --- */
+        .compare-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            max-width: 1000px;
+        }
+
+        .compare-box {
+            padding: 1.5rem;
+            border-radius: 16px;
+        }
+
+        .compare-box.wrong {
+            background: rgba(255, 80, 80, 0.1);
+            border: 2px solid rgba(255, 80, 80, 0.3);
+        }
+
+        .compare-box.right {
+            background: rgba(212, 255, 0, 0.1);
+            border: 2px solid var(--accent-neon);
+        }
+
+        .compare-box h4 {
+            font-size: var(--h3-size);
+            margin-bottom: 1rem;
+        }
+
+        .compare-box.wrong h4 { color: #ff6b6b; }
+        .compare-box.right h4 { color: var(--accent-neon); }
+
+        .compare-box pre {
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        /* --- Slide 14: 模板预览 --- */
+        .template-preview {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 12px;
+            padding: clamp(0.9rem, 2vw, 1.5rem);
+            font-family: var(--font-mono);
+            font-size: clamp(0.62rem, 0.9vw, 0.82rem);
+            line-height: 1.65;
+            white-space: pre-wrap;
+            max-width: min(92vw, 980px);
+            overflow: hidden;
+        }
+
+        .two-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: clamp(1rem, 2vw, 2rem);
+        }
+
+        .three-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: clamp(1rem, 2vw, 1.5rem);
+        }
+
+        .template-preview .comment {
+            color: #6b7280;
+        }
+
+        .template-preview .highlight {
+            color: var(--accent-neon);
+        }
+
+        /* --- Slide 15: 测试示例 --- */
+        .test-example {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .test-card {
+            padding: 1.5rem;
+            border-radius: 12px;
+        }
+
+        .test-card.bad {
+            background: rgba(255, 80, 80, 0.05);
+            border: 1px solid rgba(255, 80, 80, 0.2);
+        }
+
+        .test-card.good {
+            background: rgba(0, 240, 255, 0.05);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+        }
+
+        .test-card h4 {
+            font-size: var(--body-size);
+            margin-bottom: 1rem;
+        }
+
+        .test-card.bad h4 { color: #ff6b6b; }
+        .test-card.good h4 { color: var(--accent-cyan); }
+
+        /* --- Slide 16-17: 新窗口原则 --- */
+        .window-rule {
+            background: linear-gradient(135deg, rgba(212, 255, 0, 0.1), rgba(0, 240, 255, 0.05));
+            border: 2px solid var(--accent-neon);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .window-rule h4 {
+            color: var(--accent-neon);
+            font-size: var(--h3-size);
+            margin-bottom: 1rem;
+        }
+
+        .window-flow {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .window-item {
+            text-align: center;
+        }
+
+        .window-item .box {
+            width: 80px;
+            height: 60px;
+            border: 2px solid var(--accent-cyan);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            margin-bottom: 0.5rem;
+        }
+
+        /* --- Slide 18: 问题列表 --- */
+        .question-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .question-item {
+            background: rgba(0, 102, 255, 0.1);
+            border-left: 4px solid var(--bg-primary);
+            padding: 1rem 1.5rem;
+            border-radius: 0 8px 8px 0;
+            font-size: var(--body-size);
+        }
+
+        .question-item::before {
+            content: '?';
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: var(--accent-neon);
+            color: var(--text-dark);
+            border-radius: 50%;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: var(--small-size);
+            margin-right: 1rem;
+        }
+
+        /* --- Slide 19-20: 流程 --- */
+        .process-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .process-step {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            text-align: center;
+        }
+
+        .process-step h4 {
+            font-size: var(--body-size);
+            margin-bottom: 0.25rem;
+        }
+
+        .process-step p {
+            font-size: var(--small-size);
+            color: var(--text-muted);
+        }
+
+        /* --- Slide 21: 反思 --- */
+        .reflection-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .reflection-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .reflection-item .num {
+            font-family: var(--font-mono);
+            font-size: var(--h2-size);
+            color: var(--accent-cyan);
+        }
+
+        /* --- Slide 22: AI提示词 --- */
+        .prompt-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .prompt-box h4 {
+            color: var(--accent-cyan);
+            font-size: var(--body-size);
+            margin-bottom: 0.5rem;
+        }
+
+        .prompt-box pre {
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            color: var(--text-muted);
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        /* --- Slide 23: 结束页 --- */
+        .slide-end {
+            background: var(--bg-primary);
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .end-title {
+            font-size: clamp(2rem, 6vw, 4rem);
+            font-weight: 800;
+        }
+
+        .end-subtitle {
+            font-size: var(--h2-size);
+            color: var(--text-muted);
+            margin-top: 1rem;
+        }
+
+        /* 测试结果样式 */
+        .test-result {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .test-result.pass {
+            border-left: 4px solid #4ade80;
+        }
+
+        .test-result.fail {
+            border-left: 4px solid #ff6b6b;
+        }
+
+        .test-result .status {
+            font-family: var(--font-mono);
+            font-weight: 700;
+        }
+
+        .test-result.pass .status { color: #4ade80; }
+        .test-result.fail .status { color: #ff6b6b; }
+
+        /* 功能卡片 */
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .feature-card .stars {
+            color: var(--accent-neon);
+            font-size: var(--small-size);
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card h4 {
+            font-size: var(--body-size);
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            font-size: var(--small-size);
+            color: var(--text-muted);
+        }
+
+        /* ===========================================
+           导航组件
+           =========================================== */
+        .nav-dots {
+            position: fixed;
+            right: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            z-index: 100;
+        }
+
+        .nav-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-dot.active {
+            background: var(--accent-neon);
+            box-shadow: 0 0 10px var(--accent-neon);
+        }
+
+        .nav-dot:hover {
+            background: var(--accent-cyan);
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-neon), var(--accent-cyan));
+            z-index: 100;
+            transition: width 0.3s ease;
+        }
+
+        .keyboard-hint {
+            position: fixed;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            color: var(--text-muted);
+            opacity: 0.5;
+            z-index: 100;
+        }
+
+        /* ===========================================
+           响应式断点
+           =========================================== */
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 3vw, 2rem);
+                --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+                --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+                --h2-size: clamp(1rem, 3vw, 1.75rem);
+            }
+        }
+
+        @media (max-height: 600px) {
+            :root {
+                --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+                --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+                --title-size: clamp(1.1rem, 4vw, 2rem);
+                --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+            }
+            .keyboard-hint { display: none; }
+        }
+
+        @media (max-height: 500px) {
+            :root {
+                --slide-padding: clamp(0.4rem, 2vw, 1rem);
+                --title-size: clamp(1rem, 3.5vw, 1.5rem);
+                --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+                --body-size: clamp(0.65rem, 1vw, 0.85rem);
+            }
+        }
+
+        @media (max-width: 600px) {
+            :root {
+                --title-size: clamp(1.25rem, 7vw, 2.5rem);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .info-grid,
+            .rule-list,
+            .test-example,
+            .compare-container,
+            .reflection-grid,
+            .two-grid,
+            .three-grid {
+                grid-template-columns: 1fr;
+            }
+            .window-flow,
+            .process-flow {
+                flex-direction: column;
+            }
+            .nav-dots {
+                display: none;
+            }
+        }
+
+        /* 减少动画偏好 */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+            html {
+                scroll-behavior: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 进度条 -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- 导航点 -->
+    <nav class="nav-dots" id="navDots"></nav>
+
+    <!-- 键盘提示 -->
+    <div class="keyboard-hint">↑ ↓ 或 空格键 切换幻灯片</div>
+
+    <!-- ===========================================
+         SLIDE 1: 封面
+         =========================================== -->
+    <section class="slide slide-cover" id="slide-1">
+        <div class="slide-content" style="position: relative; z-index: 1;">
+            <div class="reveal">
+                <span class="badge">AICODE-06</span>
+            </div>
+            <h1 class="cover-title reveal neon-glow">
+                魔幻俄罗斯方块
+                <span style="display: block; font-size: 0.6em; color: var(--accent-cyan);">（下）</span>
+            </h1>
+            <p class="cover-subtitle reveal">魔改升级 + AI 自动测试</p>
+            <div class="cover-meta reveal">
+                <span class="badge badge-outline">课时 7</span>
+                <span class="badge badge-outline">90 分钟</span>
+                <span class="badge badge-cyan">核心能力: 拆解力 × 共创力 × 韧性力</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 2: 课时信息
+         =========================================== -->
+    <section class="slide bg-gradient-dark grid-pattern" id="slide-2">
+        <div class="slide-content">
+            <span class="badge reveal" style="margin-bottom: 1.5rem;">课程概览</span>
+            <h2 class="reveal" style="font-size: var(--title-size); margin-bottom: 2rem;">AICODE06-07</h2>
+            <div class="info-grid reveal">
+                <div class="info-card">
+                    <h3>核心工具</h3>
+                    <p>Kimi 2.5</p>
+                </div>
+                <div class="info-card">
+                    <h3>透明化层级</h3>
+                    <p>过程层 — 展示完整思考过程</p>
+                </div>
+                <div class="info-card">
+                    <h3>适用路线</h3>
+                    <p>AICODE-06 编程进阶</p>
+                </div>
+                <div class="info-card">
+                    <h3>核心主题</h3>
+                    <p>魔改升级 + AI 自动测试：让代码自己验证代码</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 3: 课程目标 - 知识
+         =========================================== -->
+    <section class="slide bg-gradient-dark" id="slide-3">
+        <div class="slide-content">
+            <span class="badge reveal" style="margin-bottom: 1.5rem;">知识目标</span>
+            <h2 class="reveal" style="font-size: var(--h2-size); margin-bottom: 2rem;">理解三个核心概念</h2>
+            <div class="goal-section reveal">
+                <h3>01 自动化测试</h3>
+                <ul class="goal-list">
+                    <li>不靠人工玩，让代码自己验证代码</li>
+                    <li>更快、更全面，不会遗漏</li>
+                </ul>
+            </div>
+            <div class="goal-section reveal">
+                <h3>02 测试覆盖</h3>
+                <ul class="goal-list">
+                    <li>需求文档里每一条规则，都应该有一条对应的测试</li>
+                    <li>少测一条，那条出了 bug 你就不知道</li>
+                </ul>
+            </div>
+            <div class="goal-section reveal">
+                <h3>03 增量思维</h3>
+                <ul class="goal-list">
+                    <li>新功能只写「增量」，不重写整体</li>
+                    <li>就像给手机升级系统，不是重新买一台</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 4: 课程目标 - 能力
+         =========================================== -->
+    <section class="slide bg-gradient-dark" id="slide-4">
+        <div class="slide-content">
+            <span class="badge badge-cyan reveal" style="margin-bottom: 1.5rem;">能力目标</span>
+            <h2 class="reveal" style="font-size: var(--h2-size); margin-bottom: 2rem;">培养三种核心能力</h2>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+                <div class="reveal" style="background: rgba(0, 240, 255, 0.05); border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 16px; padding: 1.5rem;">
+                    <div style="font-family: var(--font-mono); font-size: var(--h2-size); color: var(--accent-cyan); margin-bottom: 1rem;">01</div>
+                    <h3 style="font-size: var(--h3-size); margin-bottom: 0.5rem;">拆解力</h3>
+                    <p style="font-size: var(--body-size); color: var(--text-muted);">把需求文档转化为测试条件，交给 AI 生成测试脚本</p>
+                </div>
+                <div class="reveal" style="background: rgba(212, 255, 0, 0.05); border: 1px solid rgba(212, 255, 0, 0.2); border-radius: 16px; padding: 1.5rem;">
+                    <div style="font-family: var(--font-mono); font-size: var(--h2-size); color: var(--accent-neon); margin-bottom: 1rem;">02</div>
+                    <h3 style="font-size: var(--h3-size); margin-bottom: 0.5rem;">韧性力</h3>
+                    <p style="font-size: var(--body-size); color: var(--text-muted);">读懂测试脚本的 ✅❌ 结果，把失败的测试溯源到需求文档</p>
+                </div>
+                <div class="reveal" style="background: rgba(0, 102, 255, 0.1); border: 1px solid rgba(0, 102, 255, 0.3); border-radius: 16px; padding: 1.5rem;">
+                    <div style="font-family: var(--font-mono); font-size: var(--h2-size); color: var(--bg-primary); margin-bottom: 1rem;">03</div>
+                    <h3 style="font-size: var(--h3-size); margin-bottom: 0.5rem;">共创力</h3>
+                    <p style="font-size: var(--body-size); color: var(--text-muted);">独立完成「需求 → 审核 → 生成 → 测试 → 修复」完整闭环</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 5: 课程目标 - 情感
+         =========================================== -->
+    <section class="slide bg-gradient-dark" id="slide-5">
+        <div class="slide-content">
+            <span class="badge reveal" style="background: #ff6b9d; margin-bottom: 1.5rem;">情感目标</span>
+            <h2 class="reveal" style="font-size: var(--h2-size); margin-bottom: 2rem;">建立三个关键习惯</h2>
+            <div class="goal-section reveal">
+                <h3>🚀 体验「一键跑测试，马上知道哪里有问题」的效率感</h3>
+                <ul class="goal-list">
+                    <li>从手动找 bug 到自动找 bug 的升级</li>
+                </ul>
+            </div>
+            <div class="goal-section reveal">
+                <h3>🎯 建立「测试通过才算完成，不是能玩就算完成」的质量意识</h3>
+                <ul class="goal-list">
+                    <li>能玩是 60 分，测试通过是 90 分</li>
+                </ul>
+            </div>
+            <div class="goal-section reveal">
+                <h3>🔒 感受「安全网」带来的大胆创新能力</h3>
+                <ul class="goal-list">
+                    <li>有了测试保护，才敢放心大胆地改代码</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 6: 核心概念认知层级
+         =========================================== -->
+    <section class="slide bg-gradient-dark" id="slide-6">
+        <div class="slide-content" style="align-items: center;">
+            <span class="badge reveal" style="margin-bottom: 1.5rem;">核心概念</span>
+            <h2 class="reveal" style="font-size: var(--h2-size); margin-bottom: 1.5rem;">概念认知层级</h2>
+            <table class="concept-table reveal">
+                <thead>
+                    <tr>
+                        <th>概念</th>
+                        <th>学生类比</th>
+                        <th>认知层级</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>自动化测试</strong></td>
+                        <td>与其自己每次手动检查作业，不如写一个「答案核对程序」，自动判断对错</td>
+                        <td><span class="badge" style="padding: 0.25rem 0.5rem; font-size: var(--small-size);">理解层</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>测试覆盖</strong></td>
+                        <td>需求文档里写了10条规则，测试脚本就要测10件事——少测一条，那条出了 bug 你就不知道</td>
+                        <td><span class="badge badge-cyan" style="padding: 0.25rem 0.5rem; font-size: var(--small-size);">应用层</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>边界条件</strong></td>
+                        <td>不只测「正常情况」，还要测「极端情况」——方块刚好在边角旋转、同时消4行</td>
+                        <td><span class="badge badge-cyan" style="padding: 0.25rem 0.5rem; font-size: var(--small-size);">应用层</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>增量需求</strong></td>
+                        <td>只写「新加的部分」，不重写整体——就像给手机升级系统，不是重新买一台</td>
+                        <td><span class="badge" style="padding: 0.25rem 0.5rem; font-size: var(--small-size);">理解层</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>新窗口原则</strong></td>
+                        <td>让同一个人既写作文又给自己改错，他永远改不出来——审核必须换一个人</td>
+                        <td><span class="badge badge-cyan" style="padding: 0.25rem 0.5rem; font-size: var(--small-size);">应用层</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 7: 典型误概念 (部分)
+         =========================================== -->
+    <section class="slide bg-gradient-dark" id="slide-7">
+        <div class="slide-content">
+            <span class="badge reveal" style="background: #ff6b6b; margin-bottom: 1.5rem;">误概念预警</span>
+            <h2 class="reveal" style="font-size: var(--h2-size); margin-bottom: 1.5rem;">典型误概念</h2>
+            <div class="reveal">
+                <div class="misconception-card">
+                    <h4>M1: 测试就是自己玩一遍，没出问题就算通过</h4>
+                    <p>正确认知：手动测试只能发现你刚好测到的问题；自动测试每次都覆盖所有条件，不会遗漏</p>
+                </div>
+                <div class="misconception-card">
+                    <h4>M2: 测试脚本是程序员才会写的东西</h4>
+                    <p>正确认知：把你的需求文档给 AI，AI 就能帮你把每条需求变成一个测试</p>
+                </div>
+                <div class="misconception-card">
+                    <h4>M3: 加新功能要把整个游戏重新做一遍</h4>
+                    <p>正确认知：增量需求文档只写新加的部分，在已有代码上加，不是重做</p>
+                </div>
+                <div class="misconception-card">
+                    <h4>M4: 测试通过了就说明没有 bug</h4>
+                    <p>正确认知：测试只能覆盖你想到的情况；没覆盖的情况仍然可能有 bug</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 8: 误概念 (续)
+         =========================================== -->
+    <section class="slide bg-gradient-dark" id="slide-8">
+        <div class="slide-content">
+            <span class="badge reveal" style="background: #ff6b6b; margin-bottom: 1.5rem;">误概念预警</span>
+            <h2 class="reveal" style="font-size: var(--h2-size); margin-bottom: 1.5rem;">典型误概念（续）</h2>
+            <div class="reveal">
+                <div class="misconception-card">
+                    <h4>M5: 测试失败说明代码写错了</h4>
+                    <p>正确认知：测试失败可能是代码问题，也可能是需求文档没说清楚——先溯源，再决定改哪里</p>
+                </div>
+                <div class="misconception-card">
+                    <h4>M6: 需求审核、测试脚本生成可以在同一个窗口里做</h4>
+                    <p>正确认知：这叫「上下文污染」——AI 会受之前对话影响，不会客观审核自己生成的东西</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 9: 第一幕 - 联系
+         =========================================== -->
+    <section class="slide bg-gradient-blue halftone" id="slide-9">
+        <span class="badge badge-cyan act-badge reveal">第一幕 CONNECT</span>
+        <div class="slide-content">
+            <h2 class="reveal" style="font-size: var(--title-size); margin-bottom: 1rem;">上节课回顾</h2>
+            <p class="reveal" style="font-size: var(--body-size); color: var(--text-muted); margin-bottom: 2rem;">10 分钟 · Plan Mode 三步流程还记得吗？</p>
+            <div class="step-flow reveal">
+                <div class="step-card">
+                    <div class="step-num">01</div>
+                    <h4>写需求</h4>
+                    <p>把想做的功能说清楚</p>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step-card">
+                    <div class="step-num">02</div>
+                    <h4>审核</h4>
+                    <p>让 AI 扮演审核工程师找漏洞</p>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step-card">
+                    <div class="step-num">03</div>
+                    <h4>执行</h4>
+                    <p>生成代码并验收</p>
+                </div>
+            </div>
+            <div class="dialogue-box reveal" style="margin-top: 1rem;">
+                <p class="speaker">今天不一样的地方</p>
+                <p style="font-size: var(--body-size);">今天写的是「增量需求文档」——只写新加的部分，不重写整个游戏。而且我们会学一个新技能：让 AI 帮我们写测试脚本。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 10: 核心洞察
+         =========================================== -->
+    <section class="slide bg-gradient-dark" id="slide-10">
+        <div class="slide-content" style="align-items: center; text-align: center;">
+            <span class="badge reveal" style="margin-bottom: 2rem;">核心洞察</span>
+            <h2 class="reveal" style="font-size: var(--title-size); margin-bottom: 2rem;">
+                手动测试的问题
+            </h2>
+            <p class="reveal" style="font-size: var(--h3-size); color: var(--text-muted); max-width: 700px; line-height: 1.6; margin-bottom: 2rem;">
+                你的游戏有 5 条规则<br>
+                你在手动测的时候，你能保证 5 条都测到了吗？
+            </p>
+            <div class="reveal" style="background: rgba(212, 255, 0, 0.1); border: 2px solid var(--accent-neon); border-radius: 16px; padding: 2rem; max-width: 600px;">
+                <p style="font-size: var(--body-size); line-height: 1.8;">
+                    <strong style="color: var(--accent-neon);">就算今天你把所有规则都测了</strong><br><br>
+                    下次你改了代码，你还要重新手动测一遍<br>
+                    如果你做了第二版、第三版，每次都要从头手动测<br>
+                    需求文档越来越长，要测的条数越来越多……
+                </p>
+            </div>
+            <p class="reveal" style="font-size: var(--h3-size); color: var(--accent-cyan); margin-top: 2rem;">
+                有没有办法，让电脑帮我们测，每次都自动把所有条件测完？
+            </p>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 11: 第二幕 - 建构
+         =========================================== -->
+    <section class="slide bg-gradient-blue" id="slide-11">
+        <span class="badge badge-cyan act-badge reveal">第二幕 CONSTRUCT</span>
+        <div class="slide-content" style="align-items: center;">
+            <h2 class="reveal" style="font-size: var(--title-size); margin-bottom: 1rem;">今天的完整流程</h2>
+            <p class="reveal" style="font-size: var(--body-size); color: var(--text-muted); margin-bottom: 2rem;">65 分钟 · 增量需求 → 生成 → 手动测试 → 自动测试 → 修复</p>
+            <div class="step-flow reveal">
+                <div class="step-card" style="border-color: var(--accent-neon);">
+                    <div class="step-num" style="color: var(--accent-neon);">01</div>
+                    <h4>增量需求</h4>
+                    <p>只写新功能，不重写整体</p>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step-card">
+                    <div class="step-num">02</div>
+                    <h4>生成第一版</h4>
+                    <p>基于原有代码增加功能</p>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step-card">
+                    <div class="step-num">03</div>
+                    <h4>手动测试</h4>
+                    <p>感受手动测试的局限</p>
+                </div>
+            </div>
+            <div class="step-flow reveal" style="margin-top: 1rem;">
+                <div class="step-card" style="border-color: var(--accent-cyan);">
+                    <div class="step-num" style="color: var(--accent-cyan);">04</div>
+                    <h4>AI 生成测试</h4>
+                    <p>让代码自己测自己</p>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step-card">
+                    <div class="step-num">05</div>
+                    <h4>跑测试</h4>
+                    <p>看 ✅❌ 结果</p>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step-card" style="border-color: var(--bg-primary);">
+                    <div class="step-num" style="color: var(--bg-primary);">06</div>
+                    <h4>修复迭代</h4>
+                    <p>溯源 → 修复 → 再测</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 12: 增量需求文档
+         =========================================== -->
+    <section class="slide bg-gradient-dark" id="slide-12">
+        <div class="slide-content">
+            <span class="badge reveal" style="margin-bottom: 1rem;">增量需求</span>
+            <h2 class="reveal" style="font-size: var(--h2-size); margin-bottom: 1rem;">什么是「增量」思维？</h2>
+            <div class="compare-container reveal">
+                <div class="compare-box wrong">
+                    <h4>❌ 非增量思维</h4>
+                    <pre>加新功能 = 
+重新描述整个游戏
++ 新功能
+（冗长、重复）</pre>
+                </div>
+                <div class="compare-box right">
+                    <h4>✅ 增量思维</h4>
+                    <pre>加新功能 = 
+基于现有代码
++ 只描述新加的部分
+（简洁、聚焦）</pre>
+                </div>
+            </div>
+            <div class="reveal" style="background: rgba(0, 240, 255, 0.1); border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 12px; padding: 1.5rem; margin-top: 1.5rem;">
+                <p style="font-size: var(--body-size);">
+                    <strong style="color: var(--accent-cyan);">关键字段：「与原有功能的交互规则」</strong><br><br>
+                    例如：炸弹方块落地爆炸，爆炸后刚好消完一整行——<br>
+                    这算消行吗？得分怎么算？必须写清楚！
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 13: 验收标准
+         =========================================== -->
+    <section class="slide bg-gradient-dark" id="slide-13">
+        <div class="slide-content" style="align-items: center;">
+            <span class="badge reveal" style="margin-bottom: 1.5rem;">验收标准</span>
+            <h2 class="reveal" style="font-size: var(--h2-size); margin-bottom: 2rem; text-align: center;">可测试的验收标准</h2>
+            <div class="test-example reveal">
+                <div class="test-card bad">
+                    <h4>❌ 不可测试</h4>
+                    <p style="font-size: var(--body-size); color: var(--text-muted); margin: 1rem 0;">「炸弹功能运行正常」</p>
+                    <p style="font-size: var(--small-size);">AI 不知道「正常」是什么意思</p>
+                </div>
+                <div class="test-card good">
+                    <h4>✅ 可以测试</h4>
+                    <p style="font-size: var(--body-size); color: var(--accent-cyan); margin: 1rem 0;">「炸弹落地后，落点周围3×3格内的积木清除，得分+50」</p>
+                    <p style="font-size: var(--small-size);">格式：[情况] → [预期结果]</p>
+                </div>
+            </div>
+            <p class="reveal" style="font-size: var(--h3-size); color: var(--accent-neon); margin-top: 2rem; text-align: center;">
+                验收标准必须全部像右边这样写
+            </p>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 14: 新窗口原则（四窗口）
+         =========================================== -->
+    <section class="slide bg-gradient-blue" id="slide-14">
+        <div class="slide-content" style="align-items: center;">
+            <span class="badge badge-cyan reveal" style="margin-bottom: 1.5rem;">⚠️ 重要规则</span>
+            <h2 class="reveal" style="font-size: var(--h2-size); margin-bottom: 1.5rem; text-align: center;">四窗口原则</h2>
+            <div class="window-rule reveal">
+                <h4>审核、测试必须换新窗口</h4>
+                <p style="font-size: var(--body-size); margin-bottom: 1rem;">AI 不会主动承认自己的问题。在同一个窗口里审核，会被之前的对话「污染」，审核时会偏向为自己生成的内容辩护。</p>
+                <p style="font-size: var(--body-size); color: var(--accent-neon);">让同一个同学既写作文又给自己改错，他永远改不出大问题。</p>
+            </div>
+            <div class="window-flow reveal">
+                <div class="window-item">
+                    <div class="box" style="border-color: var(--accent-cyan);">窗口 A</div>
+                    <p style="font-size: var(--small-size);">写增量需求</p>
+                </div>
+                <span style="color: var(--accent-neon);">→</span>
+                <div class="window-item">
+                    <div class="box" style="border-color: var(--accent-neon);">窗口 B</div>
+                    <p style="font-size: var(--small-size);">需求审核</p>
+                </div>
+                <span style="color: var(--accent-neon);">→</span>
+                <div class="window-item">
+                    <div class="box" style="border-color: var(--bg-primary);">窗口 C</div>
+                    <p style="font-size: var(--small-size);">执行生成</p>
+                </div>
+                <span style="color: var(--accent-neon);">→</span>
+                <div class="window-item">
+                    <div class="box" style="border-color: #ff6b9d;">窗口 D</div>
+                    <p style="font-size: var(--small-size);">生成测试</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 15: 手动测试的痛点
+         =========================================== -->
+    <section class="slide bg-gradient-dark" id="slide-15">
+        <div class="slide-content">
+            <span class="badge reveal" style="margin-bottom: 1.5rem;">手动测试</span>
+            <h2 class="reveal" style="font-size: var(--h2-size); margin-bottom: 2rem;">亲身体验手动测试的局限</h2>
+            <div class="dialogue-box reveal">
+                <p class="speaker">教师引导</p>
+                <p style="font-size: var(--body-size);">「生成第一版后，先手动测几条——自己玩一玩，看看新功能有没有按需求做出来。特别注意：不是随便玩，是对照着你的验收标准一条条测。」</p>
+            </div>
+            <div class="reveal" style="margin-top: 1.5rem;">
+                <div class="misconception-card">
+                    <h4>你测了哪几条？</h4>
+                    <p>对照你的验收标准，你测了几条？你的验收标准里一共有几条？</p>
+                </div>
+                <div class="misconception-card">
+                    <h4>你确定没测的那几条没有问题吗？</h4>
+                    <p>手动测试只能发现你刚好测到的问题，自动测试每次都覆盖所有条件</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 16: 测试脚本是什么
+         =========================================== -->
+    <section class="slide bg-gradient-dark" id="slide-16">
+        <div class="slide-content" style="align-items: center;">
+            <span class="badge reveal" style="margin-bottom: 1.5rem;">测试脚本</span>
+            <h2 class="reveal" style="font-size: var(--h2-size); margin-bottom: 2rem; text-align: center;">测试脚本是怎么工作的？</h2>
+            <div class="reveal" style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 12px; padding: 1.5rem; max-width: 700px;">
+                <p style="font-size: var(--body-size); line-height: 1.8;">
+                    <strong style="color: var(--accent-cyan);">测试脚本工作三步：</strong><br><br>
+                    1️⃣ <strong>构造场景</strong>：比如「棋盘最底行全满了一行」<br><br>
+                    2️⃣ <strong>调用函数</strong>：调用游戏里的消行函数<br><br>
+                    3️⃣ <strong>对比结果</strong>：结果和需求文档里写的数字对比<br><br>
+                    需求说100分，结果也是100分 = ✅<br>
+                    结果是别的数字 = ❌
+                </p>
+            </div>
+            <p class="reveal" style="font-size: var(--h3-size); color: var(--accent-neon); margin-top: 2rem; text-align: center;">
+                你不需要看懂每一行代码，只需要能读 ✅❌ 结果
+            </p>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 17: 测试结果示例
+         =========================================== -->
+    <section class="slide bg-gradient-dark" id="slide-17">
+        <div class="slide-content">
+            <span class="badge reveal" style="margin-bottom: 1rem;">测试结果</span>
+            <h2 class="reveal" style="font-size: var(--h2-size); margin-bottom: 1.5rem;">测试脚本输出示例</h2>
+            <div class="template-preview reveal">
+<span class="highlight">俄罗斯方块测试结果</span>
+───────────────────────────────────
+✅ 消1行得分 100 分              通过
+✅ 消2行得分 300 分              通过
+✅ 消4行（Tetris）得分 800 分    通过
+✅ 游戏结束条件（积木超出顶行）   通过
+❌ 炸弹方块落地得分               失败
+   期望：50   实际：0
+   → 提示：clearBomb() 函数未返回得分
+✅ 消行后积木正确下移             通过
+❌ 炸弹 + 消行叠加得分            失败
+   期望：150（50+100）  实际：100
+   → 提示：爆炸触发消行时，炸弹得分未累加
+───────────────────────────────────
+<span class="highlight">6/8 通过  2/8 失败</span>
+            </div>
+            <p class="reveal" style="font-size: var(--body-size); color: var(--accent-cyan); margin-top: 1rem; text-align: center;">
+                自动测了8条规则，告诉你哪些通过了、哪些失败了，还说明了失败的具体原因
+            </p>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 18: 测试失败溯源
+         =========================================== -->
+    <section class="slide bg-gradient-dark" id="slide-18">
+        <div class="slide-content" style="align-items: center;">
+            <span class="badge reveal" style="margin-bottom: 1.5rem;">溯源方法</span>
+            <h2 class="reveal" style="font-size: var(--h2-size); margin-bottom: 2rem; text-align: center;">测试失败了怎么办？</h2>
+            <div class="reveal" style="background: rgba(212, 255, 0, 0.1); border: 2px solid var(--accent-neon); border-radius: 16px; padding: 2rem; max-width: 700px;">
+                <p style="font-size: var(--body-size); line-height: 1.8;">
+                    <strong style="color: var(--accent-neon);">如果 ❌ 显示「期望50，实际0」</strong><br><br>
+                    1️⃣ <strong>查需求文档</strong>：文档里有没有写「炸弹爆炸得50分」？<br><br>
+                    2️⃣ <strong>如果需求写了，但代码是0</strong> → 代码问题<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;让 AI 修代码<br><br>
+                    3️⃣ <strong>如果需求漏写了这条规则</strong> → 需求问题<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;先补需求文档，再重新生成代码
+                </p>
+            </div>
+            <p class="reveal" style="font-size: var(--h3-size); color: var(--accent-cyan); margin-top: 2rem; text-align: center;">
+                核心原则：先溯源，再决定改哪里
+            </p>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 19: 安全网
+         =========================================== -->
+    <section class="slide bg-gradient-blue halftone" id="slide-19">
+        <div class="slide-content" style="align-items: center; text-align: center;">
+            <span class="badge badge-cyan reveal" style="margin-bottom: 1.5rem;">核心概念</span>
+            <h2 class="reveal" style="font-size: var(--title-size); margin-bottom: 1.5rem;">什么是「安全网」？</h2>
+            <div class="reveal" style="background: rgba(0, 0, 0, 0.3); border: 2px solid var(--accent-neon); border-radius: 16px; padding: 2rem; max-width: 700px; margin-bottom: 2rem;">
+                <p style="font-size: var(--body-size); line-height: 1.8;">
+                    <strong style="color: var(--accent-neon);">没有安全网的时候：</strong><br>
+                    你怕改出问题，所以不敢改太多<br>
+                    每次改完要手动测半天<br>
+                    万一改出新 bug 还得找半天<br>
+                    <strong>结果：你不敢大胆加功能</strong><br><br>
+                    <strong style="color: var(--accent-cyan);">有了安全网之后：</strong><br>
+                    每次改完代码，双击 test.html<br>
+                    10秒钟看结果<br>
+                    全部 ✅，说明原有功能没被破坏，可以继续加<br>
+                    出现 ❌，马上知道哪里出问题，立刻修
+                </p>
+            </div>
+            <p class="reveal" style="font-size: var(--h3-size); color: var(--accent-neon);">
+                安全网让你敢放心大胆地改代码
+            </p>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 20: 功能灵感清单
+         =========================================== -->
+    <section class="slide bg-gradient-dark" id="slide-20">
+        <div class="slide-content">
+            <span class="badge reveal" style="margin-bottom: 1.5rem;">功能灵感</span>
+            <h2 class="reveal" style="font-size: var(--h2-size); margin-bottom: 1.5rem;">你可以加这些功能</h2>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                <div class="feature-card reveal">
+                    <div class="stars">⭐⭐</div>
+                    <h4>炸弹方块</h4>
+                    <p>落地后炸掉周围3×3范围</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="stars">⭐⭐</div>
+                    <h4>速度加成</h4>
+                    <p>碰到就让下落速度加快5秒</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="stars">⭐⭐</div>
+                    <h4>冻结方块</h4>
+                    <p>碰到就让当前方块暂停3秒</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="stars">⭐</div>
+                    <h4>彩虹消行</h4>
+                    <p>消行时屏幕闪彩虹色</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="stars">⭐⭐</div>
+                    <h4>方块预言家</h4>
+                    <p>显示接下来3个方块</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="stars">⭐⭐⭐</div>
+                    <h4>Boss 行</h4>
+                    <p>每隔10行出现无法普通消除的行</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="stars">⭐⭐⭐</div>
+                    <h4>重力反转</h4>
+                    <p>消4行触发5秒方块往上飞</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 21: 第三幕 - 反思
+         =========================================== -->
+    <section class="slide bg-gradient-blue" id="slide-21">
+        <span class="badge badge-cyan act-badge reveal">第三幕 CONTEMPLATE</span>
+        <div class="slide-content" style="align-items: center;">
+            <h2 class="reveal" style="font-size: var(--h2-size); margin-bottom: 1rem; text-align: center;">成果路演</h2>
+            <p class="reveal" style="font-size: var(--body-size); color: var(--text-muted); margin-bottom: 2rem; text-align: center;">每人1.5分钟 · 路演要讲三件事</p>
+            <div class="reflection-grid reveal">
+                <div class="reflection-item">
+                    <div class="num">1</div>
+                    <h3 style="font-size: var(--h3-size); margin: 0.5rem 0;">加了什么</h3>
+                    <p style="font-size: var(--body-size); color: var(--text-muted);">演示给大家看</p>
+                </div>
+                <div class="reflection-item">
+                    <div class="num">2</div>
+                    <h3 style="font-size: var(--h3-size); margin: 0.5rem 0;">测试发现</h3>
+                    <p style="font-size: var(--body-size); color: var(--text-muted);">发现了几个 ❌？最意外的是哪个？</p>
+                </div>
+                <div class="reflection-item">
+                    <div class="num">3</div>
+                    <h3 style="font-size: var(--h3-size); margin: 0.5rem 0;">如果重来</h3>
+                    <p style="font-size: var(--body-size); color: var(--text-muted);">需求文档哪里会写得不一样？</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 22: 互评结构
+         =========================================== -->
+    <section class="slide bg-gradient-dark" id="slide-22">
+        <div class="slide-content" style="align-items: center;">
+            <span class="badge reveal" style="margin-bottom: 1.5rem;">互评结构</span>
+            <h2 class="reveal" style="font-size: var(--h2-size); margin-bottom: 2rem; text-align: center;">如何评价他人的作品</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 800px;">
+                <div class="reveal" style="background: rgba(0, 240, 255, 0.05); border: 2px solid rgba(0, 240, 255, 0.3); border-radius: 16px; padding: 2rem; text-align: center;">
+                    <div style="font-family: var(--font-mono); font-size: var(--h2-size); color: var(--accent-cyan); margin-bottom: 1rem;">一个优点</div>
+                    <p style="font-size: var(--body-size); color: var(--text-muted);">测试脚本发现了什么有价值的问题？</p>
+                </div>
+                <div class="reveal" style="background: rgba(212, 255, 0, 0.05); border: 2px solid rgba(212, 255, 0, 0.3); border-radius: 16px; padding: 2rem; text-align: center;">
+                    <div style="font-family: var(--font-mono); font-size: var(--h2-size); color: var(--accent-neon); margin-bottom: 1rem;">一个建议</div>
+                    <p style="font-size: var(--body-size); color: var(--text-muted);">需求层面还有什么可以更精准？</p>
+                </div>
+            </div>
+            <p class="reveal" style="font-size: var(--h3-size); color: var(--text-muted); margin-top: 2rem; text-align: center;">
+                测试只能发现「你写进需求文档的问题」<br>
+                你没写的，它不知道要测
+            </p>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 23: 第四幕 - 延续
+         =========================================== -->
+    <section class="slide bg-gradient-blue halftone" id="slide-23">
+        <span class="badge badge-cyan act-badge reveal">第四幕 CONTINUE</span>
+        <div class="slide-content" style="align-items: center; text-align: center;">
+            <h2 class="reveal" style="font-size: var(--title-size); margin-bottom: 1.5rem;">抽象总结</h2>
+            <p class="reveal" style="font-size: var(--h3-size); color: var(--text-muted); margin-bottom: 2rem; max-width: 700px;">
+                需求 → 实现 → 测试 → 修复
+            </p>
+            <div class="reveal" style="background: rgba(0, 0, 0, 0.3); border: 2px solid var(--accent-neon); border-radius: 16px; padding: 2rem; max-width: 700px;">
+                <p style="font-size: var(--body-size); line-height: 1.8;">
+                    <strong style="color: var(--accent-neon);">今天最重要的一句话：</strong><br><br>
+                    <strong>「测试通过才算完成，不是能玩就算完成。」</strong><br><br>
+                    能玩是 60 分<br>
+                    测试通过是 90 分<br>
+                    需求文档里每一条都有测试覆盖是 100 分
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 24: AI 提示词工具箱
+         =========================================== -->
+    <section class="slide bg-gradient-dark" id="slide-24">
+        <div class="slide-content">
+            <span class="badge reveal" style="margin-bottom: 1rem;">AI 助教工具箱</span>
+            <h2 class="reveal" style="font-size: var(--h2-size); margin-bottom: 1rem;">核心提示词</h2>
+            <div class="prompt-box reveal">
+                <h4>生成测试脚本</h4>
+                <pre>我有一个俄罗斯方块游戏，代码如下：
+
+[粘贴游戏 HTML 代码]
+
+我的需求文档如下：
+
+[粘贴需求文档]
+
+请帮我生成一个独立的 test.html 文件，要求：
+1. 把游戏的核心逻辑函数提取出来
+2. 根据需求文档里的每一条规则，编写对应的测试
+3. 在页面上显示测试结果：✅ 通过 / ❌ 失败
+4. 双击 test.html 就能在浏览器里运行</pre>
+            </div>
+            <div class="prompt-box reveal">
+                <h4>测试失败溯源</h4>
+                <pre>我的测试脚本显示这个测试失败了：
+测试名称：[测试名称]
+期望结果：[期望值]
+实际结果：[实际值]
+
+我的需求文档里关于这条规则写的是：
+[粘贴相关需求]
+
+请帮我分析：
+1. 是代码实现有问题？还是需求文档没有说清楚？
+2. 如果是代码问题，具体是哪里需要修改？
+3. 如果是需求问题，我需要在需求文档里补充什么？</pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 25: 结束页
+         =========================================== -->
+    <section class="slide slide-end" id="slide-25">
+        <div class="slide-content" style="position: relative; z-index: 1;">
+            <h1 class="end-title reveal neon-glow">5分钟AI挑战</h1>
+            <p class="end-subtitle reveal">
+                找到你需求文档里一条没有被测试覆盖到的规则<br>
+                把它补进需求文档，然后让 Kimi 给测试脚本加上这条测试<br>
+                <strong style="color: var(--accent-neon);">跑一下看是 ✅ 还是 ❌</strong>
+            </p>
+            <div class="reveal" style="margin-top: 2rem;">
+                <span class="badge">下节课分享</span>
+            </div>
+            <p class="reveal" style="font-size: var(--body-size); color: var(--text-muted); margin-top: 1rem;">
+                说出你补的是哪条规则，测试结果是什么
+            </p>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         JavaScript 控制器
+         =========================================== -->
+    <script>
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.currentSlide = 0;
+                this.totalSlides = this.slides.length;
+                this.init();
+            }
+
+            init() {
+                this.setupIntersectionObserver();
+                this.setupKeyboardNav();
+                this.setupTouchNav();
+                this.setupProgressBar();
+                this.setupNavDots();
+            }
+
+            setupIntersectionObserver() {
+                const options = {
+                    root: null,
+                    rootMargin: '0px',
+                    threshold: 0.5
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            this.currentSlide = Array.from(this.slides).indexOf(entry.target);
+                            this.updateNavDots();
+                            this.updateProgressBar();
+                        }
+                    });
+                }, options);
+
+                this.slides.forEach(slide => observer.observe(slide));
+            }
+
+            setupKeyboardNav() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+                    switch(e.key) {
+                        case 'ArrowDown':
+                        case 'ArrowRight':
+                        case ' ':
+                        case 'PageDown':
+                            e.preventDefault();
+                            this.nextSlide();
+                            break;
+                        case 'ArrowUp':
+                        case 'ArrowLeft':
+                        case 'PageUp':
+                            e.preventDefault();
+                            this.prevSlide();
+                            break;
+                        case 'Home':
+                            e.preventDefault();
+                            this.goToSlide(0);
+                            break;
+                        case 'End':
+                            e.preventDefault();
+                            this.goToSlide(this.totalSlides - 1);
+                            break;
+                    }
+                });
+            }
+
+            setupTouchNav() {
+                let touchStartY = 0;
+                let touchEndY = 0;
+
+                document.addEventListener('touchstart', (e) => {
+                    touchStartY = e.changedTouches[0].screenY;
+                }, { passive: true });
+
+                document.addEventListener('touchend', (e) => {
+                    touchEndY = e.changedTouches[0].screenY;
+                    this.handleSwipe(touchStartY, touchEndY);
+                }, { passive: true });
+            }
+
+            handleSwipe(startY, endY) {
+                const threshold = 50;
+                const diff = startY - endY;
+
+                if (Math.abs(diff) > threshold) {
+                    if (diff > 0) {
+                        this.nextSlide();
+                    } else {
+                        this.prevSlide();
+                    }
+                }
+            }
+
+            setupProgressBar() {
+                this.progressBar = document.getElementById('progressBar');
+                this.updateProgressBar();
+            }
+
+            updateProgressBar() {
+                if (this.progressBar) {
+                    const progress = ((this.currentSlide + 1) / this.totalSlides) * 100;
+                    this.progressBar.style.width = `${progress}%`;
+                }
+            }
+
+            setupNavDots() {
+                const navDotsContainer = document.getElementById('navDots');
+                if (!navDotsContainer) return;
+
+                this.slides.forEach((_, index) => {
+                    const dot = document.createElement('div');
+                    dot.className = 'nav-dot';
+                    dot.addEventListener('click', () => this.goToSlide(index));
+                    navDotsContainer.appendChild(dot);
+                });
+
+                this.navDots = document.querySelectorAll('.nav-dot');
+                this.updateNavDots();
+            }
+
+            updateNavDots() {
+                if (!this.navDots) return;
+                this.navDots.forEach((dot, index) => {
+                    dot.classList.toggle('active', index === this.currentSlide);
+                });
+            }
+
+            nextSlide() {
+                if (this.currentSlide < this.totalSlides - 1) {
+                    this.goToSlide(this.currentSlide + 1);
+                }
+            }
+
+            prevSlide() {
+                if (this.currentSlide > 0) {
+                    this.goToSlide(this.currentSlide - 1);
+                }
+            }
+
+            goToSlide(index) {
+                if (index >= 0 && index < this.totalSlides) {
+                    this.slides[index].scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        }
+
+        // 启动演示
+        document.addEventListener('DOMContentLoaded', () => {
+            new SlidePresentation();
+        });
+    </script>
+</body>
+</html>
