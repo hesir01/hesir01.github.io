@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AICODE06-11 涂鸦PK（四）— 班级锦标赛 - 教学版</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* 清新明亮配色 */
+            --bg-primary: #f8fafc;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent-teal: #14b8a6;
+            --accent-orange: #f97316;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --border-light: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            
+            /* 大字体设计 - 适合教室投屏 */
+            --title-size: clamp(3rem, 8vw, 6rem);
+            --h2-size: clamp(2rem, 5vw, 3.5rem);
+            --h3-size: clamp(1.5rem, 3vw, 2.25rem);
+            --body-size: clamp(1.25rem, 2.5vw, 1.75rem);
+            --large-text: clamp(1.5rem, 3vw, 2rem);
+            
+            --slide-padding: clamp(2rem, 5vw, 4rem);
+            --content-gap: clamp(1.5rem, 3vw, 2.5rem);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            padding: var(--slide-padding);
+        }
+
+        /* 页面指示器 */
+        .page-indicator {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            background: var(--accent-teal);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        /* 时间标签 */
+        .time-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--accent-orange);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .time-tag::before {
+            content: '⏱';
+        }
+
+        /* 标题样式 */
+        h1 {
+            font-size: var(--title-size);
+            font-weight: 900;
+            color: var(--text-primary);
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+
+        h2 {
+            font-size: var(--h2-size);
+            font-weight: 700;
+            color: var(--accent-teal);
+            margin-bottom: var(--content-gap);
+            padding-bottom: 0.5rem;
+            border-bottom: 4px solid var(--accent-teal);
+        }
+
+        h3 {
+            font-size: var(--h3-size);
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* 大文字内容 - 适合投屏 */
+        .big-text {
+            font-size: var(--large-text);
+            line-height: 1.8;
+            color: var(--text-primary);
+        }
+
+        .big-text li {
+            font-size: var(--large-text);
+            margin-bottom: 1rem;
+        }
+
+        /* 两栏布局 */
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            flex: 1;
+            align-items: center;
+        }
+
+        /* 重点框 */
+        .highlight-box {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border-left: 6px solid var(--accent-orange);
+            padding: 2rem;
+            border-radius: 0 16px 16px 0;
+            margin: 1.5rem 0;
+        }
+
+        .highlight-box h4 {
+            color: var(--accent-orange);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* 教师话术框 */
+        .teacher-script {
+            background: #e0f2fe;
+            border: 3px solid var(--accent-blue);
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .teacher-script::before {
+            content: '💬 教师话术';
+            position: absolute;
+            top: -1rem;
+            left: 2rem;
+            background: var(--accent-blue);
+            color: white;
+            padding: 0.25rem 1rem;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .teacher-script p {
+            font-size: var(--large-text);
+            line-height: 2;
+            color: var(--text-primary);
+            font-style: italic;
+        }
+
+        /* 步骤卡片 */
+        .step-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            border: 2px solid var(--border-light);
+        }
+
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background: var(--accent-teal);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+        }
+
+        /* 导航 */
+        .nav-dots {
+            position: fixed;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            z-index: 1000;
+        }
+
+        .nav-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--border-light);
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .nav-dot.active {
+            background: var(--accent-teal);
+            border-color: var(--accent-teal);
+            transform: scale(1.3);
+        }
+
+        /* 进度条 */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 6px;
+            background: var(--accent-teal);
+            z-index: 1000;
+            transition: width 0.3s;
+        }
+
+        /* 动画 */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal:nth-child(1) { transition-delay: 0.1s; }
+        .reveal:nth-child(2) { transition-delay: 0.2s; }
+        .reveal:nth-child(3) { transition-delay: 0.3s; }
+
+        /* 响应式 */
+        @media (max-width: 1024px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 打印优化 */
+        @media print {
+            .slide {
+                page-break-after: always;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    <nav class="nav-dots" id="navDots"></nav>
+
+    <!-- 第1页：课程封面 -->
+    <section class="slide">
+        <span class="page-indicator">1 / 10</span>
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+            <div class="reveal" style="background: var(--accent-teal); color: white; padding: 0.75rem 2rem; border-radius: 50px; font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem;">
+                AICODE06 · 课时11
+            </div>
+            <h1 class="reveal">涂鸦PK（四）</h1>
+            <div class="reveal" style="font-size: var(--h2-size); color: var(--accent-orange); font-weight: 700; margin-bottom: 3rem;">
+                班级锦标赛
+            </div>
+            <div class="reveal" style="display: flex; gap: 3rem; flex-wrap: wrap; justify-content: center;">
+                <div style="text-align: center;">
+                    <div style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 0.5rem;">核心能力</div>
+                    <div style="font-size: 1.75rem; font-weight: 700; color: var(--accent-teal);">表达力 · 共创力</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 0.5rem;">时长</div>
+                    <div style="font-size: 1.75rem; font-weight: 700; color: var(--accent-orange);">90分钟</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 第2页：本课核心 -->
+    <section class="slide">
+        <span class="page-indicator">2 / 10</span>
+        <h2 class="reveal">本课要解决的问题</h2>
+        <div class="two-column">
+            <div class="reveal">
+                <div class="highlight-box">
+                    <h4>❌ 现在的痛点</h4>
+                    <ul class="big-text" style="margin-top: 1rem;">
+                        <li>角色数据写死在代码里</li>
+                        <li>加新角色要改程序</li>
+                        <li>8个角色要改8次代码</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="reveal">
+                <div style="background: #d1fae5; border-left: 6px solid var(--accent-teal); padding: 2rem; border-radius: 0 16px 16px 0;">
+                    <h4 style="color: var(--accent-teal); font-size: 1.5rem; margin-bottom: 1rem;">✅ 今天要做到</h4>
+                    <ul class="big-text" style="margin-top: 1rem;">
+                        <li>数据与代码分离</li>
+                        <li>加角色只需加文件</li>
+                        <li>代码一行不用改</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 第3页：第一幕 -->
+    <section class="slide">
+        <span class="page-indicator">3 / 10</span>
+        <div style="display: flex; align-items: center; gap: 2rem; margin-bottom: 2rem;">
+            <h2 style="margin: 0; border: none;">第一幕：联系</h2>
+            <span class="time-tag">10分钟</span>
+        </div>
+        
+        <div class="teacher-script reveal" style="margin-bottom: 2rem;">
+            <p>"课前我收集了大家的角色文件。我现在打开，给大家看看今天的「选手花名册」。<br><br>
+            你们来数一数，今天一共有多少个角色参赛？<br><br>
+            <strong style="color: var(--accent-orange);">XX 个角色，今天全部都要上场对战。谁是最强的？我们今天锦标赛见真章！"</strong></p>
+        </div>
+
+        <div class="reveal" style="background: var(--bg-card); border-radius: 16px; padding: 2rem; box-shadow: var(--shadow);">
+            <h3 style="color: var(--accent-teal); margin-bottom: 1rem;">🎯 本环节目标</h3>
+            <ul class="big-text">
+                <li>用「角色花名册」制造全班兴奋感</li>
+                <li>引出「数据驱动」概念</li>
+                <li>建立「今天是全班大乱斗」的期待</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- 第4页：第二幕上 -->
+    <section class="slide">
+        <span class="page-indicator">4 / 10</span>
+        <div style="display: flex; align-items: center; gap: 2rem; margin-bottom: 2rem;">
+            <h2 style="margin: 0; border: none;">第二幕：建构（上）</h2>
+            <span class="time-tag">20分钟</span>
+        </div>
+        <div style="font-size: 1.5rem; color: var(--text-secondary); margin-bottom: 2rem;">roles 系统——数据驱动设计实战</div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;">
+            <div class="step-card reveal">
+                <div class="step-number">1</div>
+                <h3>讲解演示</h3>
+                <ul class="big-text" style="margin-top: 1rem;">
+                    <li>展示增量需求文档</li>
+                    <li>讲解四条核心要求</li>
+                    <li>对比硬编码 vs 数据驱动</li>
+                </ul>
+            </div>
+            <div class="step-card reveal">
+                <div class="step-number">2</div>
+                <h3>窗口B审核</h3>
+                <ul class="big-text" style="margin-top: 1rem;">
+                    <li>用 Kimi 审核需求</li>
+                    <li>找出漏洞和问题</li>
+                    <li>补充到需求文档</li>
+                </ul>
+            </div>
+            <div class="step-card reveal">
+                <div class="step-number">3</div>
+                <h3>窗口C执行</h3>
+                <ul class="big-text" style="margin-top: 1rem;">
+                    <li>使用保底提示词</li>
+                    <li>只输出新增代码</li>
+                    <li>避免重写整个游戏</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- 第5页：第二幕下 -->
+    <section class="slide">
+        <span class="page-indicator">5 / 10</span>
+        <div style="display: flex; align-items: center; gap: 2rem; margin-bottom: 2rem;">
+            <h2 style="margin: 0; border: none;">第二幕：建构（下）</h2>
+            <span class="time-tag">30分钟</span>
+        </div>
+        <div style="font-size: 1.5rem; color: var(--text-secondary); margin-bottom: 2rem;">班级锦标赛——全班大乱斗</div>
+
+        <div class="two-column">
+            <div class="reveal">
+                <div style="background: var(--bg-card); border-radius: 16px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 1.5rem;">
+                    <h3 style="color: var(--accent-teal); margin-bottom: 1rem;">📋 比赛规则</h3>
+                    <ul class="big-text">
+                        <li>单淘汰赛制</li>
+                        <li>每场战斗 5 回合</li>
+                        <li>HP 多者获胜</li>
+                        <li>每场 2-3 分钟</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="reveal">
+                <div style="background: var(--bg-card); border-radius: 16px; padding: 2rem; box-shadow: var(--shadow);">
+                    <h3 style="color: var(--accent-orange); margin-bottom: 1rem;">🎤 教师主持要点</h3>
+                    <ul class="big-text">
+                        <li>介绍双方角色属性</li>
+                        <li>引导学生预测胜负</li>
+                        <li>实时解说战斗过程</li>
+                        <li>分析胜负原因</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 第6页：第三幕 -->
+    <section class="slide">
+        <span class="page-indicator">6 / 10</span>
+        <div style="display: flex; align-items: center; gap: 2rem; margin-bottom: 2rem;">
+            <h2 style="margin: 0; border: none;">第三幕：反思</h2>
+            <span class="time-tag">15分钟</span>
+        </div>
+        <div style="font-size: 1.5rem; color: var(--text-secondary); margin-bottom: 2rem;">3分钟路演 —— 说「为什么」而不是「是什么」</div>
+
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem;">
+            <div class="reveal" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 16px; padding: 2rem;">
+                <div style="font-size: 2rem; margin-bottom: 1rem;">1️⃣</div>
+                <h3>展示角色（30秒）</h3>
+                <p class="big-text" style="margin-top: 1rem; color: var(--text-secondary);">"我的角色叫 XX，是一个 XX 型，属性分配是……"</p>
+            </div>
+            <div class="reveal" style="background: linear-gradient(135deg, #dcfce7, #bbf7d0); border-radius: 16px; padding: 2rem;">
+                <div style="font-size: 2rem; margin-bottom: 1rem;">2️⃣</div>
+                <h3>设计意图（30秒）</h3>
+                <p class="big-text" style="margin-top: 1rem; color: var(--text-secondary);">"我选这个打法是因为……我觉得用 XX 特技可以克制……"</p>
+            </div>
+            <div class="reveal" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 16px; padding: 2rem;">
+                <div style="font-size: 2rem; margin-bottom: 1rem;">3️⃣</div>
+                <h3>精彩瞬间（60秒）</h3>
+                <p class="big-text" style="margin-top: 1rem; color: var(--text-secondary);">"最让我印象深刻的是和 XX 的对战，那一场……"</p>
+            </div>
+            <div class="reveal" style="background: linear-gradient(135deg, #fce7f3, #fbcfe8); border-radius: 16px; padding: 2rem;">
+                <div style="font-size: 2rem; margin-bottom: 1rem;">4️⃣</div>
+                <h3>设计复盘（60秒）</h3>
+                <p class="big-text" style="margin-top: 1rem; color: var(--text-secondary);">"如果重来，我会把 XX 调低一点，把 XX 调高……"</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 第7页：第四幕 -->
+    <section class="slide">
+        <span class="page-indicator">7 / 10</span>
+        <div style="display: flex; align-items: center; gap: 2rem; margin-bottom: 2rem;">
+            <h2 style="margin: 0; border: none;">第四幕：延续</h2>
+            <span class="time-tag">5分钟</span>
+        </div>
+        <div style="font-size: 1.5rem; color: var(--text-secondary); margin-bottom: 2rem;">四课主线总结</div>
+
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+            <div class="reveal" style="text-align: center; padding: 1.5rem; background: var(--bg-card); border-radius: 16px; box-shadow: var(--shadow);">
+                <div style="font-size: 3rem; font-weight: 900; color: var(--accent-teal);">8</div>
+                <div style="font-size: 1.25rem; font-weight: 700; margin: 0.5rem 0;">需求文档</div>
+                <div style="font-size: 1rem; color: var(--text-secondary);">→ 画图工具</div>
+            </div>
+            <div class="reveal" style="text-align: center; padding: 1.5rem; background: var(--bg-card); border-radius: 16px; box-shadow: var(--shadow);">
+                <div style="font-size: 3rem; font-weight: 900; color: var(--accent-blue);">9</div>
+                <div style="font-size: 1.25rem; font-weight: 700; margin: 0.5rem 0;">需求文档</div>
+                <div style="font-size: 1rem; color: var(--text-secondary);">→ 战斗系统</div>
+            </div>
+            <div class="reveal" style="text-align: center; padding: 1.5rem; background: var(--bg-card); border-radius: 16px; box-shadow: var(--shadow);">
+                <div style="font-size: 3rem; font-weight: 900; color: var(--accent-purple);">10</div>
+                <div style="font-size: 1.25rem; font-weight: 700; margin: 0.5rem 0;">增量需求</div>
+                <div style="font-size: 1rem; color: var(--text-secondary);">→ 动画音效</div>
+            </div>
+            <div class="reveal" style="text-align: center; padding: 1.5rem; background: var(--bg-card); border-radius: 16px; box-shadow: var(--shadow);">
+                <div style="font-size: 3rem; font-weight: 900; color: var(--accent-orange);">11</div>
+                <div style="font-size: 1.25rem; font-weight: 700; margin: 0.5rem 0;">数据驱动</div>
+                <div style="font-size: 1rem; color: var(--text-secondary);">→ 角色系统</div>
+            </div>
+        </div>
+
+        <div class="reveal" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 16px; padding: 2rem; text-align: center;">
+            <p style="font-size: var(--h3-size); color: var(--text-primary); font-weight: 700;">
+                你们学到的不是游戏，而是——<br>
+                <span style="color: var(--accent-teal);">如何把一个想法，变成可以被验证、可以被扩展、可以被迭代的系统。</span>
+            </p>
+        </div>
+    </section>
+
+    <!-- 第8页：核心概念 -->
+    <section class="slide">
+        <span class="page-indicator">8 / 10</span>
+        <h2 class="reveal">核心概念（板书用）</h2>
+
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem;">
+            <div class="reveal" style="background: var(--bg-card); border-radius: 16px; padding: 2rem; box-shadow: var(--shadow);">
+                <h3 style="color: var(--accent-teal); margin-bottom: 1rem;">✅ 数据驱动设计</h3>
+                <p class="big-text">游戏皮肤系统——换皮肤不需要重新下载整个游戏</p>
+                <div style="margin-top: 1rem; padding: 1rem; background: #f0fdf4; border-radius: 8px;">
+                    <strong>类比：</strong>皮肤是「数据」，游戏逻辑是「代码」，两者分离
+                </div>
+            </div>
+            <div class="reveal" style="background: var(--bg-card); border-radius: 16px; padding: 2rem; box-shadow: var(--shadow);">
+                <h3 style="color: var(--accent-orange); margin-bottom: 1rem;">❌ 硬编码</h3>
+                <p class="big-text">把菜单直接印在餐厅墙上——想加一道菜要重新刷墙</p>
+                <div style="margin-top: 1rem; padding: 1rem; background: #fef2f2; border-radius: 8px;">
+                    <strong>问题：</strong>角色数据写死在代码里，扩展困难
+                </div>
+            </div>
+        </div>
+
+        <div class="reveal" style="margin-top: 2rem; background: #eff6ff; border-radius: 16px; padding: 2rem; border: 3px solid var(--accent-blue);">
+            <h3 style="color: var(--accent-blue); margin-bottom: 1rem;">💡 关键对比</h3>
+            <div class="two-column" style="gap: 3rem;">
+                <div>
+                    <strong style="font-size: 1.5rem; color: var(--accent-orange);">硬编码方式：</strong>
+                    <div class="big-text" style="margin-top: 0.5rem;">代码里直接写角色数据 → 想加角色：改代码</div>
+                </div>
+                <div>
+                    <strong style="font-size: 1.5rem; color: var(--accent-teal);">数据驱动方式：</strong>
+                    <div class="big-text" style="margin-top: 0.5rem;">读取 json 文件 → 想加角色：加文件，代码不变</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 第9页：常见误概念 -->
+    <section class="slide">
+        <span class="page-indicator">9 / 10</span>
+        <h2 class="reveal">常见误概念（注意纠正）</h2>
+
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div class="reveal" style="display: flex; gap: 2rem; align-items: flex-start; background: var(--bg-card); border-radius: 16px; padding: 2rem; box-shadow: var(--shadow);">
+                <div style="background: #fecaca; color: #dc2626; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 700; white-space: nowrap;">误概念 M1</div>
+                <div>
+                    <h3 style="margin-bottom: 0.5rem;">加新角色需要改代码</h3>
+                    <p class="big-text" style="color: var(--accent-teal);">✅ 纠正：加一个 json 文件 = 加一个角色，代码不用改</p>
+                </div>
+            </div>
+            <div class="reveal" style="display: flex; gap: 2rem; align-items: flex-start; background: var(--bg-card); border-radius: 16px; padding: 2rem; box-shadow: var(--shadow);">
+                <div style="background: #fecaca; color: #dc2626; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 700; white-space: nowrap;">误概念 M2</div>
+                <div>
+                    <h3 style="margin-bottom: 0.5rem;">路演就是说「我做了什么功能」</h3>
+                    <p class="big-text" style="color: var(--accent-teal);">✅ 纠正：路演要说「我为什么这样设计」——设计决策比功能列表更有价值</p>
+                </div>
+            </div>
+            <div class="reveal" style="display: flex; gap: 2rem; align-items: flex-start; background: var(--bg-card); border-radius: 16px; padding: 2rem; box-shadow: var(--shadow);">
+                <div style="background: #fecaca; color: #dc2626; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 700; white-space: nowrap;">误概念 M4</div>
+                <div>
+                    <h3 style="margin-bottom: 0.5rem;">输了说明自己设计失败了</h3>
+                    <p class="big-text" style="color: var(--accent-teal);">✅ 纠正：输了是迭代的起点；「如果重来属性怎么分」才是最有价值的问题</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 第10页：课后挑战 -->
+    <section class="slide">
+        <span class="page-indicator">10 / 10</span>
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+            <div class="reveal" style="background: var(--accent-orange); color: white; padding: 0.75rem 2rem; border-radius: 50px; font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem;">
+                5分钟日常AI挑战
+            </div>
+            <h1 class="reveal">角色 2.0 版本</h1>
+            <p class="reveal" style="font-size: var(--h3-size); color: var(--text-secondary); margin-bottom: 3rem;">给你的角色设计一个新版本</p>
+            
+            <div class="reveal" style="background: var(--bg-card); border-radius: 16px; padding: 3rem; box-shadow: var(--shadow); max-width: 800px; text-align: left;">
+                <p class="big-text" style="margin-bottom: 1.5rem;">写一段话（3-5句）说清楚三件事：</p>
+                <ol class="big-text" style="margin-left: 2rem; line-height: 2;">
+                    <li>你改了哪些属性，改成了什么数字</li>
+                    <li>这次你想克制哪种打法</li>
+                    <li>你觉得这样改会带来什么新的弱点</li>
+                </ol>
+            </div>
+
+            <div class="reveal" style="margin-top: 2rem; font-size: 1.5rem; color: var(--accent-teal); font-weight: 700;">
+                💡 不需要跑代码验证，只需要写出「设计意图」
+            </div>
+        </div>
+    </section>
+
+    <script>
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll(".slide");
+                this.currentSlide = 0;
+                this.progressBar = document.getElementById("progressBar");
+                this.navDotsContainer = document.getElementById("navDots");
+                this.setupIntersectionObserver();
+                this.setupKeyboardNav();
+                this.setupNavDots();
+            }
+
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver(
+                    (entries) => {
+                        entries.forEach((entry) => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add("visible");
+                                this.currentSlide = Array.from(this.slides).indexOf(entry.target);
+                                this.updateNavDots();
+                                this.updateProgressBar();
+                            }
+                        });
+                    },
+                    { threshold: 0.5 }
+                );
+                this.slides.forEach((slide) => observer.observe(slide));
+            }
+
+            setupKeyboardNav() {
+                document.addEventListener("keydown", (e) => {
+                    if (e.key === "ArrowDown" || e.key === "ArrowRight" || e.key === " ") {
+                        e.preventDefault();
+                        this.nextSlide();
+                    } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+                        e.preventDefault();
+                        this.prevSlide();
+                    }
+                });
+            }
+
+            setupNavDots() {
+                this.navDotsContainer.innerHTML = "";
+                this.slides.forEach((_, index) => {
+                    const dot = document.createElement("div");
+                    dot.className = "nav-dot";
+                    dot.addEventListener("click", () => this.goToSlide(index));
+                    this.navDotsContainer.appendChild(dot);
+                });
+                this.updateNavDots();
+            }
+
+            updateNavDots() {
+                const dots = this.navDotsContainer.querySelectorAll(".nav-dot");
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle("active", index === this.currentSlide);
+                });
+            }
+
+            updateProgressBar() {
+                const progress = ((this.currentSlide + 1) / this.slides.length) * 100;
+                this.progressBar.style.width = `${progress}%`;
+            }
+
+            nextSlide() {
+                if (this.currentSlide < this.slides.length - 1) {
+                    this.goToSlide(this.currentSlide + 1);
+                }
+            }
+
+            prevSlide() {
+                if (this.currentSlide > 0) {
+                    this.goToSlide(this.currentSlide - 1);
+                }
+            }
+
+            goToSlide(index) {
+                if (index >= 0 && index < this.slides.length) {
+                    this.slides[index].scrollIntoView({ behavior: "smooth" });
+                }
+            }
+        }
+
+        new SlidePresentation();
+    </script>
+</body>
+</html>

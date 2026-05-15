@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AICODE06-11 涂鸦PK（四）— 班级锦标赛</title>
+    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=satoshi@400,500,700&display=swap">
+    <style>
+        /* ===========================================
+           CSS CUSTOM PROPERTIES (THEME)
+           Neon Cyber - 适合编程教学
+           =========================================== */
+        :root {
+            /* Colors */
+            --bg-primary: #0a0f1c;
+            --bg-secondary: #111827;
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af;
+            --accent-cyan: #00ffcc;
+            --accent-magenta: #ff00aa;
+            --accent-blue: #4361ee;
+            --accent-glow: rgba(0, 255, 204, 0.3);
+            --accent-glow-magenta: rgba(255, 0, 170, 0.3);
+
+            /* Typography */
+            --font-display: "Clash Display", sans-serif;
+            --font-body: "Satoshi", sans-serif;
+            --title-size: clamp(2rem, 6vw, 5rem);
+            --h2-size: clamp(1.5rem, 4vw, 3rem);
+            --h3-size: clamp(1.1rem, 2.5vw, 1.75rem);
+            --body-size: clamp(0.85rem, 1.5vw, 1.125rem);
+            --small-size: clamp(0.75rem, 1vw, 0.9rem);
+
+            /* Spacing */
+            --slide-padding: clamp(1.5rem, 4vw, 4rem);
+            --content-gap: clamp(1rem, 2vw, 2rem);
+            --element-gap: clamp(0.5rem, 1vw, 1rem);
+
+            /* Animation */
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration-normal: 0.6s;
+        }
+
+        /* ===========================================
+           BASE STYLES
+           =========================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* ===========================================
+           VIEWPORT FITTING: MANDATORY BASE STYLES
+           =========================================== */
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+            padding: var(--slide-padding);
+        }
+
+        /* ===========================================
+           BACKGROUND EFFECTS
+           =========================================== */
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse at 20% 80%, rgba(0, 255, 204, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(255, 0, 170, 0.08) 0%, transparent 50%),
+                linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            z-index: -2;
+        }
+
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 255, 204, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 204, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+        }
+
+        /* ===========================================
+           ANIMATIONS
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity var(--duration-normal) var(--ease-out-expo),
+                        transform var(--duration-normal) var(--ease-out-expo);
+        }
+
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal:nth-child(1) { transition-delay: 0.1s; }
+        .reveal:nth-child(2) { transition-delay: 0.2s; }
+        .reveal:nth-child(3) { transition-delay: 0.3s; }
+        .reveal:nth-child(4) { transition-delay: 0.4s; }
+        .reveal:nth-child(5) { transition-delay: 0.5s; }
+        .reveal:nth-child(6) { transition-delay: 0.6s; }
+
+        /* ===========================================
+           TYPOGRAPHY
+           =========================================== */
+        h1, h2, h3 {
+            font-family: var(--font-display);
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        h1 {
+            font-size: var(--title-size);
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            font-size: var(--h2-size);
+            color: var(--text-primary);
+        }
+
+        h3 {
+            font-size: var(--h3-size);
+            color: var(--accent-cyan);
+        }
+
+        p, li {
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+        }
+
+        /* ===========================================
+           SLIDE SPECIFIC STYLES
+           =========================================== */
+        
+        /* Title Slide */
+        .title-slide {
+            text-align: center;
+        }
+
+        .title-slide .badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            background: rgba(0, 255, 204, 0.1);
+            border: 1px solid var(--accent-cyan);
+            border-radius: 50px;
+            color: var(--accent-cyan);
+            font-size: var(--small-size);
+            font-weight: 500;
+            margin-bottom: var(--element-gap);
+        }
+
+        .title-slide h1 {
+            margin-bottom: var(--element-gap);
+        }
+
+        .title-slide .subtitle {
+            font-size: var(--h3-size);
+            color: var(--text-secondary);
+            margin-bottom: var(--content-gap);
+        }
+
+        .title-slide .meta {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .title-slide .meta-item {
+            text-align: center;
+        }
+
+        .title-slide .meta-label {
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .title-slide .meta-value {
+            font-size: var(--body-size);
+            color: var(--accent-cyan);
+            font-weight: 700;
+        }
+
+        /* Content Slides */
+        .content-slide h2 {
+            margin-bottom: var(--content-gap);
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent-cyan);
+            display: inline-block;
+        }
+
+        .content-slide h2::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 3px;
+            background: var(--accent-magenta);
+            margin-top: 0.5rem;
+        }
+
+        /* Lists */
+        .feature-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: var(--element-gap);
+        }
+
+        .feature-list li {
+            position: relative;
+            padding-left: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .feature-list li::before {
+            content: '▸';
+            color: var(--accent-cyan);
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .feature-list li strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--content-gap);
+            margin-top: var(--content-gap);
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+
+        .card h3 {
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        /* Tables */
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: var(--content-gap);
+            font-size: var(--body-size);
+        }
+
+        .info-table th,
+        .info-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 255, 204, 0.1);
+        }
+
+        .info-table th {
+            color: var(--accent-cyan);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: var(--small-size);
+            letter-spacing: 0.05em;
+        }
+
+        .info-table td {
+            color: var(--text-secondary);
+        }
+
+        .info-table tr:hover td {
+            color: var(--text-primary);
+            background: rgba(0, 255, 204, 0.05);
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: var(--small-size);
+            color: var(--accent-cyan);
+            margin: var(--element-gap) 0;
+            overflow-x: auto;
+        }
+
+        /* Highlight box */
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(0, 255, 204, 0.1), rgba(255, 0, 170, 0.1));
+            border-left: 4px solid var(--accent-cyan);
+            padding: 1.5rem;
+            border-radius: 0 12px 12px 0;
+            margin: var(--content-gap) 0;
+        }
+
+        .highlight-box h4 {
+            color: var(--accent-cyan);
+            font-size: var(--h3-size);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Timeline */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: var(--content-gap);
+            margin-top: var(--content-gap);
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .timeline-marker {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--bg-primary);
+            flex-shrink: 0;
+        }
+
+        .timeline-content h4 {
+            color: var(--text-primary);
+            font-size: var(--h3-size);
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline-content p {
+            color: var(--text-secondary);
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta));
+            z-index: 1000;
+            transition: width 0.3s ease;
+        }
+
+        /* Navigation dots */
+        .nav-dots {
+            position: fixed;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            z-index: 1000;
+        }
+
+        .nav-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-dot.active {
+            background: var(--accent-cyan);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        /* Keyboard hint */
+        .keyboard-hint {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+            z-index: 1000;
+        }
+
+        .keyboard-hint span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .key {
+            padding: 0.25rem 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        /* Responsive */
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(1rem, 3vw, 2rem);
+                --content-gap: clamp(0.75rem, 1.5vw, 1.5rem);
+            }
+        }
+
+        @media (max-height: 600px) {
+            .nav-dots, .keyboard-hint {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .title-slide .meta {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+            
+            html {
+                scroll-behavior: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Progress bar -->
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <!-- Navigation dots -->
+    <nav class="nav-dots" id="navDots"></nav>
+    
+    <!-- Keyboard hint -->
+    <div class="keyboard-hint">
+        <span><span class="key">↑</span><span class="key">↓</span> 导航</span>
+        <span><span class="key">Space</span> 下一页</span>
+    </div>
+
+    <!-- Slide 1: Title -->
+    <section class="slide title-slide">
+        <div class="grid-overlay"></div>
+        <div class="slide-content">
+            <div class="badge reveal">AICODE06 · 课时 11</div>
+            <h1 class="reveal">涂鸦PK（四）</h1>
+            <p class="subtitle reveal">班级锦标赛</p>
+            <div class="meta reveal">
+                <div class="meta-item">
+                    <div class="meta-label">核心能力</div>
+                    <div class="meta-value">表达力 · 共创力</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">核心工具</div>
+                    <div class="meta-value">Trae IDE · Kimi</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">时长</div>
+                    <div class="meta-value">90 分钟</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 2: Course Objectives -->
+    <section class="slide content-slide">
+        <div class="grid-overlay"></div>
+        <div class="slide-content">
+            <h2 class="reveal">课程目标</h2>
+            <div class="card-grid">
+                <div class="card reveal">
+                    <h3><span class="card-icon">📚</span> 知识目标</h3>
+                    <ul class="feature-list">
+                        <li>理解<strong>「数据驱动设计」</strong>的核心思想</li>
+                        <li>理解角色选择界面是<strong>「数据读取 + UI 展示」</strong>的组合</li>
+                        <li>理解路演的核心是<strong>「设计决策」</strong>而非功能列表</li>
+                    </ul>
+                </div>
+                <div class="card reveal">
+                    <h3><span class="card-icon">🎯</span> 能力目标</h3>
+                    <ul class="feature-list">
+                        <li>能用增量需求文档描述 roles 系统</li>
+                        <li>能在班级锦标赛中用语言分析胜负原因</li>
+                        <li>能按结构完成 3 分钟路演</li>
+                    </ul>
+                </div>
+                <div class="card reveal">
+                    <h3><span class="card-icon">💡</span> 情感目标</h3>
+                    <ul class="feature-list">
+                        <li>感受「自己的角色和全班角色一起对战」的真实社交激励</li>
+                        <li>建立「输了是迭代的起点」的成长心态</li>
+                        <li>对「数据和代码分离」产生直觉性认同</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 3: Core Concepts -->
+    <section class="slide content-slide">
+        <div class="grid-overlay"></div>
+        <div class="slide-content">
+            <h2 class="reveal">核心概念认知层级</h2>
+            <table class="info-table reveal">
+                <thead>
+                    <tr>
+                        <th>概念</th>
+                        <th>学生类比</th>
+                        <th>认知层级</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong style="color: var(--accent-cyan);">数据驱动设计</strong></td>
+                        <td>游戏皮肤系统——换皮肤不需要重新下载整个游戏</td>
+                        <td>理解层</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--accent-cyan);">硬编码</strong></td>
+                        <td>把菜单直接印在餐厅墙上——想加菜要重新刷墙</td>
+                        <td>识别层</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--accent-cyan);">roles 系统</strong></td>
+                        <td>班级花名册——来了新同学只需加一行</td>
+                        <td>理解层</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--accent-cyan);">增量需求</strong></td>
+                        <td>在已有房子里加一个房间——不是推倒重建</td>
+                        <td>应用层</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--accent-cyan);">路演设计决策</strong></td>
+                        <td>苹果发布会不说「有摄像头」，而说「为什么改变了拍照方式」</td>
+                        <td>应用层</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Slide 4: Misconceptions -->
+    <section class="slide content-slide">
+        <div class="grid-overlay"></div>
+        <div class="slide-content">
+            <h2 class="reveal">典型误概念</h2>
+            <div class="timeline">
+                <div class="timeline-item reveal">
+                    <div class="timeline-marker">M1</div>
+                    <div class="timeline-content">
+                        <h4>加新角色需要改代码</h4>
+                        <p><strong style="color: var(--accent-magenta);">误概念：</strong>每次加角色都要修改程序代码</p>
+                        <p><strong style="color: var(--accent-cyan);">正确认知：</strong>数据驱动设计——加一个 json 文件 = 加一个角色，代码不用改</p>
+                    </div>
+                </div>
+                <div class="timeline-item reveal">
+                    <div class="timeline-marker">M2</div>
+                    <div class="timeline-content">
+                        <h4>路演就是说「我做了什么功能」</h4>
+                        <p><strong style="color: var(--accent-magenta);">误概念：</strong>路演是功能列表的罗列</p>
+                        <p><strong style="color: var(--accent-cyan);">正确认知：</strong>路演要说「我为什么这样设计」——设计决策比功能列表更有价值</p>
+                    </div>
+                </div>
+                <div class="timeline-item reveal">
+                    <div class="timeline-marker">M3</div>
+                    <div class="timeline-content">
+                        <h4>属性随便分的角色不可能赢</h4>
+                        <p><strong style="color: var(--accent-magenta);">误概念：</strong>只有认真分配的属性才能赢</p>
+                        <p><strong style="color: var(--accent-cyan);">正确认知：</strong>「奇怪」的属性分配有时会产生意外的克制效果</p>
+                    </div>
+                </div>
+                <div class="timeline-item reveal">
+                    <div class="timeline-marker">M4</div>
+                    <div class="timeline-content">
+                        <h4>输了说明自己设计失败了</h4>
+                        <p><strong style="color: var(--accent-magenta);">误概念：</strong>输了 = 设计失败</p>
+                        <p><strong style="color: var(--accent-cyan);">正确认知：</strong>输了是迭代的起点；「如果重来属性怎么分」才是最有价值的问题</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 5: Teaching Preparation -->
+    <section class="slide content-slide">
+        <div class="grid-overlay"></div>
+        <div class="slide-content">
+            <h2 class="reveal">教学准备</h2>
+            <div class="highlight-box reveal">
+                <h4>教师备课必做（课前）</h4>
+            </div>
+            <ul class="feature-list">
+                <li class="reveal"><strong>收集角色文件</strong> — 提前向每位学生收集角色名.png + 角色名.json，放入教师电脑 roles/ 文件夹</li>
+                <li class="reveal"><strong>测试 roles 系统</strong> — 在教师电脑上跑一遍生成流程，确保角色选择界面正常读取所有角色</li>
+                <li class="reveal"><strong>准备花名册投屏</strong> — 一个展示全班角色名字 + 特技的页面或截图</li>
+                <li class="reveal"><strong>准备对阵表</strong> — 单淘汰制，根据班级人数提前画好括号</li>
+                <li class="reveal"><strong>备用方案</strong> — 如果 roles 系统生成失败，手动在代码里加角色选择下拉菜单</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Slide 6: Act 1 - Connect -->
+    <section class="slide content-slide">
+        <div class="grid-overlay"></div>
+        <div class="slide-content">
+            <h2 class="reveal">第一幕：联系 (Connect) — 10分钟</h2>
+            <p class="reveal" style="color: var(--text-secondary); margin-bottom: var(--content-gap);">用「角色花名册」制造全班兴奋感，引出数据驱动概念</p>
+            
+            <div class="highlight-box reveal">
+                <h4>关键对话</h4>
+                <p style="color: var(--text-secondary); font-style: italic; margin-top: 0.5rem;">
+                    「课前我收集了大家的角色文件。我现在打开，给大家看看今天的「选手花名册」。<br><br>
+                    你们来数一数，今天一共有多少个角色参赛？<br><br>
+                    XX 个角色，今天全部都要上场对战。谁是最强的？我们今天锦标赛见真章。」
+                </p>
+            </div>
+
+            <div class="code-block reveal">
+                // 硬编码方式（现在）
+                const player = { name: '章鱼怪', hp: 80, atk: 15, def: 5, spd: 8 };
+                // → 想加角色：改代码
+                
+                // 数据驱动方式（今天要做）
+                // 读取 roles/角色A.json → 代码只负责读取，不存储数据
+                // → 想加角色：在 roles/ 文件夹里加一个新 json 文件，代码不变
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 7: Act 2 - Construct Part 1 -->
+    <section class="slide content-slide">
+        <div class="grid-overlay"></div>
+        <div class="slide-content">
+            <h2 class="reveal">第二幕：建构 (Construct) — 65分钟</h2>
+            <p class="reveal" style="color: var(--accent-cyan); font-size: var(--h3-size); margin-bottom: var(--content-gap);">分段一：roles 系统——数据驱动设计实战（20分钟）</p>
+            
+            <div class="card-grid">
+                <div class="card reveal">
+                    <h3><span class="card-icon">1</span> 讲解与演示</h3>
+                    <ul class="feature-list">
+                        <li>展示增量需求文档</li>
+                        <li>讲解四条核心要求</li>
+                        <li>演示数据驱动 vs 硬编码对比</li>
+                    </ul>
+                </div>
+                <div class="card reveal">
+                    <h3><span class="card-icon">2</span> 窗口B审核</h3>
+                    <ul class="feature-list">
+                        <li>用 Kimi 审核需求文档</li>
+                        <li>找出漏洞和没说清楚的地方</li>
+                        <li>补充答案到需求文档</li>
+                    </ul>
+                </div>
+                <div class="card reveal">
+                    <h3><span class="card-icon">3</span> 窗口C执行</h3>
+                    <ul class="feature-list">
+                        <li>使用保底提示词</li>
+                        <li>只输出新增/修改的代码</li>
+                        <li>避免 AI 重写整个游戏</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 8: Act 2 - Tournament -->
+    <section class="slide content-slide">
+        <div class="grid-overlay"></div>
+        <div class="slide-content">
+            <h2 class="reveal">分段二：班级锦标赛——全班大乱斗（30分钟）</h2>
+            
+            <div class="highlight-box reveal">
+                <h4>锦标赛规则</h4>
+                <ul class="feature-list" style="margin-top: 0.5rem;">
+                    <li>单淘汰赛制</li>
+                    <li>每场对战：一方选自己的角色，另一方选自己的角色</li>
+                    <li>战斗 5 回合，5 回合后谁 HP 多谁赢</li>
+                    <li>如果有一方 HP 归零，提前结束</li>
+                    <li>每场大约 2-3 分钟</li>
+                </ul>
+            </div>
+
+            <div class="card-grid" style="margin-top: var(--content-gap);">
+                <div class="card reveal">
+                    <h3><span class="card-icon">🎮</span> 战斗进行中</h3>
+                    <p>教师实时解说：回合数、伤害值、特技触发、形势分析</p>
+                </div>
+                <div class="card reveal">
+                    <h3><span class="card-icon">🏆</span> 战斗结束后</h3>
+                    <p>分析赢的原因，引导输方思考「如果重来属性怎么分会更好」</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 9: Act 3 - Contemplate -->
+    <section class="slide content-slide">
+        <div class="grid-overlay"></div>
+        <div class="slide-content">
+            <h2 class="reveal">第三幕：反思 (Contemplate) — 15分钟</h2>
+            <p class="reveal" style="color: var(--text-secondary); margin-bottom: var(--content-gap);">每人完成 3 分钟路演，训练「说设计决策」而非「说功能列表」</p>
+            
+            <div class="timeline">
+                <div class="timeline-item reveal">
+                    <div class="timeline-marker">1</div>
+                    <div class="timeline-content">
+                        <h4>展示角色（30秒）</h4>
+                        <p>「我的角色叫 XX，是一个 XX 型，属性分配是……」</p>
+                    </div>
+                </div>
+                <div class="timeline-item reveal">
+                    <div class="timeline-marker">2</div>
+                    <div class="timeline-content">
+                        <h4>设计意图（30秒）</h4>
+                        <p>「我选这个打法是因为……我觉得用 XX 特技可以克制……」</p>
+                    </div>
+                </div>
+                <div class="timeline-item reveal">
+                    <div class="timeline-marker">3</div>
+                    <div class="timeline-content">
+                        <h4>精彩瞬间（60秒）</h4>
+                        <p>「最让我印象深刻的是和 XX 的对战，那一场……」</p>
+                    </div>
+                </div>
+                <div class="timeline-item reveal">
+                    <div class="timeline-marker">4</div>
+                    <div class="timeline-content">
+                        <h4>设计复盘（60秒）</h4>
+                        <p>「如果重来，我会把 XX 调低一点，把 XX 调高……因为我发现……」</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 10: Act 4 - Continue -->
+    <section class="slide content-slide">
+        <div class="grid-overlay"></div>
+        <div class="slide-content">
+            <h2 class="reveal">第四幕：延续 (Continue) — 5分钟</h2>
+            <p class="reveal" style="color: var(--accent-cyan); font-size: var(--h3-size); margin-bottom: var(--content-gap);">四课主线总结</p>
+            
+            <div class="card-grid">
+                <div class="card reveal">
+                    <h3><span class="card-icon">8</span> 第8课</h3>
+                    <p><strong>需求文档 → 画图工具</strong></p>
+                    <p style="color: var(--text-secondary);">你用工程流程做了一个工具</p>
+                </div>
+                <div class="card reveal">
+                    <h3><span class="card-icon">9</span> 第9课</h3>
+                    <p><strong>需求文档 → 战斗系统 + 测试验证</strong></p>
+                    <p style="color: var(--text-secondary);">你用数据验证了你设计的规则</p>
+                </div>
+                <div class="card reveal">
+                    <h3><span class="card-icon">10</span> 第10课</h3>
+                    <p><strong>增量需求 → 动画 + 音效</strong></p>
+                    <p style="color: var(--text-secondary);">你用「感觉描述」扩展了系统</p>
+                </div>
+                <div class="card reveal">
+                    <h3><span class="card-icon">11</span> 第11课</h3>
+                    <p><strong>数据驱动 → 角色系统 + 锦标赛</strong></p>
+                    <p style="color: var(--text-secondary);">你让系统可以无限扩展</p>
+                </div>
+            </div>
+
+            <div class="highlight-box reveal" style="margin-top: var(--content-gap);">
+                <p style="color: var(--text-primary); font-size: var(--h3-size);">
+                    这四课里，你们学到的不是游戏。<br>
+                    你们学到的是——<strong style="color: var(--accent-cyan);">如何把一个想法，变成可以被验证、可以被扩展、可以被迭代的系统。</strong>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 11: AI Assistant Guide -->
+    <section class="slide content-slide">
+        <div class="grid-overlay"></div>
+        <div class="slide-content">
+            <h2 class="reveal">AI 助教使用指南</h2>
+            
+            <div class="card-grid">
+                <div class="card reveal">
+                    <h3><span class="card-icon">A</span> 窗口A - 需求文档</h3>
+                    <p>增量需求文档模板，包含四条核心要求：</p>
+                    <ul class="feature-list" style="margin-top: 0.5rem;">
+                        <li>从 roles/ 文件夹读取 *.json</li>
+                        <li>显示角色选择界面</li>
+                        <li>选择确认与战斗加载</li>
+                        <li>不修改原战斗逻辑</li>
+                    </ul>
+                </div>
+                <div class="card reveal">
+                    <h3><span class="card-icon">C</span> 窗口C - 保底提示词</h3>
+                    <div class="code-block" style="font-size: 0.75rem; padding: 0.75rem;">
+我已有一个 Phaser.js 战斗游戏...<br>
+现在我要加角色选择系统...<br>
+只输出新增/修改的代码部分，<br>
+不要重写整个游戏。
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight-box reveal" style="margin-top: var(--content-gap);">
+                <h4>路演辅助提示词</h4>
+                <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                    帮我用 3 个问题引导我做「设计复盘」——只问问题，不给答案。
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 12: Closing -->
+    <section class="slide title-slide">
+        <div class="grid-overlay"></div>
+        <div class="slide-content">
+            <div class="badge reveal">5分钟日常AI挑战</div>
+            <h1 class="reveal">角色 2.0 版本</h1>
+            <p class="subtitle reveal">给你的角色设计一个新版本</p>
+            <div class="highlight-box reveal" style="max-width: 600px; margin: 0 auto;">
+                <p style="color: var(--text-secondary);">
+                    1. 你改了哪些属性，改成了什么数字<br>
+                    2. 这次你想克制哪种打法<br>
+                    3. 你觉得这样改会带来什么新的弱点
+                </p>
+            </div>
+            <p class="reveal" style="color: var(--accent-cyan); margin-top: var(--content-gap);">
+                不需要跑代码验证，只需要写出「设计意图」
+            </p>
+        </div>
+    </section>
+
+    <script>
+        /* ===========================================
+           SLIDE PRESENTATION CONTROLLER
+           =========================================== */
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll(".slide");
+                this.currentSlide = 0;
+                this.progressBar = document.getElementById("progressBar");
+                this.navDotsContainer = document.getElementById("navDots");
+                this.setupIntersectionObserver();
+                this.setupKeyboardNav();
+                this.setupTouchNav();
+                this.setupProgressBar();
+                this.setupNavDots();
+            }
+
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver(
+                    (entries) => {
+                        entries.forEach((entry) => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add("visible");
+                                this.currentSlide = Array.from(this.slides).indexOf(entry.target);
+                                this.updateNavDots();
+                                this.updateProgressBar();
+                            }
+                        });
+                    },
+                    { threshold: 0.5 }
+                );
+
+                this.slides.forEach((slide) => observer.observe(slide));
+            }
+
+            setupKeyboardNav() {
+                document.addEventListener("keydown", (e) => {
+                    if (e.key === "ArrowDown" || e.key === "ArrowRight" || e.key === " ") {
+                        e.preventDefault();
+                        this.nextSlide();
+                    } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+                        e.preventDefault();
+                        this.prevSlide();
+                    } else if (e.key === "Home") {
+                        e.preventDefault();
+                        this.goToSlide(0);
+                    } else if (e.key === "End") {
+                        e.preventDefault();
+                        this.goToSlide(this.slides.length - 1);
+                    }
+                });
+            }
+
+            setupTouchNav() {
+                let touchStartY = 0;
+                let touchEndY = 0;
+
+                document.addEventListener("touchstart", (e) => {
+                    touchStartY = e.changedTouches[0].screenY;
+                });
+
+                document.addEventListener("touchend", (e) => {
+                    touchEndY = e.changedTouches[0].screenY;
+                    this.handleSwipe(touchStartY, touchEndY);
+                });
+            }
+
+            handleSwipe(startY, endY) {
+                const threshold = 50;
+                if (startY - endY > threshold) {
+                    this.nextSlide();
+                } else if (endY - startY > threshold) {
+                    this.prevSlide();
+                }
+            }
+
+            setupProgressBar() {
+                this.updateProgressBar();
+            }
+
+            setupNavDots() {
+                this.navDotsContainer.innerHTML = "";
+                this.slides.forEach((_, index) => {
+                    const dot = document.createElement("div");
+                    dot.className = "nav-dot";
+                    dot.addEventListener("click", () => this.goToSlide(index));
+                    this.navDotsContainer.appendChild(dot);
+                });
+                this.updateNavDots();
+            }
+
+            updateNavDots() {
+                const dots = this.navDotsContainer.querySelectorAll(".nav-dot");
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle("active", index === this.currentSlide);
+                });
+            }
+
+            updateProgressBar() {
+                const progress = ((this.currentSlide + 1) / this.slides.length) * 100;
+                this.progressBar.style.width = `${progress}%`;
+            }
+
+            nextSlide() {
+                if (this.currentSlide < this.slides.length - 1) {
+                    this.goToSlide(this.currentSlide + 1);
+                }
+            }
+
+            prevSlide() {
+                if (this.currentSlide > 0) {
+                    this.goToSlide(this.currentSlide - 1);
+                }
+            }
+
+            goToSlide(index) {
+                if (index >= 0 && index < this.slides.length) {
+                    this.slides[index].scrollIntoView({ behavior: "smooth" });
+                }
+            }
+        }
+
+        // Initialize
+        new SlidePresentation();
+    </script>
+</body>
+</html>

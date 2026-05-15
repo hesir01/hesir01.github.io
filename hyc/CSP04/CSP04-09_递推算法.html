@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSP04-09 递推算法</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== viewport-base.css ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:'JetBrains Mono',monospace;background:#0d1117;color:#c9d1d9;line-height:1.7;overflow:hidden;height:100vh;width:100vw}
+a{color:#39d353;text-decoration:none}
+img{max-width:100%;display:block}
+ul,ol{padding-left:1.5em}
+/* ===== End viewport-base.css ===== */
+
+:root {
+  --bg: #0d1117;
+  --bg-card: #161b22;
+  --bg-code: #0d1117;
+  --green: #39d353;
+  --green-dim: #238636;
+  --green-glow: rgba(57,211,83,0.15);
+  --text: #c9d1d9;
+  --text-dim: #8b949e;
+  --text-bright: #f0f6fc;
+  --orange: #d29922;
+  --blue: #58a6ff;
+  --purple: #bc8cff;
+  --red: #ff7b72;
+  --cyan: #56d4dd;
+  --border: #30363d;
+}
+
+/* Slide Container */
+.slides-container {
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.slide {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 80px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.slide.active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Reveal animation */
+.reveal {
+  opacity: 0;
+  transform: translateY(25px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.visible .reveal {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.visible .reveal:nth-child(1) { transition-delay: 0.05s; }
+.visible .reveal:nth-child(2) { transition-delay: 0.15s; }
+.visible .reveal:nth-child(3) { transition-delay: 0.25s; }
+.visible .reveal:nth-child(4) { transition-delay: 0.35s; }
+.visible .reveal:nth-child(5) { transition-delay: 0.45s; }
+.visible .reveal:nth-child(6) { transition-delay: 0.55s; }
+.visible .reveal:nth-child(7) { transition-delay: 0.65s; }
+.visible .reveal:nth-child(8) { transition-delay: 0.75s; }
+.visible .reveal:nth-child(9) { transition-delay: 0.85s; }
+.visible .reveal:nth-child(10) { transition-delay: 0.95s; }
+
+/* Progress Bar */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--green), var(--cyan));
+  z-index: 1000;
+  transition: width 0.4s ease;
+  box-shadow: 0 0 10px var(--green);
+}
+
+/* Navigation Dots */
+.nav-dots {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border);
+  border: 1px solid var(--text-dim);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-dot:hover {
+  background: var(--green-dim);
+  border-color: var(--green);
+}
+
+.nav-dot.active {
+  background: var(--green);
+  border-color: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  transform: scale(1.3);
+}
+
+/* Slide Counter */
+.slide-counter {
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  color: var(--text-dim);
+  font-size: 13px;
+  z-index: 1000;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Typography */
+.slide-title {
+  font-size: 2.2em;
+  font-weight: 700;
+  color: var(--green);
+  margin-bottom: 30px;
+  text-align: center;
+  text-shadow: 0 0 30px rgba(57,211,83,0.3);
+  letter-spacing: -0.5px;
+}
+
+.slide-subtitle {
+  font-size: 1.1em;
+  color: var(--text-dim);
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.content-block {
+  max-width: 900px;
+  width: 100%;
+}
+
+.content-block p {
+  margin-bottom: 14px;
+  font-size: 1.05em;
+  color: var(--text);
+}
+
+.content-block li {
+  margin-bottom: 10px;
+  font-size: 1.05em;
+  color: var(--text);
+}
+
+.content-block ul, .content-block ol {
+  margin-bottom: 16px;
+}
+
+.highlight {
+  color: var(--green);
+  font-weight: 600;
+}
+
+.highlight-orange {
+  color: var(--orange);
+  font-weight: 600;
+}
+
+.highlight-blue {
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.highlight-cyan {
+  color: var(--cyan);
+  font-weight: 600;
+}
+
+.dim {
+  color: var(--text-dim);
+}
+
+/* Code Blocks */
+.code-block {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--green);
+  border-radius: 6px;
+  padding: 20px 24px;
+  margin: 16px 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.92em;
+  line-height: 1.8;
+  overflow-x: auto;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  white-space: pre;
+  word-wrap: normal;
+}
+
+.code-block::before {
+  content: attr(data-lang);
+  position: absolute;
+  top: 6px;
+  right: 12px;
+  font-size: 0.7em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.code-block .kw { color: #ff7b72; }
+.code-block .type { color: #79c0ff; }
+.code-block .str { color: #a5d6ff; }
+.code-block .num { color: #58a6ff; }
+.code-block .cmt { color: #8b949e; font-style: italic; }
+.code-block .fn { color: #d2a8ff; }
+.code-block .op { color: #ff7b72; }
+.code-block .var { color: #ffa657; }
+.code-block .pp { color: #ff7b72; }
+.code-block .inc { color: #a5d6ff; }
+
+/* Inline code */
+code {
+  background: rgba(57,211,83,0.1);
+  color: var(--green);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9em;
+  border: 1px solid rgba(57,211,83,0.2);
+}
+
+/* Tables */
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin: 16px 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95em;
+}
+
+th {
+  background: var(--green-dim);
+  color: var(--text-bright);
+  padding: 12px 18px;
+  text-align: left;
+  border: 1px solid var(--border);
+  font-weight: 600;
+}
+
+td {
+  padding: 10px 18px;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+tr:nth-child(even) td {
+  background: rgba(22,27,34,0.6);
+}
+
+tr:hover td {
+  background: rgba(57,211,83,0.05);
+}
+
+/* Cards */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin: 12px 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+}
+
+.card-green {
+  border-left: 3px solid var(--green);
+}
+
+.card-orange {
+  border-left: 3px solid var(--orange);
+}
+
+.card-blue {
+  border-left: 3px solid var(--blue);
+}
+
+/* Cover Slide */
+.cover-title {
+  font-size: 3.2em;
+  font-weight: 700;
+  color: var(--green);
+  text-shadow: 0 0 40px rgba(57,211,83,0.4), 0 0 80px rgba(57,211,83,0.15);
+  margin-bottom: 16px;
+  text-align: center;
+  letter-spacing: -1px;
+}
+
+.cover-subtitle {
+  font-size: 1.4em;
+  color: var(--text-dim);
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.cover-tag {
+  display: inline-block;
+  background: rgba(57,211,83,0.1);
+  border: 1px solid rgba(57,211,83,0.3);
+  color: var(--green);
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-size: 0.85em;
+  letter-spacing: 1px;
+}
+
+/* Terminal cursor blink */
+.cursor-blink::after {
+  content: '_';
+  animation: blink 1s step-end infinite;
+  color: var(--green);
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* Quiz styles */
+.quiz-option {
+  display: block;
+  padding: 10px 18px;
+  margin: 8px 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.95em;
+  transition: all 0.2s;
+}
+
+.quiz-option.correct {
+  border-color: var(--green);
+  background: rgba(57,211,83,0.08);
+  color: var(--green);
+}
+
+.quiz-option .check {
+  color: var(--green);
+  font-weight: 700;
+}
+
+/* Pascal Triangle visual */
+.pascal-row {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin: 3px 0;
+  font-size: 0.9em;
+}
+
+.pascal-cell {
+  background: rgba(57,211,83,0.1);
+  border: 1px solid rgba(57,211,83,0.25);
+  color: var(--green);
+  padding: 4px 12px;
+  border-radius: 4px;
+  min-width: 36px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Step indicator */
+.step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--green);
+  color: var(--bg);
+  font-weight: 700;
+  font-size: 0.85em;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.step-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  font-size: 1.05em;
+}
+
+/* End slide */
+.end-title {
+  font-size: 2.8em;
+  font-weight: 700;
+  color: var(--green);
+  text-shadow: 0 0 40px rgba(57,211,83,0.4);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.end-sub {
+  font-size: 1.2em;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .slide { padding: 40px 24px; }
+  .cover-title { font-size: 2em; }
+  .slide-title { font-size: 1.6em; }
+  .code-block { font-size: 0.8em; padding: 14px 16px; }
+  .nav-dots { right: 8px; gap: 6px; }
+  .nav-dot { width: 8px; height: 8px; }
+}
+
+/* Grid layout for two columns */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  width: 100%;
+  max-width: 960px;
+}
+
+@media (max-width: 768px) {
+  .two-col { grid-template-columns: 1fr; }
+}
+
+/* Formula display */
+.formula {
+  background: rgba(57,211,83,0.06);
+  border: 1px solid rgba(57,211,83,0.2);
+  border-radius: 6px;
+  padding: 14px 22px;
+  margin: 12px 0;
+  font-size: 1.15em;
+  color: var(--green);
+  text-align: center;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* Divider */
+.divider {
+  width: 60px;
+  height: 2px;
+  background: var(--green);
+  margin: 20px auto;
+  border-radius: 1px;
+  box-shadow: 0 0 8px rgba(57,211,83,0.4);
+}
+
+/* Tag / Badge */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.badge-green { background: rgba(57,211,83,0.15); color: var(--green); }
+.badge-orange { background: rgba(210,153,34,0.15); color: var(--orange); }
+.badge-blue { background: rgba(88,166,255,0.15); color: var(--blue); }
+.badge-red { background: rgba(255,123,114,0.15); color: var(--red); }
+
+/* Practice items */
+.practice-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin: 8px 0;
+  font-size: 0.95em;
+}
+
+.practice-num {
+  color: var(--green);
+  font-weight: 700;
+  min-width: 24px;
+}
+
+/* Homework section */
+.hw-section {
+  margin-bottom: 20px;
+}
+
+.hw-label {
+  font-size: 0.9em;
+  font-weight: 600;
+  color: var(--orange);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<div class="nav-dots" id="navDots"></div>
+
+<div class="slide-counter" id="slideCounter">1 / 16</div>
+
+<div class="slides-container" id="slidesContainer">
+
+  <!-- ==================== SLIDE 1: 封面 ==================== -->
+  <div class="slide active" data-index="0">
+    <div class="reveal" style="margin-bottom: 40px;">
+      <div class="cover-tag">CSP04 PROGRAMMING</div>
+    </div>
+    <div class="reveal">
+      <div class="cover-title">CSP04-09 递推算法</div>
+    </div>
+    <div class="divider reveal"></div>
+    <div class="reveal">
+      <div class="cover-subtitle">以"小"推"大"的艺术</div>
+    </div>
+    <div class="reveal" style="margin-top: 50px; color: var(--text-dim); font-size: 0.85em;">
+      <span class="cursor-blink">terminal ready</span>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 2: 课程目标 ==================== -->
+  <div class="slide" data-index="1">
+    <div class="slide-title reveal">课程目标</div>
+    <div class="content-block">
+      <div class="reveal">
+        <div class="step-item">
+          <span class="step-num">1</span>
+          <span>理解递推算法的基本思想：<span class="highlight">用已知项推导未知项</span></span>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="step-item">
+          <span class="step-num">2</span>
+          <span>掌握从具体规律中<span class="highlight">推导递推关系式</span>的方法</span>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="step-item">
+          <span class="step-num">3</span>
+          <span>掌握递推算法的代码框架：<span class="highlight-blue">边界值 + 递推式 + 循环</span></span>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="step-item">
+          <span class="step-num">4</span>
+          <span>能用递推算法解决<span class="highlight-orange">数列类、计数类</span>等竞赛经典问题</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 3: 知识回顾 — 斐波那契数列 ==================== -->
+  <div class="slide" data-index="2">
+    <div class="slide-title reveal">知识回顾 — 斐波那契数列</div>
+    <div class="content-block">
+      <div class="reveal">
+        <p>数列：<span class="highlight">1, 1, 2, 3, 5, 8, 13, 21 ...</span></p>
+      </div>
+      <div class="reveal">
+        <p>规律：每一项 = 前两项之和</p>
+        <div class="formula">f(n) = f(n-1) + f(n-2)</div>
+      </div>
+      <div class="reveal">
+        <div class="card card-green">
+          <p style="margin:0;"><span class="highlight">核心思想：</span>把大问题的答案用"小一点的问题"的答案来表示</p>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="card card-orange">
+          <p style="margin:0;"><span class="highlight-orange">这是动态规划（DP）算法的基础！</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 4: 楼梯问题引入 ==================== -->
+  <div class="slide" data-index="3">
+    <div class="slide-title reveal">楼梯问题引入</div>
+    <div class="content-block">
+      <div class="reveal">
+        <p>n 级台阶，每次走 1 步或 2 步，共几种走法？</p>
+      </div>
+      <div class="reveal">
+        <div class="card card-blue">
+          <ul style="margin:0; list-style:none; padding:0;">
+            <li style="margin-bottom:8px;">第 1 级：<span class="highlight">1</span> 种</li>
+            <li style="margin-bottom:8px;">第 2 级：<span class="highlight">2</span> 种（1+1 或 2）</li>
+            <li style="margin-bottom:8px;">第 3 级：<span class="highlight">3</span> 种（1+1+1，1+2，2+1）</li>
+            <li>第 4 级：<span class="highlight">5</span> 种</li>
+          </ul>
+        </div>
+      </div>
+      <div class="reveal">
+        <p>规律：走到第 n 级 = 走到第 n-1 级 + 走到第 n-2 级</p>
+        <div class="formula">ways[n] = ways[n-1] + ways[n-2]</div>
+      </div>
+      <div class="reveal">
+        <div class="card card-green">
+          <p style="margin:0; color: var(--text-dim);">因为最后一步要么从 n-1 走 1 步，要么从 n-2 走 2 步</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 5: 递推算法三要素 ==================== -->
+  <div class="slide" data-index="4">
+    <div class="slide-title reveal">递推算法三要素</div>
+    <div class="content-block">
+      <div class="reveal">
+        <div class="card card-green">
+          <div class="step-item">
+            <span class="step-num">1</span>
+            <div>
+              <p style="margin:0 0 4px 0;"><span class="highlight">边界条件（初始值）</span></p>
+              <p style="margin:0; color: var(--text-dim); font-size:0.92em;">最小规模问题的答案，如 f[1] = 1</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="card card-blue">
+          <div class="step-item">
+            <span class="step-num">2</span>
+            <div>
+              <p style="margin:0 0 4px 0;"><span class="highlight-blue">递推关系式</span></p>
+              <p style="margin:0; color: var(--text-dim); font-size:0.92em;">f[n] 如何由之前的 f[...] 表示</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="card card-orange">
+          <div class="step-item">
+            <span class="step-num">3</span>
+            <div>
+              <p style="margin:0 0 4px 0;"><span class="highlight-orange">递推方向</span></p>
+              <p style="margin:0; color: var(--text-dim); font-size:0.92em;">从小到大（正向递推）</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 6: 代码框架 ==================== -->
+  <div class="slide" data-index="5">
+    <div class="slide-title reveal">代码框架</div>
+    <div class="content-block">
+      <div class="reveal">
+        <div class="code-block" data-lang="cpp"><span class="cmt">// 第一步：初始化边界值</span>
+f[<span class="num">1</span>] = ...;
+f[<span class="num">2</span>] = ...;
+
+<span class="cmt">// 第二步：用循环递推</span>
+<span class="kw">for</span> (<span class="type">int</span> i = <span class="num">3</span>; i &lt;= n; i++) {
+    f[i] = f[i<span class="op">-</span><span class="num">1</span>] <span class="op">+</span> f[i<span class="op">-</span><span class="num">2</span>];  <span class="cmt">// 递推关系式</span>
+}
+
+<span class="cmt">// 第三步：输出答案</span>
+cout &lt;&lt; f[n];</div>
+      </div>
+      <div class="reveal">
+        <div class="card card-green">
+          <p style="margin:0;">记住这个<span class="highlight">三步模板</span>：初始化 → 循环递推 → 输出</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 7: 经典问题一 — 斐波那契数列 ==================== -->
+  <div class="slide" data-index="6">
+    <div class="slide-title reveal">经典问题一 — 斐波那契数列</div>
+    <div class="content-block">
+      <div class="reveal">
+        <p>递推关系：<span class="highlight">f[n] = f[n-1] + f[n-2]</span>（n ≥ 3）</p>
+        <p>边界：f[1] = 1, f[2] = 1</p>
+      </div>
+      <div class="reveal">
+        <div class="card card-orange">
+          <p style="margin:0;"><span class="highlight-orange">注意：f[50] 超过 int 范围，要用 long long！</span></p>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="code-block" data-lang="cpp"><span class="type">long long</span> f[<span class="num">50</span>];
+f[<span class="num">1</span>] = f[<span class="num">2</span>] = <span class="num">1</span>;
+<span class="kw">for</span> (<span class="type">int</span> i = <span class="num">3</span>; i &lt;= n; i<span class="op">++</span>)
+    f[i] = f[i<span class="op">-</span><span class="num">1</span>] <span class="op">+</span> f[i<span class="op">-</span><span class="num">2</span>];
+cout &lt;&lt; f[n] &lt;&lt; endl;</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 8: 经典问题二 — 楼梯走法 ==================== -->
+  <div class="slide" data-index="7">
+    <div class="slide-title reveal">经典问题二 — 楼梯走法</div>
+    <div class="content-block">
+      <div class="reveal">
+        <p>n 级台阶，每次走 1 步或 2 步</p>
+        <p>递推：<span class="highlight">ways[n] = ways[n-1] + ways[n-2]</span></p>
+        <p>边界：ways[1] = 1, ways[2] = 2</p>
+      </div>
+      <div class="reveal">
+        <div class="code-block" data-lang="cpp"><span class="type">long long</span> ways[<span class="num">55</span>];
+ways[<span class="num">1</span>] = <span class="num">1</span>; ways[<span class="num">2</span>] = <span class="num">2</span>;
+<span class="kw">for</span> (<span class="type">int</span> i = <span class="num">3</span>; i &lt;= n; i<span class="op">++</span>)
+    ways[i] = ways[i<span class="op">-</span><span class="num">1</span>] <span class="op">+</span> ways[i<span class="op">-</span><span class="num">2</span>];
+cout &lt;&lt; ways[n];</div>
+      </div>
+      <div class="reveal">
+        <div class="card card-green">
+          <p style="margin:0;">和斐波那契数列结构相同，只是<span class="highlight">边界值不同</span>！</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 9: 经典问题三 — 杨辉三角 ==================== -->
+  <div class="slide" data-index="8">
+    <div class="slide-title reveal">经典问题三 — 杨辉三角</div>
+    <div class="content-block">
+      <div class="reveal">
+        <p>递推关系：<span class="highlight">C[i][j] = C[i-1][j-1] + C[i-1][j]</span></p>
+        <p>边界：C[i][0] = C[i][i] = 1</p>
+      </div>
+      <div class="reveal" style="margin-top: 16px;">
+        <div class="pascal-row"><span class="pascal-cell">1</span></div>
+        <div class="pascal-row"><span class="pascal-cell">1</span><span class="pascal-cell">1</span></div>
+        <div class="pascal-row"><span class="pascal-cell">1</span><span class="pascal-cell">2</span><span class="pascal-cell">1</span></div>
+        <div class="pascal-row"><span class="pascal-cell">1</span><span class="pascal-cell">3</span><span class="pascal-cell">3</span><span class="pascal-cell">1</span></div>
+        <div class="pascal-row"><span class="pascal-cell">1</span><span class="pascal-cell">4</span><span class="pascal-cell">6</span><span class="pascal-cell">4</span><span class="pascal-cell">1</span></div>
+      </div>
+      <div class="reveal">
+        <div class="card card-blue">
+          <p style="margin:0; color: var(--text-dim);">每个数等于它正上方和左上方两个数之和</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 10: 推导递推关系式的方法 ==================== -->
+  <div class="slide" data-index="9">
+    <div class="slide-title reveal">推导递推关系式的方法</div>
+    <div class="content-block">
+      <div class="reveal">
+        <div class="step-item">
+          <span class="step-num">1</span>
+          <span>列出小规模答案：手工算 n=1, 2, 3, 4, 5</span>
+        </div>
+        <div class="step-item">
+          <span class="step-num">2</span>
+          <span>找差值或比值规律</span>
+        </div>
+        <div class="step-item">
+          <span class="step-num">3</span>
+          <span>用语言描述规律</span>
+        </div>
+        <div class="step-item">
+          <span class="step-num">4</span>
+          <span>写成代码</span>
+        </div>
+      </div>
+      <div class="divider reveal"></div>
+      <div class="reveal">
+        <div class="card card-orange">
+          <p style="margin:0 0 6px 0;"><span class="highlight-orange">例：n 个圆互相交叉，最多分成多少区域？</span></p>
+          <p style="margin:0 0 4px 0; color: var(--text-dim);">n=1 → 2, n=2 → 4, n=3 → 8, n=4 → 14</p>
+          <p style="margin:0 0 4px 0; color: var(--text-dim);">差值：2, 4, 6 ... → 差值是 2(n-1)</p>
+          <p style="margin:0;"><span class="highlight">f[n] = f[n-1] + 2*(n-1)，f[1] = 2</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 11: GESP真题演练 ==================== -->
+  <div class="slide" data-index="10">
+    <div class="slide-title reveal">GESP真题演练</div>
+    <div class="content-block">
+      <div class="reveal">
+        <p style="margin-bottom: 10px;"><span class="badge badge-green">Q1</span> 斐波那契数列的递推关系是？</p>
+        <div class="quiz-option">A. f[n] = f[n-1] + 1</div>
+        <div class="quiz-option">B. f[n] = 2 * f[n-1]</div>
+        <div class="quiz-option correct"><span class="check">C. f[n] = f[n-1] + f[n-2]</span></div>
+        <div class="quiz-option">D. f[n] = f[n-1] * f[n-2]</div>
+      </div>
+      <div class="reveal">
+        <p style="margin-bottom: 6px; margin-top: 14px;"><span class="badge badge-blue">Q2</span> 递推算法必须有初始值（边界条件）？</p>
+        <div class="quiz-option correct"><span class="check">正确</span></div>
+      </div>
+      <div class="reveal">
+        <p style="margin-bottom: 10px; margin-top: 14px;"><span class="badge badge-orange">Q3</span> n 级楼梯走法，n=5 时是？</p>
+        <div class="quiz-option">A. 5</div>
+        <div class="quiz-option correct"><span class="check">B. 8</span></div>
+        <div class="quiz-option">C. 10</div>
+        <div class="quiz-option">D. 13</div>
+        <p style="margin-top: 8px; color: var(--text-dim); font-size: 0.9em;">解析：f[1]=1, f[2]=2, f[3]=3, f[4]=5, f[5]=8</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 12: 进阶 — 递推 vs 递归 ==================== -->
+  <div class="slide" data-index="11">
+    <div class="slide-title reveal">进阶 — 递推 vs 递归</div>
+    <div class="content-block">
+      <div class="reveal">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                <th>递推</th>
+                <th>递归</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="color: var(--text-dim);">方式</td>
+                <td>循环从小到大</td>
+                <td>函数自我调用</td>
+              </tr>
+              <tr>
+                <td style="color: var(--text-dim);">效率</td>
+                <td><span class="highlight">高（无重复计算）</span></td>
+                <td>低（重复计算）</td>
+              </tr>
+              <tr>
+                <td style="color: var(--text-dim);">复杂度</td>
+                <td><span class="highlight">O(n)</span></td>
+                <td>可能指数级</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="card card-orange">
+          <p style="margin:0;">fib(40)：循环只需 <span class="highlight">40 次</span>，递归约 <span class="highlight-orange">2^40 次</span>！</p>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="card card-green">
+          <p style="margin:0;"><span class="highlight">记忆化递归 = 递归写法 + 递推效率</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 13: 课堂练习 ==================== -->
+  <div class="slide" data-index="12">
+    <div class="slide-title reveal">课堂练习</div>
+    <div class="content-block">
+      <div class="reveal">
+        <div class="practice-item">
+          <span class="practice-num">1</span>
+          <span><span class="badge badge-green">基础</span> 斐波那契数列 — 输入 n，输出第 n 个</span>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="practice-item">
+          <span class="practice-num">2</span>
+          <span><span class="badge badge-green">基础</span> 楼梯走法 — n 级台阶，每步 1 或 2 级</span>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="practice-item">
+          <span class="practice-num">3</span>
+          <span><span class="badge badge-blue">综合</span> 杨辉三角 — 输入 n，输出前 n 行</span>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="practice-item">
+          <span class="practice-num">4</span>
+          <span><span class="badge badge-blue">综合</span> 最大路径和 — 数字三角形最大路径</span>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="practice-item">
+          <span class="practice-num">5</span>
+          <span><span class="badge badge-orange">进阶</span> 铺满地板 — 2xn 地板用 1x2 方块铺</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 14: 课堂总结 ==================== -->
+  <div class="slide" data-index="13">
+    <div class="slide-title reveal">课堂总结</div>
+    <div class="content-block">
+      <div class="reveal">
+        <p style="margin-bottom: 16px; font-size: 1.1em;"><span class="highlight">递推核心三步：</span></p>
+        <div class="step-item">
+          <span class="step-num">1</span>
+          <span>初始化边界值（f[1] =, f[2] =）</span>
+        </div>
+        <div class="step-item">
+          <span class="step-num">2</span>
+          <span>写递推关系式（f[i] = f[i-1] + ...）</span>
+        </div>
+        <div class="step-item">
+          <span class="step-num">3</span>
+          <span>用循环递推到 n</span>
+        </div>
+      </div>
+      <div class="divider reveal"></div>
+      <div class="reveal">
+        <div class="card card-green">
+          <p style="margin:0 0 8px 0;"><span class="highlight">推导技巧：</span></p>
+          <p style="margin:0;">先算前几个值，找规律，用"上一步"描述"这一步"</p>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="card card-orange">
+          <p style="margin:0;"><span class="highlight-orange">递推是动态规划的基础！</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 15: 课后作业 ==================== -->
+  <div class="slide" data-index="14">
+    <div class="slide-title reveal">课后作业</div>
+    <div class="content-block">
+      <div class="reveal">
+        <div class="hw-section">
+          <div class="hw-label">必做</div>
+          <div class="practice-item">
+            <span class="practice-num">1</span>
+            <span>等差数列递推：2, 5, 8, 11, ... 每项 +3</span>
+          </div>
+          <div class="practice-item">
+            <span class="practice-num">2</span>
+            <span>等比数列递推：3, 6, 12, 24, ... 每项 x2（模 1e9+7）</span>
+          </div>
+          <div class="practice-item">
+            <span class="practice-num">3</span>
+            <span>三级递推：f[1]=1, f[2]=2, f[3]=4, f[n]=f[n-1]+f[n-2]+f[n-3]</span>
+          </div>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="hw-section">
+          <div class="hw-label">选做（尖子生挑战）</div>
+          <div class="practice-item">
+            <span class="practice-num" style="color: var(--orange);">+</span>
+            <span>青蛙跳台阶（每次 1/2/3 步）</span>
+          </div>
+          <div class="practice-item">
+            <span class="practice-num" style="color: var(--orange);">+</span>
+            <span>最长不下降子序列</span>
+          </div>
+          <div class="practice-item">
+            <span class="practice-num" style="color: var(--orange);">+</span>
+            <span>完全背包</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 16: 结束页 ==================== -->
+  <div class="slide" data-index="15">
+    <div class="reveal" style="margin-bottom: 30px;">
+      <div class="cover-tag">CSP04 PROGRAMMING</div>
+    </div>
+    <div class="reveal">
+      <div class="end-title">感谢聆听！</div>
+    </div>
+    <div class="divider reveal"></div>
+    <div class="reveal">
+      <div class="end-sub">下节课预告：递推算法进阶</div>
+    </div>
+    <div class="reveal" style="margin-top: 60px; color: var(--text-dim); font-size: 0.85em;">
+      <span class="cursor-blink">class dismissed</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentIndex = 0;
+  let isTransitioning = false;
+
+  const progressBar = document.getElementById('progressBar');
+  const slideCounter = document.getElementById('slideCounter');
+  const navDotsContainer = document.getElementById('navDots');
+
+  // Create nav dots
+  for (let i = 0; i < totalSlides; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => goToSlide(i));
+    navDotsContainer.appendChild(dot);
+  }
+
+  const navDots = document.querySelectorAll('.nav-dot');
+
+  function goToSlide(index) {
+    if (index < 0 || index >= totalSlides || index === currentIndex || isTransitioning) return;
+    isTransitioning = true;
+
+    // Remove active from current
+    slides[currentIndex].classList.remove('active');
+    slides[currentIndex].classList.remove('visible');
+    navDots[currentIndex].classList.remove('active');
+
+    currentIndex = index;
+
+    // Add active to new
+    slides[currentIndex].classList.add('active');
+    navDots[currentIndex].classList.add('active');
+
+    // Update progress
+    const progress = ((currentIndex + 1) / totalSlides) * 100;
+    progressBar.style.width = progress + '%';
+    slideCounter.textContent = (currentIndex + 1) + ' / ' + totalSlides;
+
+    // Trigger reveal animations
+    setTimeout(() => {
+      slides[currentIndex].classList.add('visible');
+      isTransitioning = false;
+    }, 100);
+  }
+
+  function nextSlide() {
+    goToSlide(currentIndex + 1);
+  }
+
+  function prevSlide() {
+    goToSlide(currentIndex - 1);
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    switch(e.key) {
+      case 'ArrowDown':
+      case 'ArrowRight':
+      case ' ':
+      case 'PageDown':
+        e.preventDefault();
+        nextSlide();
+        break;
+      case 'ArrowUp':
+      case 'ArrowLeft':
+      case 'PageUp':
+        e.preventDefault();
+        prevSlide();
+        break;
+      case 'Home':
+        e.preventDefault();
+        goToSlide(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        goToSlide(totalSlides - 1);
+        break;
+    }
+  });
+
+  // Touch support
+  let touchStartY = 0;
+  let touchStartX = 0;
+
+  document.addEventListener('touchstart', (e) => {
+    touchStartY = e.touches[0].clientY;
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+
+  document.addEventListener('touchend', (e) => {
+    const touchEndY = e.changedTouches[0].clientY;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diffY = touchStartY - touchEndY;
+    const diffX = touchStartX - touchEndX;
+
+    if (Math.abs(diffY) > Math.abs(diffX)) {
+      if (diffY > 50) nextSlide();
+      else if (diffY < -50) prevSlide();
+    } else {
+      if (diffX > 50) nextSlide();
+      else if (diffX < -50) prevSlide();
+    }
+  }, { passive: true });
+
+  // Mouse wheel
+  let wheelTimeout = null;
+  document.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    if (wheelTimeout) return;
+    wheelTimeout = setTimeout(() => { wheelTimeout = null; }, 600);
+    if (e.deltaY > 0) nextSlide();
+    else if (e.deltaY < 0) prevSlide();
+  }, { passive: false });
+
+  // Initialize first slide
+  slides[0].classList.add('visible');
+  progressBar.style.width = (1 / totalSlides * 100) + '%';
+
+})();
+</script>
+
+</body>
+</html>
