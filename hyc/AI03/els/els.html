@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>俄罗斯方块</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="title">俄罗斯方块</h1>
+        
+        <div class="game-area">
+            <!-- 游戏主区域 -->
+            <div class="game-board-wrapper">
+                <div class="game-board" id="gameBoard"></div>
+                <div class="pause-overlay" id="pauseOverlay">
+                    <div class="pause-text">暂停中</div>
+                    <div class="pause-hint">按 P 继续</div>
+                </div>
+            </div>
+            
+            <!-- 侧边面板 -->
+            <div class="side-panel">
+                <!-- 下一个预览 -->
+                <div class="preview-box">
+                    <h3>下一个</h3>
+                    <div class="preview-grid" id="previewGrid"></div>
+                </div>
+                
+                <!-- 统计信息 -->
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-label">分数</span>
+                        <span class="stat-value" id="score">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">等级</span>
+                        <span class="stat-value" id="level">1</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">行数</span>
+                        <span class="stat-value" id="lines">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">最高</span>
+                        <span class="stat-value" id="highScore">0</span>
+                    </div>
+                </div>
+                
+                <!-- 操作说明 -->
+                <div class="controls-help">
+                    <h4>操作说明</h4>
+                    <div class="control-item"><span>← →</span> 移动</div>
+                    <div class="control-item"><span>↑</span> 旋转</div>
+                    <div class="control-item"><span>↓</span> 加速</div>
+                    <div class="control-item"><span>空格</span> 硬降</div>
+                    <div class="control-item"><span>P / Esc</span> 暂停</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 控制栏 -->
+        <div class="control-bar">
+            <div class="theme-switcher">
+                <span>主题:</span>
+                <button class="theme-btn active" data-theme="classic">经典</button>
+                <button class="theme-btn" data-theme="neon">霓虹</button>
+                <button class="theme-btn" data-theme="monochrome">黑白</button>
+            </div>
+            <div class="sound-toggle">
+                <span>音效:</span>
+                <button class="sound-btn" id="soundBtn">开</button>
+            </div>
+        </div>
+        
+        <div class="message" id="message">按空格开始游戏</div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
