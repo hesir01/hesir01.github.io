@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skills 入门 — 跳一跳</title>
+
+  <!-- Fonts: Lively gradient style with playful fonts -->
+  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=clash-display@600,700&display=swap" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ===========================================
+       CSS CUSTOM PROPERTIES (THEME) - 活泼渐变风格
+       =========================================== */
+    :root {
+      /* Vibrant gradient colors */
+      --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      --bg-secondary: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      --bg-dark: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      --bg-card: rgba(255, 255, 255, 0.95);
+      
+      /* Text colors */
+      --text-primary: #ffffff;
+      --text-dark: #1a1a2e;
+      --text-secondary: rgba(255, 255, 255, 0.85);
+      --text-muted: rgba(255, 255, 255, 0.6);
+      
+      /* Accent colors for gradient elements */
+      --accent-pink: #f093fb;
+      --accent-purple: #764ba2;
+      --accent-blue: #667eea;
+      --accent-orange: #fee140;
+      --accent-rose: #fa709a;
+      --accent-cyan: #00d9ff;
+      --accent-green: #00f5a0;
+      --accent-red: #ff6b6b;
+      
+      /* Glow effects */
+      --glow-pink: rgba(240, 147, 251, 0.4);
+      --glow-purple: rgba(118, 75, 162, 0.4);
+      --glow-blue: rgba(102, 126, 234, 0.4);
+      
+      /* Typography */
+      --font-display: "Clash Display", "Noto Sans SC", sans-serif;
+      --font-body: "Satoshi", "Noto Sans SC", sans-serif;
+      --title-size: clamp(2rem, 6vw, 4.5rem);
+      --h2-size: clamp(1.5rem, 4vw, 3rem);
+      --h3-size: clamp(1.1rem, 2.5vw, 1.75rem);
+      --body-size: clamp(0.85rem, 1.5vw, 1.15rem);
+      --small-size: clamp(0.7rem, 1vw, 0.9rem);
+      
+      /* Spacing */
+      --slide-padding: clamp(1.5rem, 4vw, 4rem);
+      --content-gap: clamp(0.8rem, 2vw, 1.5rem);
+      --element-gap: clamp(0.4rem, 1vw, 0.8rem);
+      
+      /* Animation */
+      --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --duration-normal: 0.6s;
+      --duration-slow: 0.8s;
+    }
+
+    /* ===========================================
+       BASE STYLES
+       =========================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* ===========================================
+       VIEWPORT BASE STYLES (from viewport-base.css)
+       =========================================== */
+    html, body {
+      height: 100%;
+      overflow-x: hidden;
+    }
+    html {
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+    }
+    .slide {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .slide-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-height: 100%;
+      overflow: hidden;
+      padding: var(--slide-padding);
+    }
+    .card, .container, .content-box {
+      max-width: min(90vw, 1000px);
+      max-height: min(80vh, 700px);
+    }
+    .feature-list, .bullet-list {
+      gap: clamp(0.4rem, 1vh, 1rem);
+    }
+    .feature-list li, .bullet-list li {
+      font-size: var(--body-size);
+      line-height: 1.5;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+      gap: clamp(0.5rem, 1.5vw, 1.2rem);
+    }
+    img, .image-container {
+      max-width: 100%;
+      max-height: min(50vh, 400px);
+      object-fit: contain;
+    }
+
+    /* ===========================================
+       PRESENTATION STYLES
+       =========================================== */
+    
+    /* Background patterns */
+    .gradient-bg {
+      background: var(--bg-primary);
+    }
+    .gradient-bg-alt {
+      background: var(--bg-secondary);
+    }
+    .gradient-bg-dark {
+      background: var(--bg-dark);
+    }
+    
+    /* Floating shapes decoration */
+    .floating-shapes {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .shape {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.15;
+      animation: float 20s ease-in-out infinite;
+    }
+    .shape-1 {
+      width: 300px;
+      height: 300px;
+      background: var(--accent-orange);
+      top: -100px;
+      right: -50px;
+      animation-delay: 0s;
+    }
+    .shape-2 {
+      width: 200px;
+      height: 200px;
+      background: var(--accent-rose);
+      bottom: 10%;
+      left: -50px;
+      animation-delay: -5s;
+    }
+    .shape-3 {
+      width: 150px;
+      height: 150px;
+      background: var(--accent-cyan);
+      top: 30%;
+      right: 10%;
+      animation-delay: -10s;
+    }
+    .shape-4 {
+      width: 100px;
+      height: 100px;
+      background: var(--accent-green);
+      bottom: 30%;
+      right: 20%;
+      animation-delay: -15s;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      33% { transform: translateY(-30px) rotate(5deg); }
+      66% { transform: translateY(20px) rotate(-5deg); }
+    }
+
+    /* Typography */
+    h1, h2, h3 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    h1 {
+      font-size: var(--title-size);
+      color: var(--text-primary);
+      text-shadow: 0 4px 30px var(--glow-purple);
+    }
+    h2 {
+      font-size: var(--h2-size);
+      color: var(--text-primary);
+    }
+    h3 {
+      font-size: var(--h3-size);
+      color: var(--text-primary);
+    }
+    p, li {
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.6;
+    }
+    .subtitle {
+      font-size: clamp(1rem, 2vw, 1.5rem);
+      color: var(--text-secondary);
+      margin-top: var(--content-gap);
+    }
+    .tagline {
+      display: inline-block;
+      padding: 0.5rem 1.5rem;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50px;
+      font-size: var(--small-size);
+      color: var(--text-primary);
+      backdrop-filter: blur(10px);
+      margin-top: var(--content-gap);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border-radius: 24px;
+      padding: clamp(1.2rem, 3vw, 2rem);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      color: var(--text-dark);
+    }
+    .card h3 {
+      color: var(--accent-purple);
+      margin-bottom: var(--element-gap);
+    }
+    .card p, .card li {
+      color: #4a4a6a;
+    }
+    .card-accent {
+      border: 2px solid transparent;
+      background: linear-gradient(var(--bg-card), var(--bg-card)) padding-box,
+                  linear-gradient(135deg, var(--accent-blue), var(--accent-pink)) border-box;
+    }
+    .card-glow {
+      position: relative;
+    }
+    .card-glow::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-pink));
+      border-radius: 26px;
+      z-index: -1;
+      opacity: 0;
+      transition: opacity var(--duration-normal);
+    }
+    .card-glow:hover::before {
+      opacity: 1;
+    }
+
+    /* Lists */
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: var(--element-gap);
+    }
+    .bullet-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    .bullet-list li::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      min-width: 8px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-pink));
+      border-radius: 50%;
+      margin-top: 0.6em;
+    }
+    .icon-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: var(--element-gap);
+    }
+    .icon-list li {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .icon {
+      width: 40px;
+      height: 40px;
+      min-width: 40px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: white;
+    }
+
+    /* Grid layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+      gap: clamp(1rem, 2vw, 1.5rem);
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+      gap: clamp(0.8rem, 1.5vw, 1.2rem);
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+      gap: clamp(0.5rem, 1vw, 1rem);
+    }
+
+    /* Badges and tags */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: 50px;
+      font-size: var(--small-size);
+      font-weight: 500;
+    }
+    .badge-purple {
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+      color: white;
+    }
+    .badge-blue {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      color: white;
+    }
+    .badge-orange {
+      background: linear-gradient(135deg, var(--accent-orange), var(--accent-rose));
+      color: var(--text-dark);
+    }
+    .badge-green {
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+      color: var(--text-dark);
+    }
+
+    /* Highlight boxes */
+    .highlight-box {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(240, 147, 251, 0.15));
+      border-left: 4px solid var(--accent-pink);
+      padding: clamp(0.8rem, 2vw, 1.2rem);
+      border-radius: 0 16px 16px 0;
+      margin: var(--element-gap) 0;
+    }
+    .highlight-box h4 {
+      color: var(--accent-pink);
+      font-size: var(--body-size);
+      margin-bottom: 0.3rem;
+    }
+
+    /* Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 2rem;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, var(--accent-blue), var(--accent-pink), var(--accent-orange));
+      border-radius: 3px;
+    }
+    .timeline-item {
+      position: relative;
+      padding-bottom: var(--content-gap);
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -2.35rem;
+      top: 0.3rem;
+      width: 14px;
+      height: 14px;
+      background: var(--accent-pink);
+      border-radius: 50%;
+      border: 3px solid white;
+      box-shadow: 0 0 0 3px var(--glow-pink);
+    }
+
+    /* Code blocks */
+    .code-block {
+      background: rgba(26, 26, 46, 0.95);
+      border-radius: 16px;
+      padding: clamp(1rem, 2vw, 1.5rem);
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: var(--small-size);
+      color: #e0e0e0;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .code-block .keyword { color: var(--accent-pink); }
+    .code-block .string { color: var(--accent-green); }
+    .code-block .comment { color: #666; }
+
+    /* Section divider */
+    .section-number {
+      font-size: clamp(4rem, 15vw, 10rem);
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.1);
+      font-family: var(--font-display);
+      line-height: 1;
+    }
+    .section-title {
+      font-size: var(--title-size);
+      color: var(--text-primary);
+      margin-top: -2rem;
+    }
+    .section-time {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: var(--accent-orange);
+      color: var(--text-dark);
+      border-radius: 50px;
+      font-weight: 600;
+      margin-top: var(--content-gap);
+    }
+
+    /* Quote styling */
+    .quote {
+      font-size: clamp(1.2rem, 2.5vw, 2rem);
+      font-style: italic;
+      color: var(--text-primary);
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+      position: relative;
+      padding: 0 2rem;
+    }
+    .quote::before {
+      content: '"';
+      position: absolute;
+      left: -0.5rem;
+      top: -1rem;
+      font-size: 4rem;
+      color: var(--accent-pink);
+      opacity: 0.5;
+      font-style: normal;
+    }
+
+    /* Concept cards */
+    .concept-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: clamp(1rem, 2vw, 1.5rem);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .concept-card h4 {
+      font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+      color: var(--accent-orange);
+      margin-bottom: 0.5rem;
+    }
+    .concept-card p {
+      font-size: var(--small-size);
+      color: var(--text-secondary);
+    }
+
+    /* Animations */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition:
+        opacity var(--duration-normal) var(--ease-out-expo),
+        transform var(--duration-normal) var(--ease-out-expo);
+    }
+    .slide.visible .reveal {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal:nth-child(1) { transition-delay: 0.1s; }
+    .reveal:nth-child(2) { transition-delay: 0.2s; }
+    .reveal:nth-child(3) { transition-delay: 0.3s; }
+    .reveal:nth-child(4) { transition-delay: 0.4s; }
+    .reveal:nth-child(5) { transition-delay: 0.5s; }
+    .reveal:nth-child(6) { transition-delay: 0.6s; }
+
+    .reveal-scale {
+      opacity: 0;
+      transform: scale(0.9);
+      transition:
+        opacity var(--duration-slow) var(--ease-bounce),
+        transform var(--duration-slow) var(--ease-bounce);
+    }
+    .slide.visible .reveal-scale {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .reveal-left {
+      opacity: 0;
+      transform: translateX(-50px);
+      transition:
+        opacity var(--duration-normal) var(--ease-out-expo),
+        transform var(--duration-normal) var(--ease-out-expo);
+    }
+    .slide.visible .reveal-left {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .reveal-right {
+      opacity: 0;
+      transform: translateX(50px);
+      transition:
+        opacity var(--duration-normal) var(--ease-out-expo),
+        transform var(--duration-normal) var(--ease-out-expo);
+    }
+    .slide.visible .reveal-right {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* Centered layout helper */
+    .centered {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .centered .slide-content {
+      align-items: center;
+    }
+
+    /* Two column layout */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(1rem, 3vw, 2rem);
+      align-items: center;
+    }
+    @media (max-width: 768px) {
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Progress bar */
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-blue), var(--accent-pink), var(--accent-orange));
+      width: 0%;
+      z-index: 1000;
+      transition: width 0.3s ease;
+    }
+
+    /* Navigation dots */
+    .nav-dots {
+      position: fixed;
+      right: clamp(1rem, 2vw, 2rem);
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      z-index: 1000;
+    }
+    .nav-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      padding: 0;
+    }
+    .nav-dot:hover {
+      background: rgba(255, 255, 255, 0.6);
+      transform: scale(1.3);
+    }
+    .nav-dot.active {
+      background: white;
+      box-shadow: 0 0 10px white;
+    }
+
+    /* Keyboard hint */
+    .keyboard-hint {
+      position: fixed;
+      bottom: clamp(1rem, 2vw, 2rem);
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      font-size: var(--small-size);
+      color: rgba(255, 255, 255, 0.5);
+      z-index: 1000;
+    }
+    .key {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 28px;
+      padding: 0 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      font-size: 0.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Slide number */
+    .slide-number {
+      position: fixed;
+      bottom: clamp(1rem, 2vw, 2rem);
+      right: clamp(1rem, 2vw, 2rem);
+      font-size: var(--small-size);
+      color: rgba(255, 255, 255, 0.5);
+      z-index: 1000;
+    }
+
+    /* Responsive adjustments */
+    @media (max-height: 700px) {
+      :root {
+        --slide-padding: clamp(1rem, 3vw, 2rem);
+        --content-gap: clamp(0.5rem, 1.5vw, 1rem);
+        --title-size: clamp(1.5rem, 5vw, 3rem);
+      }
+      .floating-shapes { display: none; }
+      .nav-dots, .keyboard-hint { display: none; }
+    }
+    @media (max-height: 600px) {
+      :root {
+        --slide-padding: clamp(0.75rem, 2.5vw, 1.5rem);
+        --content-gap: clamp(0.4rem, 1vw, 0.75rem);
+      }
+    }
+    @media (max-width: 600px) {
+      .grid-2, .grid-3, .grid-4 {
+        grid-template-columns: 1fr;
+      }
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+      .nav-dots { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+      }
+      html { scroll-behavior: auto; }
+      .shape { animation: none; }
+    }
+
+    /* Special slide backgrounds */
+    .slide-dark {
+      background: var(--bg-dark);
+    }
+    .slide-purple {
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+    .slide-orange {
+      background: linear-gradient(135deg, #f093fb 0%, #fee140 100%);
+    }
+    .slide-green {
+      background: linear-gradient(135deg, #00f5a0 0%, #00d9ff 100%);
+    }
+    .slide-rose {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+    .slide-blue {
+      background: linear-gradient(135deg, #667eea 0%, #00d9ff 100%);
+    }
+  </style>
+</head>
+<body>
+  <!-- Progress bar -->
+  <div class="progress-bar" id="progressBar"></div>
+
+  <!-- Navigation dots -->
+  <nav class="nav-dots" id="navDots"></nav>
+
+  <!-- Keyboard hint -->
+  <div class="keyboard-hint">
+    <span class="key">↑</span><span class="key">↓</span> 导航
+    <span style="margin: 0 0.5rem;">|</span>
+    <span class="key">Space</span> 下一页
+  </div>
+
+  <!-- Slide number -->
+  <div class="slide-number" id="slideNumber"></div>
+
+  <!-- ============================================
+       SLIDE 1: Title Slide
+       ============================================ -->
+  <section class="slide gradient-bg centered">
+    <div class="floating-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+      <div class="shape shape-3"></div>
+      <div class="shape shape-4"></div>
+    </div>
+    <div class="slide-content">
+      <div class="reveal">
+        <span class="badge badge-purple">🎮 课时 12</span>
+      </div>
+      <h1 class="reveal">Skills 入门</h1>
+      <p class="subtitle reveal">用 game-studio 做跳一跳</p>
+      <div class="reveal" style="margin-top: var(--content-gap);">
+        <span class="badge badge-blue">⏱️ 90分钟</span>
+        <span class="badge badge-orange">🧠 过程层</span>
+      </div>
+      <p class="tagline reveal">核心能力：提问力 · 韧性力</p>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SLIDE 2: Course Goals
+       ============================================ -->
+  <section class="slide gradient-bg">
+    <div class="floating-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-3"></div>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal" style="margin-bottom: var(--content-gap);">📚 课程目标</h2>
+      <div class="grid-2">
+        <div class="card card-accent reveal">
+          <h3>💡 知识目标</h3>
+          <ul class="bullet-list">
+            <li>理解 Skills = AI 的"专业工具箱"</li>
+            <li>理解 AI 不是无所不能，装 Skills 才能专业</li>
+            <li>理解插件机制：插件是 Skills 的容器</li>
+            <li>预先感知 Subagent = 独立上下文窗口</li>
+          </ul>
+        </div>
+        <div class="card card-accent reveal">
+          <h3>🚀 能力目标</h3>
+          <ul class="bullet-list">
+            <li>能在 QonnwolfCode/Trae 安装 game-studio</li>
+            <li>能用自然语言让 AI 调用 three-webgl-game skill</li>
+            <li>能对比"装 vs 不装"差异</li>
+            <li>能基于 AI 代码做个性化定制</li>
+          </ul>
+        </div>
+      </div>
+      <div class="highlight-box reveal" style="margin-top: var(--content-gap);">
+        <h4>🎯 情感目标</h4>
+        <p>体验"装了一个食谱，AI 就突然会做这道菜"的爽点</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SLIDE 3: Core Concepts
+       ============================================ -->
+  <section class="slide slide-purple">
+    <div class="slide-content">
+      <h2 class="reveal" style="margin-bottom: var(--content-gap);">🧩 核心概念</h2>
+      <div class="grid-3">
+        <div class="concept-card reveal">
+          <h4>🍳 Skill</h4>
+          <p>给 AI 的"食谱"，装上就能在特定领域表现专业</p>
+        </div>
+        <div class="concept-card reveal">
+          <h4>📖 插件 Plugin</h4>
+          <p>Skills 的容器，一本书里有多个食谱</p>
+        </div>
+        <div class="concept-card reveal">
+          <h4>👨‍🍳 通用 AI</h4>
+          <p>会一点点，但不精——像普通厨师</p>
+        </div>
+        <div class="concept-card reveal">
+          <h4>⭐ 装 Skill 的 AI</h4>
+          <p>突然变专业——像拿到食谱的大厨</p>
+        </div>
+        <div class="concept-card reveal">
+          <h4>🎮 three-webgl-game</h4>
+          <p>教 AI 用 Three.js 做 3D 游戏的教材</p>
+        </div>
+        <div class="concept-card reveal">
+          <h4>🔧 game-studio</h4>
+          <p>包含 9 个 Skills 的插件箱</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SLIDE 4: Misconceptions
+       ============================================ -->
+  <section class="slide gradient-bg-dark">
+    <div class="slide-content">
+      <h2 class="reveal" style="margin-bottom: var(--content-gap);">⚠️ 典型误概念</h2>
+      <div class="grid-2">
+        <div class="card reveal" style="border-left: 4px solid var(--accent-red);">
+          <h3 style="color: var(--accent-red);">❌ 误概念 M1</h3>
+          <p style="color: #666; margin-bottom: 0.5rem;">"AI 本来什么都会"</p>
+          <p><strong>正确：</strong>通用 AI 知识广但不精</p>
+        </div>
+        <div class="card reveal" style="border-left: 4px solid var(--accent-orange);">
+          <h3 style="color: var(--accent-orange);">❌ 误概念 M2</h3>
+          <p style="color: #666; margin-bottom: 0.5rem;">"Skills 是可下载的代码"</p>
+          <p><strong>正确：</strong>Skills 是给 AI 的"操作手册"</p>
+        </div>
+        <div class="card reveal" style="border-left: 4px solid var(--accent-cyan);">
+          <h3 style="color: var(--accent-cyan);">❌ 误概念 M3</h3>
+          <p style="color: #666; margin-bottom: 0.5rem;">"Skills 越多越好"</p>
+          <p><strong>正确：</strong>要按任务装合适的</p>
+        </div>
+        <div class="card reveal" style="border-left: 4px solid var(--accent-green);">
+          <h3 style="color: var(--accent-green);">❌ 误概念 M4</h3>
+          <p style="color: #666; margin-bottom: 0.5rem;">"AI 写的代码看不懂就用"</p>
+          <p><strong>正确：</strong>要能定制，改颜色/音效/阈值</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SLIDE 5: Section 1 - Connect
+       ============================================ -->
+  <section class="slide slide-blue centered">
+    <div class="slide-content">
+      <div class="section-number reveal">01</div>
+      <h2 class="section-title reveal">联系 Connect</h2>
+      <span class="section-time reveal">⏱️ 10分钟</span>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SLIDE 6: Connect Content
+       ============================================ -->
+  <section class="slide gradient-bg">
+    <div class="slide-content">
+      <h2 class="reveal" style="margin-bottom: var(--content-gap);">🔗 第一幕：联系</h2>
+      <div class="two-col">
+        <div>
+          <div class="card reveal" style="margin-bottom: var(--content-gap);">
+            <h3>🎤 上节课回顾</h3>
+            <p>你能用一句话说说涂鸦PK锦标赛最得意的设计吗？</p>
+          </div>
+          <div class="highlight-box reveal">
+            <h4>💭 诊断点</h4>
+            <p>学生是否能用"设计决策"语言表达</p>
+          </div>
+        </div>
+        <div class="card reveal">
+          <h3>🎮 成品展示</h3>
+          <p>打开 <code>prototype/跳一跳-3d/index.html</code></p>
+          <div class="highlight-box" style="margin-top: 1rem;">
+            <p><strong>90% 的代码是 AI 写的</strong>，我只在旁边引导。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SLIDE 7: Section 2 - Construct
+       ============================================ -->
+  <section class="slide slide-orange centered">
+    <div class="slide-content">
+      <div class="section-number reveal">02</div>
+      <h2 class="section-title reveal">建构 Construct</h2>
+      <span class="section-time reveal">⏱️ 65分钟</span>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SLIDE 8: Construct Part 1 - Pain Point
+       ============================================ -->
+  <section class="slide slide-rose">
+    <div class="slide-content">
+      <h2 class="reveal" style="margin-bottom: var(--content-gap);">📉 分段一：痛点演示</h2>
+      <p class="reveal" style="color: var(--text-secondary); margin-bottom: var(--content-gap);">不装 game-studio 时 AI 翻车</p>
+      <div class="grid-2">
+        <div class="card reveal">
+          <h3>🔍 对照实验</h3>
+          <ul class="bullet-list">
+            <li>没有装 game-studio 插件</li>
+            <li>让 AI 做 3D 跳一跳</li>
+            <li>观察会发生什么</li>
+          </ul>
+        </div>
+        <div class="card reveal" style="border-left: 4px solid var(--accent-red);">
+          <h3 style="color: var(--accent-red);">😱 预期翻车</h3>
+          <ul class="bullet-list">
+            <li>平台位置错乱</li>
+            <li>小球穿模</li>
+            <li>没有跳跃逻辑</li>
+            <li>画面平淡无趣</li>
+          </ul>
+        </div>
+      </div>
+      <div class="highlight-box reveal" style="margin-top: var(--content-gap);">
+        <h4>💡 关键认知</h4>
+        <p>AI 知道一点点，但不专业——像会一点烹饪基础的人</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SLIDE 9: Construct Part 2 - Skills Rescue
+       ============================================ -->
+  <section class="slide gradient-bg">
+    <div class="floating-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+    </div>
+    <div class="slide-content">
+      <h2 class="reveal" style="margin-bottom: var(--content-gap);">🚀 分段二：Skills 救场</h2>
+      <p class="reveal" style="color: var(--text-secondary); margin-bottom: var(--content-gap);">装 game-studio 后 AI 变身</p>
+      <div class="card reveal-scale" style="background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));">
+        <h3 style="text-align: center;">✨ 对比实验</h3>
+        <div class="grid-2" style="margin-top: 1rem;">
+          <div style="text-align: center; padding: 1rem; opacity: 0.7;">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">❌</div>
+            <p><strong>没装</strong></p>
+            <p style="font-size: var(--small-size);">AI 写得乱七八糟</p>
+          </div>
+          <div style="text-align: center; padding: 1rem;">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">✅</div>
+            <p><strong>装了 game-studio</strong></p>
+            <p style="font-size: var(--small-size);">AI 一次成功！</p>
+          </div>
+        </div>
+      </div>
+      <div class="highlight-box reveal" style="margin-top: var(--content-gap);">
+        <h4>🍳 类比</h4>
+        <p><strong>AI = 厨师</strong>，<strong>Skill = 食谱</strong>，<strong>装 Skill = 给厨师菜谱</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SLIDE 10: Install Command
+       ============================================ -->
+  <section class="slide gradient-bg-dark centered">
+    <div class="slide-content" style="align-items: center;">
+      <h2 class="reveal" style="margin-bottom: var(--content-gap);">🔧 安装 game-studio</h2>
+      <div class="code-block reveal-scale" style="max-width: 500px; text-align: center; font-size: clamp(1rem, 2.5vw, 1.5rem);">
+        /plugin install game-studio
+      </div>
+      <p class="reveal" style="color: var(--text-secondary); margin-top: var(--content-gap);">装好后，AI 突然就"懂"游戏了</p>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SLIDE 11: Construct Part 3 - Full Version
+       ============================================ -->
+  <section class="slide slide-purple">
+    <div class="slide-content">
+      <h2 class="reveal" style="margin-bottom: var(--content-gap);">🎯 分段三：跑通完整版</h2>
+      <p class="reveal" style="color: var(--text-secondary); margin-bottom: var(--content-gap);">用提问力让 AI 加上关键功能</p>
+      <div class="grid-2">
+        <div class="card reveal">
+          <h3>📋 基础版差距</h3>
+          <ul class="bullet-list">
+            <li>❌ 没有蓄力机制</li>
+            <li>❌ 没有 PERFECT 奖励</li>
+            <li>❌ 没有音效</li>
+            <li>❌ 没有小球动画</li>
+          </ul>
+        </div>
+        <div class="card reveal">
+          <h3>✅ 完整版关键</h3>
+          <ul class="bullet-list">
+            <li>蓄力机制：按住空格蓄力</li>
+            <li>PERFECT 命中：+3 分</li>
+            <li>Web Audio 音效</li>
+            <li>小球动画（压扁、旋转）</li>
+          </ul>
+        </div>
+      </div>
+      <div class="highlight-box reveal" style="margin-top: var(--content-gap);">
+        <h4>📝 提示词模板</h4>
+        <p style="font-size: var(--small-size);">请帮我在跳一跳基础上加蓄力、PERFECT、音效、动画...</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SLIDE 12: Construct Part 4 - Customization
+       ============================================ -->
+  <section class="slide gradient-bg">
+    <div class="slide-content">
+      <h2 class="reveal" style="margin-bottom: var(--content-gap);">🎨 分段四：个性化定制</h2>
+      <p class="reveal" style="color: var(--text-secondary); margin-bottom: var(--content-gap);">改 3 处，变成你自己的跳一跳</p>
+      <div class="grid-3">
+        <div class="concept-card reveal">
+          <h4>🎨 改背景颜色</h4>
+          <p>搜 <code>background</code> 或 <code>color</code></p>
+        </div>
+        <div class="concept-card reveal">
+          <h4>🎯 改 PERFECT 阈值</h4>
+          <p>搜 <code>0.15</code> 或 <code>perfect</code></p>
+        </div>
+        <div class="concept-card reveal">
+          <h4>🔊 改音效频率</h4>
+          <p>搜 <code>playTone</code> 或 <code>frequency</code></p>
+        </div>
+      </div>
+      <div class="highlight-box reveal" style="margin-top: var(--content-gap);">
+        <h4>💡 关键</h4>
+        <p>不是让 AI 改，是<strong>你自己改代码</strong>——这样你才知道代码在做什么</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SLIDE 13: Section 3 - Contemplate
+       ============================================ -->
+  <section class="slide slide-green centered">
+    <div class="slide-content">
+      <div class="section-number reveal">03</div>
+      <h2 class="section-title reveal">反思 Contemplate</h2>
+      <span class="section-time reveal" style="background: var(--accent-purple); color: white;">⏱️ 8分钟</span>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SLIDE 14: Contemplate Content
+       ============================================ -->
+  <section class="slide gradient-bg">
+    <div class="slide-content">
+      <h2 class="reveal" style="margin-bottom: var(--content-gap);">🤔 第三幕：反思</h2>
+      <div class="card reveal" style="margin-bottom: var(--content-gap);">
+        <h3>🎮 成果展示 + 互玩</h3>
+        <p>2-3 名同学展示自己的跳一跳，讲改了什么、为什么这么改</p>
+      </div>
+      <div class="two-col">
+        <div class="highlight-box reveal">
+          <h4>💭 元认知讨论</h4>
+          <p>这跟之前"让 AI 写代码"有什么不一样？</p>
+        </div>
+        <div class="highlight-box reveal">
+          <h4>🔧 工具箱类比</h4>
+          <p><strong>Skill = 给 AI 的工具箱</strong><br>装上工具，AI 突然变专业</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SLIDE 15: Section 4 - Continue
+       ============================================ -->
+  <section class="slide slide-blue centered">
+    <div class="slide-content">
+      <div class="section-number reveal">04</div>
+      <h2 class="section-title reveal">延续 Continue</h2>
+      <span class="section-time reveal" style="background: var(--accent-rose); color: var(--text-dark);">⏱️ 7分钟</span>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SLIDE 16: Continue Content - Preview
+       ============================================ -->
+  <section class="slide gradient-bg-dark">
+    <div class="slide-content">
+      <h2 class="reveal" style="margin-bottom: var(--content-gap);">🔮 第四幕：延续</h2>
+      <div class="card reveal" style="border-left: 4px solid var(--accent-cyan); margin-bottom: var(--content-gap);">
+        <h3 style="color: var(--accent-cyan);">⚠️ 国产模型 ≠ 一击必胜</h3>
+        <p>即便装了 Skills，AI 写的代码也需要：审 → 改 → 再审 → 再改</p>
+      </div>
+      <div class="highlight-box reveal">
+        <h4>😫 问题</h4>
+        <p>谁来审？每次都要复制粘贴到另一个窗口...很累！</p>
+      </div>
+      <div class="card reveal" style="margin-top: var(--content-gap); border-left: 4px solid var(--accent-pink);">
+        <h3 style="color: var(--accent-pink);">🚀 下节课预告：Subagent</h3>
+        <p>AI 召唤的另一个 AI 助手，有独立上下文窗口<br>
+        <strong>Planner · Reviewer · Tester</strong> 三个角色协作</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SLIDE 17: AI Prompt Guide
+       ============================================ -->
+  <section class="slide slide-purple">
+    <div class="slide-content">
+      <h2 class="reveal" style="margin-bottom: var(--content-gap);">🤖 AI 助教提示词</h2>
+      <div class="grid-2">
+        <div class="card reveal">
+          <h3>❌ 不装 game-studio</h3>
+          <div class="code-block">
+<span class="comment">/* 不装版本 */</span>
+用 Three.js 给我做一个 3D 跳一跳，
+小球从一个平台跳到另一个平台，
+有计分，有动画。
+          </div>
+        </div>
+        <div class="card reveal">
+          <h3>✅ 装 game-studio 后</h3>
+          <div class="code-block">
+<span class="comment">/* 装上后 */</span>
+用 <span class="keyword">three-webgl-game</span> skill 做一个 3D 跳一跳：
+- 小球可以蓄力跳跃
+- 蓄力越久跳越远
+- PERFECT +3 分
+- Web Audio 音效
+- 等距视角 + 阴影
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SLIDE 18: Weekly Challenge
+       ============================================ -->
+  <section class="slide gradient-bg">
+    <div class="floating-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-4"></div>
+    </div>
+    <div class="slide-content centered">
+      <h2 class="reveal" style="margin-bottom: var(--content-gap);">🏆 5分钟 AI 挑战</h2>
+      <div class="card reveal-scale" style="text-align: center; max-width: 600px;">
+        <h3 style="color: var(--accent-purple); margin-bottom: 1rem;">给跳一跳加一个你最喜欢的功能</h3>
+        <ul class="bullet-list" style="text-align: left;">
+          <li>🎯 BOSS 平台（深红色，得 5 分）</li>
+          <li>⬅️ 反向跳（向左跳）</li>
+          <li>⚡ 双倍蓄力（Shift+空格）</li>
+          <li>🔥 连击奖励（连续 3 个 PERFECT）</li>
+        </ul>
+        <div class="highlight-box" style="margin-top: 1rem; text-align: left;">
+          <p><strong>要求：</strong>能跑、能看到、能讲出"我为什么这么设计"</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SLIDE 19: FAQ
+       ============================================ -->
+  <section class="slide gradient-bg-dark">
+    <div class="slide-content">
+      <h2 class="reveal" style="margin-bottom: var(--content-gap);">❓ 常见问题 FAQ</h2>
+      <div class="grid-2">
+        <div class="card reveal">
+          <h3 style="color: var(--accent-cyan);">没装 Node.js 怎么办？</h3>
+          <p>Three.js CDN + 单文件 HTML 不需要 Node！</p>
+        </div>
+        <div class="card reveal">
+          <h3 style="color: var(--accent-orange);">代码看不懂怎么办？</h3>
+          <p>只要求改 3 个具体地方就行</p>
+        </div>
+        <div class="card reveal">
+          <h3 style="color: var(--accent-rose);">改完报错怎么办？</h3>
+          <p>F12 看 console，贴给 AI 修</p>
+        </div>
+        <div class="card reveal">
+          <h3 style="color: var(--accent-green);">game-studio 装不上？</h3>
+          <p>用老师机器演示，跳过"装"步骤</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SLIDE 20: Summary
+       ============================================ -->
+  <section class="slide gradient-bg centered">
+    <div class="floating-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+      <div class="shape shape-3"></div>
+      <div class="shape shape-4"></div>
+    </div>
+    <div class="slide-content">
+      <p class="quote reveal">Skill = 给 AI 的工具箱。<br>装上工具，AI 就在那个领域突然变专业了。</p>
+      <div class="reveal" style="margin-top: var(--content-gap);">
+        <span class="badge badge-purple">不用自己造轮子</span>
+        <span class="badge badge-blue">调用现成好工具</span>
+        <span class="badge badge-orange">不重新发明</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SLIDE 21: End Slide
+       ============================================ -->
+  <section class="slide gradient-bg-dark centered">
+    <div class="slide-content">
+      <h2 class="reveal" style="font-size: var(--title-size);">下节课见！</h2>
+      <p class="subtitle reveal">Subagent · Reviewer · Tester</p>
+      <p class="reveal" style="color: var(--text-secondary); margin-top: var(--content-gap);">三角色协作，真正的 AI 工程师工作流</p>
+    </div>
+  </section>
+
+  <!-- ============================================
+       JAVASCRIPT: Slide Controller
+       ============================================ -->
+  <script>
+    class SlidePresentation {
+      constructor() {
+        this.slides = document.querySelectorAll('.slide');
+        this.currentSlide = 0;
+        this.totalSlides = this.slides.length;
+        
+        this.init();
+      }
+      
+      init() {
+        this.setupIntersectionObserver();
+        this.setupKeyboardNav();
+        this.setupTouchNav();
+        this.setupProgressBar();
+        this.setupNavDots();
+        this.setupSlideNumber();
+        
+        // Initial state
+        this.updateActiveSlide(0);
+      }
+      
+      setupIntersectionObserver() {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              const index = Array.from(this.slides).indexOf(entry.target);
+              this.currentSlide = index;
+              this.updateActiveSlide(index);
+            }
+          });
+        }, { threshold: 0.5 });
+        
+        this.slides.forEach(slide => observer.observe(slide));
+      }
+      
+      setupKeyboardNav() {
+        document.addEventListener('keydown', (e) => {
+          switch(e.key) {
+            case 'ArrowDown':
+            case 'ArrowRight':
+            case ' ':
+            case 'PageDown':
+              e.preventDefault();
+              this.nextSlide();
+              break;
+            case 'ArrowUp':
+            case 'ArrowLeft':
+            case 'PageUp':
+              e.preventDefault();
+              this.prevSlide();
+              break;
+            case 'Home':
+              e.preventDefault();
+              this.goToSlide(0);
+              break;
+            case 'End':
+              e.preventDefault();
+              this.goToSlide(this.totalSlides - 1);
+              break;
+          }
+        });
+      }
+      
+      setupTouchNav() {
+        let touchStartY = 0;
+        let touchEndY = 0;
+        
+        document.addEventListener('touchstart', (e) => {
+          touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+        
+        document.addEventListener('touchend', (e) => {
+          touchEndY = e.changedTouches[0].screenY;
+          const diff = touchStartY - touchEndY;
+          
+          if (Math.abs(diff) > 50) {
+            if (diff > 0) {
+              this.nextSlide();
+            } else {
+              this.prevSlide();
+            }
+          }
+        }, { passive: true });
+      }
+      
+      setupProgressBar() {
+        this.progressBar = document.getElementById('progressBar');
+        
+        window.addEventListener('scroll', () => {
+          const scrollTop = window.scrollY;
+          const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+          const progress = (scrollTop / docHeight) * 100;
+          this.progressBar.style.width = progress + '%';
+        });
+      }
+      
+      setupNavDots() {
+        this.navDotsContainer = document.getElementById('navDots');
+        
+        // Clear existing dots first
+        this.navDotsContainer.innerHTML = '';
+        
+        this.slides.forEach((_, index) => {
+          const dot = document.createElement('button');
+          dot.className = 'nav-dot';
+          dot.setAttribute('aria-label', `Go to slide ${index + 1}`);
+          dot.addEventListener('click', () => this.goToSlide(index));
+          this.navDotsContainer.appendChild(dot);
+        });
+        
+        this.navDots = this.navDotsContainer.querySelectorAll('.nav-dot');
+      }
+      
+      setupSlideNumber() {
+        this.slideNumberEl = document.getElementById('slideNumber');
+        this.updateSlideNumber();
+      }
+      
+      updateSlideNumber() {
+        this.slideNumberEl.textContent = `${this.currentSlide + 1} / ${this.totalSlides}`;
+      }
+      
+      updateActiveSlide(index) {
+        this.navDots.forEach((dot, i) => {
+          dot.classList.toggle('active', i === index);
+        });
+        this.updateSlideNumber();
+      }
+      
+      goToSlide(index) {
+        if (index >= 0 && index < this.totalSlides) {
+          this.slides[index].scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+      
+      nextSlide() {
+        if (this.currentSlide < this.totalSlides - 1) {
+          this.goToSlide(this.currentSlide + 1);
+        }
+      }
+      
+      prevSlide() {
+        if (this.currentSlide > 0) {
+          this.goToSlide(this.currentSlide - 1);
+        }
+      }
+    }
+    
+    // Initialize presentation
+    new SlidePresentation();
+  </script>
+</body>
+</html>
