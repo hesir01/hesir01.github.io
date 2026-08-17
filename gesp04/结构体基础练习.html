@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GESP 四级 . 结构体基础专项练习</title>
+<style>
+  :root{
+    --bg:#0f141b; --panel:#161d27; --panel2:#1c2531; --border:#2a3543;
+    --text:#e6edf3; --muted:#8b98a9; --accent:#4ea1ff; --accent2:#7c5cff;
+    --ok:#3fb950; --bad:#f85149; --warn:#d29922; --chip:#23303f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.65;padding:0 0 96px;
+  }
+  header{
+    background:linear-gradient(135deg,#13202f,#1a2333);
+    border-bottom:1px solid var(--border);padding:28px 24px 22px;
+  }
+  header h1{font-size:23px;font-weight:700;letter-spacing:.5px}
+  header .sub{color:var(--muted);font-size:13.5px;margin-top:6px}
+  .wrap{max-width:920px;margin:0 auto;padding:0 18px}
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:22px 0 8px}
+  .filter{
+    background:var(--panel2);border:1px solid var(--border);color:var(--muted);
+    padding:7px 14px;border-radius:20px;cursor:pointer;font-size:13px;transition:.15s;
+  }
+  .filter:hover{color:var(--text);border-color:var(--accent)}
+  .filter.active{background:var(--accent);color:#06121f;border-color:var(--accent);font-weight:600}
+  .spacer{flex:1}
+  .card{
+    background:var(--panel);border:1px solid var(--border);border-radius:14px;
+    padding:20px 20px 18px;margin:16px 0;transition:.2s;
+  }
+  .card.correct{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok) inset}
+  .card.wrong{border-color:var(--bad);box-shadow:0 0 0 1px var(--bad) inset}
+  .qhead{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+  .badge{font-size:11.5px;padding:3px 9px;border-radius:6px;font-weight:600}
+  .b-src{background:var(--chip);color:#9fc4ff}
+  .b-type{background:#2a2440;color:#c4b3ff}
+  .b-cat{background:#13312a;color:#5fe0b0}
+  .qno{font-weight:700;color:var(--accent2);font-size:14px}
+  .stem{font-size:15px;margin:8px 0 12px}
+  pre{
+    background:#0a0f15;border:1px solid var(--border);border-radius:10px;
+    padding:14px 16px;overflow:auto;font-size:13px;line-height:1.55;
+    font-family:"SF Mono",Menlo,Consolas,"Courier New",monospace;color:#cfe3ff;
+    margin:6px 0 14px;
+  }
+  .opts{display:flex;flex-direction:column;gap:9px}
+  .opt{
+    display:flex;align-items:flex-start;gap:11px;background:var(--panel2);
+    border:1px solid var(--border);border-radius:10px;padding:11px 13px;cursor:pointer;
+    transition:.12s;font-size:14px;
+  }
+  .opt:hover{border-color:var(--accent)}
+  .opt input{margin-top:4px;accent-color:var(--accent);width:16px;height:16px;flex-shrink:0}
+  .opt .lab{font-weight:700;color:var(--muted);margin-right:2px}
+  .opt.right{border-color:var(--ok);background:#10241b}
+  .opt.wrongpick{border-color:var(--bad);background:#2a1614}
+  .feedback{margin-top:13px;padding:13px 15px;border-radius:10px;font-size:13.5px;display:none}
+  .feedback.show{display:block}
+  .feedback.ok{background:#10241b;border:1px solid var(--ok);color:#a6f0c6}
+  .feedback.no{background:#2a1614;border:1px solid var(--bad);color:#ffb3ae}
+  .feedback .tag{font-weight:700;margin-right:6px}
+  .feedback .exp{display:block;margin-top:7px;color:var(--muted);line-height:1.6}
+  footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px}
+  .note{background:var(--panel2);border-left:3px solid var(--warn);padding:10px 14px;border-radius:8px;font-size:13px;color:var(--muted);margin:14px 0}
+  .submitbar{
+    position:fixed; left:0; right:0; bottom:0; z-index:50;
+    background:#10161f; border-top:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 22px; box-shadow:0 -6px 22px rgba(0,0,0,.35);
+  }
+  .sb-score{font-size:14px;color:var(--muted)}
+  .sb-score b{color:var(--accent);font-size:18px}
+  .sb-btns{display:flex;gap:10px}
+  .btn{
+    background:var(--accent);color:#06121f;border:none;border-radius:9px;
+    padding:9px 18px;font-size:13.5px;font-weight:600;cursor:pointer;transition:.15s;
+  }
+  .btn:hover{filter:brightness(1.08)}
+  .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+  .btn.ghost:hover{color:var(--text);border-color:var(--accent)}
+  .summary{display:none;margin:18px 0 4px;padding:14px 18px;border-radius:10px;font-size:14px;line-height:1.6}
+  .summary.show{display:block}
+  .summary.allok{background:#10241b;border:1px solid var(--ok);color:#a6f0c6}
+  .summary.hasswrong{background:#2a1614;border:1px solid var(--bad);color:#ffb3ae}
+  .summary b{color:#fff}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>GESP 四级 . 结构体基础专项练习</h1>
+    <div class="sub">聚焦: 结构体定义 / 成员访问 / 结构体数组 / sort + cmp / sizeof 内存对齐</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="toolbar">
+    <div class="filter active" data-cat="all">全部</div>
+    <div class="filter" data-cat="结构体定义">结构体定义</div>
+    <div class="filter" data-cat="成员访问">成员访问</div>
+    <div class="filter" data-cat="结构体数组">结构体数组</div>
+    <div class="filter" data-cat="sort+cmp">sort+cmp</div>
+    <div class="filter" data-cat="sizeof">sizeof</div>
+    <div class="spacer"></div>
+  </div>
+
+  <div class="note">选择题单选、判断题选正确/错误,做完点提交统一判分。本题单取自课堂知识整理与 GESP 四级真题。</div>
+
+  <div id="list"></div>
+
+  <div class="summary" id="summary"></div>
+
+  <div class="submitbar">
+    <div class="sb-score">本次得分:<b id="rc">0</b> / <b id="rt">10</b></div>
+    <div class="sb-btns">
+      <button class="btn" onclick="submitAll()">提交答案</button>
+      <button class="btn ghost" onclick="resetAll()">重置</button>
+    </div>
+  </div>
+
+  <footer>本练习由 GESP 课件整理生成 · 仅供学习使用</footer>
+</div>
+<script>
+const DATA = [
+  {
+    "cat": "结构体定义",
+    "src": "课堂/GESP高频",
+    "type": "单选题",
+    "title": "结构体声明语法",
+    "stem": "定义 struct Point { int x, y; }; 后,下列声明正确的是( )。",
+    "options": [
+      "Point p;",
+      "struct Point p;",
+      "Point p = {1, 2};",
+      "以上都正确"
+    ],
+    "answer": 3,
+    "exp": "C++ 中 Point p; 与 struct Point p; 均合法,聚合初始化 {1,2} 也正确。考点:结构体声明语法(高频)。"
+  },
+  {
+    "cat": "sizeof",
+    "src": "GESP202512C4",
+    "type": "单选题",
+    "title": "结构体 sizeof",
+    "stem": "struct S { char c; int x; }; 在常见 64 位编译器上,sizeof(S) 的值是( )。",
+    "options": [
+      "5",
+      "6",
+      "8",
+      "12"
+    ],
+    "answer": 2,
+    "exp": "char 1 字节后需填充 3 字节让 int 4 字节对齐,总大小为 8。来源:GESP202512C4(结构体 sizeof)。"
+  },
+  {
+    "cat": "sort+cmp",
+    "src": "GESP202506C4",
+    "type": "单选题",
+    "title": "结构体排序 cmp",
+    "stem": "对 struct Node { int id; int score; }; 的数组按 score 降序排序,正确的 cmp 是( )。",
+    "code": "bool cmp(Node a, Node b){ return a.score > b.score; }\nbool cmp(Node a, Node b){ return a.score >= b.score; }\nbool cmp(const Node &a, const Node &b){ return a.score > b.score; }\nbool cmp(const Node &a, const Node &b){ return a.score < b.score; }",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "answer": 2,
+    "exp": "用 const & 避免拷贝、> 表示降序;>= 破坏严格弱序。A 能跑但有拷贝开销,C 是规范写法。来源:GESP202506C4(结构体排序)。"
+  },
+  {
+    "cat": "sizeof",
+    "src": "GESP202603C4",
+    "type": "单选题",
+    "title": "内存对齐计算",
+    "stem": "若有 struct A { int a; char b; double c; };,在 64 位常见环境下 sizeof(A) 最可能是( )。",
+    "options": [
+      "13",
+      "16",
+      "24",
+      "8"
+    ],
+    "answer": 1,
+    "exp": "int (4) + char (1) + 填充(3) + double (8) = 16,总大小对齐到 8 的倍数。来源:GESP202603C4(内存对齐)。"
+  },
+  {
+    "cat": "成员访问",
+    "src": "课堂",
+    "type": "单选题",
+    "title": "成员访问语法",
+    "stem": "访问结构体数组 Student a[10] 第 i 个元素的 name 字段,正确写法是( )。",
+    "options": [
+      "a.name[i]",
+      "a[i].name",
+      "a->name[i]",
+      "a[i]->name"
+    ],
+    "answer": 1,
+    "exp": "先下标 [i] 取元素,再 . 取成员。-> 用于指针,本课数组元素不是指针。考点:成员访问语法。"
+  },
+  {
+    "cat": "结构体定义",
+    "src": "课堂",
+    "type": "判断题",
+    "title": "定义末尾分号",
+    "stem": "结构体定义 struct A { int x; }; 末尾的分号可以省略。",
+    "options": [
+      "正确",
+      "错误"
+    ],
+    "answer": 1,
+    "exp": "结构体定义末尾分号必填。考点:结构体语法细节。"
+  },
+  {
+    "cat": "结构体数组",
+    "src": "GESP202409C4",
+    "type": "判断题",
+    "title": "结构体整变量赋值",
+    "stem": "两个同类型结构体变量可以直接用 = 赋值,所有成员会一并复制。",
+    "options": [
+      "正确",
+      "错误"
+    ],
+    "answer": 0,
+    "exp": "C++ 结构体默认逐成员拷贝赋值,这是它比并行数组方便之处。来源:GESP202409C4(结构体赋值)。"
+  },
+  {
+    "cat": "sizeof",
+    "src": "课堂",
+    "type": "判断题",
+    "title": "连续 char 的 sizeof",
+    "stem": "struct S { char a; char b; }; 的 sizeof 结果是 2。",
+    "options": [
+      "正确",
+      "错误"
+    ],
+    "answer": 0,
+    "exp": "两个 char 各 1 字节、1 字节对齐,无需填充,共 2 字节。考点:连续小类型对齐。"
+  },
+  {
+    "cat": "sort+cmp",
+    "src": "GESP202506C4",
+    "type": "判断题",
+    "title": "cmp 严格弱序",
+    "stem": "结构体排序时,比较函数 cmp 中使用 >= 不会影响排序正确性。",
+    "options": [
+      "正确",
+      "错误"
+    ],
+    "answer": 1,
+    "exp": ">= 破坏严格弱序,sort 行为未定义,可能越界崩溃。必须用 < 或 >。来源:GESP202506C4(cmp 规范,高频)。"
+  },
+  {
+    "cat": "sizeof",
+    "src": "GESP202606C4",
+    "type": "判断题",
+    "title": "成员顺序影响空间",
+    "stem": "结构体成员的排列顺序可能影响结构体的 sizeof 结果。",
+    "options": [
+      "正确",
+      "错误"
+    ],
+    "answer": 0,
+    "exp": "如 struct {char; short; int; char;} 顺序不同填充不同,空间随之变化。来源:GESP202606C4(对齐与成员顺序)。"
+  }
+];
+
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const list = document.getElementById('list');
+
+function render(){
+  list.innerHTML = "";
+  DATA.forEach((q,idx)=>{
+    const card = document.createElement('div');
+    card.className = "card" + (q.bonus ? " bonus" : "");
+    card.dataset.cat = q.cat;
+    card.id = "q"+idx;
+
+    const graded = q.graded !== false && !q.bonus;
+    let codeHtml = q.code ? `<pre>${esc(q.code)}</pre>` : "";
+
+    if(!graded){
+      // 拓展 / 编程题：仅展示，不判分
+      card.innerHTML = `
+        <div class="qhead">
+          <span class="badge b-src">${esc(q.src||"")}</span>
+          <span class="badge b-type">${esc(q.type||"拓展实践")}</span>
+          <span class="badge b-cat">${esc(q.cat||"")}</span>
+          <span class="qno">${esc(q.title||("第 "+(idx+1)+" 题"))}</span>
+        </div>
+        <div class="stem">${esc(q.stem||"")}</div>
+        ${codeHtml}
+        ${q.bonus && q.exp ? `<div class="feedback show"><span class="exp">${esc(q.exp)}</span></div>` : ""}
+      `;
+      list.appendChild(card);
+      return;
+    }
+
+    let optsHtml = q.options.map((o,oi)=>`
+      <label class="opt" data-oi="${oi}">
+        <input type="radio" name="q${idx}" value="${oi}">
+        <span><span class="lab">${String.fromCharCode(65+oi)}.</span> ${esc(o)}</span>
+      </label>`).join("");
+
+    card.innerHTML = `
+      <div class="qhead">
+        <span class="badge b-src">${esc(q.src||"")}</span>
+        <span class="badge b-type">${esc(q.type||"")}</span>
+        <span class="badge b-cat">${esc(q.cat||"")}</span>
+        <span class="qno">第 ${idx+1} 题 · ${esc(q.title||"")}</span>
+      </div>
+      <div class="stem">${esc(q.stem||"")}</div>
+      ${codeHtml}
+      <div class="opts">${optsHtml}</div>
+      <div class="feedback" id="fb${idx}"></div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function gradeCard(idx, lock){
+  const q = DATA[idx];
+  const card = document.getElementById("q"+idx);
+  const picked = document.querySelector(`input[name="q${idx}"]:checked`);
+  const fb = document.getElementById("fb"+idx);
+  const answered = !!picked;
+  const pi = answered ? parseInt(picked.value) : -1;
+  const ok = pi === q.answer;
+
+  card.classList.remove("correct","wrong");
+  card.classList.add(ok ? "correct":"wrong");
+  card.querySelectorAll('.opt').forEach(op=>{
+    op.classList.remove('right','wrongpick');
+    const oi = parseInt(op.dataset.oi);
+    if(oi === q.answer) op.classList.add('right');
+    if(oi === pi && !ok) op.classList.add('wrongpick');
+  });
+
+  let tag;
+  if(!answered){
+    tag = `<span class="tag" style="color:var(--bad)">✗ 未作答</span> 正确答案：${String.fromCharCode(65+q.answer)}`;
+  } else if(ok){
+    tag = `<span class="tag" style="color:var(--ok)">✓ 回答正确</span>`;
+  } else {
+    tag = `<span class="tag" style="color:var(--bad)">✗ 回答错误</span> 正确答案：${String.fromCharCode(65+q.answer)}`;
+  }
+  fb.className = "feedback show " + (ok?"ok":"no");
+  fb.innerHTML = tag + `<span class="exp">${esc(q.exp||"")}</span>`;
+
+  if(lock) card.querySelectorAll('input[type=radio]').forEach(r=>r.disabled=true);
+  return ok;
+}
+
+function submitAll(){
+  let right=0, answered=0, total=0;
+  const wrongList=[];
+  DATA.forEach((q,idx)=>{
+    const card = document.getElementById("q"+idx);
+    if(card.style.display === 'none') return;       // 被筛选隐藏的题不计入
+    if(q.graded === false || q.bonus) return;        // 拓展/编程题不计分
+    total++;
+    if(document.querySelector(`input[name="q${idx}"]:checked`)) answered++;
+    const ok = gradeCard(idx, true);
+    if(ok) right++; else wrongList.push(idx+1);
+  });
+  if(total === 0) return;
+  const rate = Math.round(right/total*100);
+  document.getElementById('rc').textContent = right;
+  document.getElementById('rt').textContent = total;
+
+  const sum = document.getElementById('summary');
+  let msg = `本次作答：答对 <b>${right}</b> / ${total} 题（正确率 ${rate}%），已作答 ${answered} 题。`;
+  if(wrongList.length>0){
+    msg += ` 错题：第 ${wrongList.join('、')} 题已标红，解析（解题方法）见各题下方。`;
+    sum.className = "summary show hasswrong";
+  } else {
+    msg += ` 全部正确，太棒了！`;
+    sum.className = "summary show allok";
+  }
+  sum.innerHTML = msg;
+  sum.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function resetAll(){
+  DATA.forEach((q,idx)=>{
+    if(q.graded === false || q.bonus) return;
+    const card = document.getElementById("q"+idx);
+    const fb = document.getElementById("fb"+idx);
+    card.classList.remove("correct","wrong");
+    fb.className="feedback"; fb.innerHTML="";
+    card.querySelectorAll('input[type=radio]').forEach(r=>{r.checked=false; r.disabled=false;});
+    card.querySelectorAll('.opt').forEach(op=>op.classList.remove('right','wrongpick'));
+  });
+  const sum = document.getElementById('summary');
+  sum.className="summary"; sum.innerHTML="";
+  document.getElementById('rc').textContent='0';
+}
+
+// 筛选
+document.querySelectorAll('.filter').forEach(f=>{
+  f.addEventListener('click',()=>{
+    document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));
+    f.classList.add('active');
+    const cat=f.dataset.cat;
+    document.querySelectorAll('#list .card').forEach(c=>{
+      if(cat==='all' || c.dataset.cat===cat) c.style.display='';
+      else c.style.display='none';
+    });
+  });
+});
+
+render();
+
+</script>
+</body>
+</html>
